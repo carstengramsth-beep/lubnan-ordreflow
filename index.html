@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lubnan Ordreflow 1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f; --surface:#1a1a1a; --surface2:#242424; --surface3:#2e2e2e;
+  --border:#333; --text:#f0ede8; --text-dim:#888; --text-muted:#555;
+  --ft1:#e07b2a; --ft2:#9b59b6; --reffen:#27ae60; --naestved:#2980b9;
+  --paid:#27ae60; --ondelivery:#f1c40f; --pending:#e74c3c; --invoice:#3498db;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Readex Pro',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.hidden{display:none!important;}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr-brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.hdr-logo{font-size:18px;font-weight:700;letter-spacing:.1em;color:var(--ft1);}
+.hdr-ver{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);background:var(--surface2);padding:2px 7px;border-radius:4px;}
+.clock{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--text-dim);}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:0;overflow-x:auto;}
+.ntab{padding:13px 16px;font-size:13px;font-weight:500;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.ntab:hover{color:var(--text);}
+.ntab.active{color:var(--ft1);border-bottom-color:var(--ft1);}
+.nbadge{background:var(--ft1);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'Readex Pro',sans-serif;font-size:13px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{opacity:.85;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-primary{background:var(--ft1);color:#fff;}
+.btn-secondary{background:var(--surface3);color:var(--text);border:1px solid var(--border);}
+.btn-success{background:var(--paid);color:#fff;}
+.btn-danger{background:var(--pending);color:#fff;}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+
+/* PAGE */
+.main{padding:20px 24px;}
+
+/* ═══════════════════════════════
+   DASHBOARD
+═══════════════════════════════ */
+.dash-head{margin-bottom:20px;}
+.dash-head h1{font-size:21px;font-weight:600;margin-bottom:3px;}
+.dash-head p{font-size:13px;color:var(--text-dim);}
+
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.alert{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.alert:hover{background:rgba(231,76,60,.18);}
+.alert-warn{background:rgba(230,126,34,.1);border-color:rgba(230,126,34,.3);}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:5px;}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;line-height:1;}
+.stat-sub{font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+.cap-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:22px;}
+.cap-ttl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:14px;font-weight:600;}
+.cap-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.cap-name{font-size:12px;font-weight:500;width:120px;flex-shrink:0;}
+.cap-track{flex:1;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+.cap-fill{height:100%;border-radius:3px;transition:width .5s;}
+.cap-pct{font-family:'JetBrains Mono',monospace;font-size:11px;width:36px;text-align:right;}
+
+.sec-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px;font-weight:600;}
+.nav-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin-bottom:22px;}
+.nc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.nc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--nca,var(--ft1));}
+.nc:hover{border-color:var(--text-dim);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.nc-icon{font-size:26px;margin-bottom:8px;}
+.nc-lbl{font-size:13px;font-weight:600;margin-bottom:4px;}
+.nc-desc{font-size:11px;color:var(--text-dim);line-height:1.4;}
+.nc-cnt{position:absolute;top:14px;right:14px;background:var(--nca,var(--ft1));color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+
+.quick-row{display:flex;gap:10px;flex-wrap:wrap;}
+.qbtn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 16px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px;font-family:'Readex Pro',sans-serif;font-size:13px;font-weight:500;color:var(--text);}
+.qbtn:hover{background:var(--surface2);border-color:var(--ft1);color:var(--ft1);}
+
+/* ═══════════════════════════════
+   FLYTAVLE
+═══════════════════════════════ */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.fchip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);transition:all .15s;}
+.fchip:hover{border-color:var(--text-dim);color:var(--text);}
+.fchip.active{color:#fff;border-color:transparent;}
+.fc-all.active{background:var(--surface3);color:var(--text);}
+.fc-ft1.active{background:var(--ft1);}
+.fc-ft2.active{background:var(--ft2);}
+.fc-reffen.active{background:var(--reffen);}
+.fc-naestved.active{background:var(--naestved);}
+
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;min-height:calc(100vh - 260px);}
+.col{background:var(--surface);border-radius:10px;border:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.col-hdr{padding:11px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.col-ttl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);}
+.col-cnt{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--surface3);padding:2px 7px;border-radius:10px;color:var(--text-dim);}
+.col-body{padding:8px;flex:1;display:flex;flex-direction:column;gap:7px;overflow-y:auto;max-height:calc(100vh - 320px);}
+.empty-col{flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;padding:20px;text-align:center;}
+
+.card{background:var(--surface2);border-radius:8px;border-left:4px solid var(--border);border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 11px;cursor:pointer;transition:all .2s;position:relative;}
+.card:hover{background:var(--surface3);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3);}
+.card-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:4px;}
+.card-name{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-desc{font-size:11px;color:var(--text-dim);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:3px;}
+.card-time{font-family:'JetBrains Mono',monospace;font-size:10px;}
+.cpay{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.py-g{background:rgba(39,174,96,.2);color:var(--paid);}
+.py-y{background:rgba(241,196,15,.2);color:var(--ondelivery);}
+.py-r{background:rgba(231,76,60,.2);color:var(--pending);}
+.py-b{background:rgba(52,152,219,.2);color:var(--invoice);}
+.card-sw{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--paid);}
+.card-warn{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;background:rgba(231,76,60,.15);color:var(--pending);animation:pulse 1s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.dl-ft1{border-left-color:var(--ft1)!important;}
+.dl-ft2{border-left-color:var(--ft2)!important;}
+.dl-reffen{border-left-color:var(--reffen)!important;}
+.dl-naestved{border-left-color:var(--naestved)!important;}
+
+/* Økonomi-strip under board header */
+.econ-strip{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.econ-pill{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;}
+.econ-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);}
+.econ-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;}
+
+/* ═══════════════════════════════
+   TABLES
+═══════════════════════════════ */
+.tbl-wrap{overflow-x:auto;}
+.dtbl{width:100%;border-collapse:collapse;}
+.dtbl th{text-align:left;padding:10px 12px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;}
+.dtbl td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--surface2);}
+.dtbl tr:hover td{background:var(--surface2);}
+
+/* ═══════════════════════════════
+   FORMS
+═══════════════════════════════ */
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ffull{grid-column:1/-1;}
+.fgrp{display:flex;flex-direction:column;gap:5px;}
+.flbl{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;}
+.finp,.fsel,.ftxt{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-family:'Readex Pro',sans-serif;font-size:13px;transition:border-color .15s;width:100%;}
+.finp:focus,.fsel:focus,.ftxt:focus{outline:none;border-color:var(--ft1);}
+.ftxt{resize:vertical;min-height:70px;}
+.fsel option{background:var(--surface2);}
+.fsec{grid-column:1/-1;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);border-top:1px solid var(--border);padding-top:12px;margin-top:2px;}
+
+/* ═══════════════════════════════
+   MODAL
+═══════════════════════════════ */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.mhdr{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1;}
+.mttl{font-size:15px;font-weight:600;}
+.mclose{background:none;border:none;color:var(--text-dim);font-size:20px;cursor:pointer;padding:3px 8px;border-radius:4px;}
+.mclose:hover{background:var(--surface3);color:var(--text);}
+.mbody{padding:18px 22px;}
+.mfoot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.ditem{}
+.dlbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.dval{font-size:13px;font-weight:500;}
+.dfull{grid-column:1/-1;}
+.sbadge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase;}
+
+/* TOAST */
+.tc{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 15px;font-size:13px;max-width:300px;animation:slideIn .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.3);}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-ok{border-left:3px solid var(--paid);}
+.t-warn{border-left:3px solid var(--ondelivery);}
+.t-err{border-left:3px solid var(--pending);}
+
+/* LEDELSE-VIEW pin */
+.pin-bar{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.pin-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);font-weight:600;}
+.pin-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;}
+.pin-sub{font-size:11px;color:var(--text-dim);}
+.pin-divider{width:1px;height:36px;background:var(--border);}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-brand" onclick="showTab('forside')">
+    <span class="hdr-logo">LUBNAN</span>
+    <span class="hdr-ver">Ordreflow 1.0</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div id="clock" class="clock">00:00:00</div>
+  </div>
+</div>
+
+<div class="nav">
+  <div class="ntab active" id="tab-forside"   onclick="showTab('forside')">🏠 Forside</div>
+  <div class="ntab"        id="tab-tavle"     onclick="showTab('tavle')">🗂 Flytavle <span class="nbadge" id="badge-tavle">0</span></div>
+  <div class="ntab"        id="tab-tilbud"    onclick="showTab('tilbud')">📋 Tilbud <span class="nbadge" id="badge-tilbud" style="background:var(--naestved)">0</span></div>
+  <div class="ntab"        id="tab-ny-ordre"  onclick="showTab('ny-ordre')">➕ Opret ordre</div>
+  <div class="ntab"        id="tab-ny-tilbud" onclick="showTab('ny-tilbud')">📝 Opret tilbud</div>
+  <div class="ntab"        id="tab-ledelse"   onclick="showTab('ledelse')">📊 Ledelse</div>
+  <div class="ntab"        id="tab-arkiv"     onclick="showTab('arkiv')">🗄 Arkiv</div>
+</div>
+
+<!-- ═══ FORSIDE ═══ -->
+<div class="main" id="view-forside">
+  <div class="dash-head">
+    <h1 id="dash-greeting">God dag 👋</h1>
+    <p id="dash-date"></p>
+  </div>
+
+  <div class="alerts" id="dash-alerts"></div>
+
+  <div class="stats-grid" id="dash-stats"></div>
+
+  <div class="cap-box">
+    <div class="cap-ttl">Kapacitet — alle afdelinger</div>
+    <div id="dash-cap"></div>
+  </div>
+
+  <div class="sec-lbl">Genveje</div>
+  <div class="nav-cards">
+    <div class="nc" onclick="showTab('tavle')" style="--nca:var(--ft1)">
+      <div class="nc-icon">🗂</div>
+      <div class="nc-lbl">Flytavle</div>
+      <div class="nc-desc">Realtidsoverblik over alle aktive ordrer</div>
+      <div class="nc-cnt" id="ncc-tavle">0</div>
+    </div>
+    <div class="nc" onclick="showTab('ny-ordre')" style="--nca:var(--paid)">
+      <div class="nc-icon">➕</div>
+      <div class="nc-lbl">Opret ordre</div>
+      <div class="nc-desc">Registrér en ny ordre direkte</div>
+    </div>
+    <div class="nc" onclick="showTab('ny-tilbud')" style="--nca:var(--naestved)">
+      <div class="nc-icon">📝</div>
+      <div class="nc-lbl">Opret tilbud</div>
+      <div class="nc-desc">Lav tilbud — konvertér til ordre ved accept</div>
+    </div>
+    <div class="nc" onclick="showTab('tilbud')" style="--nca:var(--ft2)">
+      <div class="nc-icon">📋</div>
+      <div class="nc-lbl">Tilbud</div>
+      <div class="nc-desc">Åbne tilbud — send og konvertér</div>
+      <div class="nc-cnt" id="ncc-tilbud" style="background:var(--ft2)">0</div>
+    </div>
+    <div class="nc" onclick="showTab('ledelse')" style="--nca:#e74c3c">
+      <div class="nc-icon">📊</div>
+      <div class="nc-lbl">Ledelse</div>
+      <div class="nc-desc">Dagens produktion, salgsværdi og økonomi</div>
+    </div>
+    <div class="nc" onclick="showTab('arkiv')" style="--nca:var(--text-muted)">
+      <div class="nc-icon">🗄</div>
+      <div class="nc-lbl">Arkiv</div>
+      <div class="nc-desc">Søg i afsluttede ordrer og kundehistorik</div>
+      <div class="nc-cnt" id="ncc-arkiv" style="background:var(--text-muted)">0</div>
+    </div>
+  </div>
+
+  <div class="sec-lbl">Hurtige handlinger</div>
+  <div class="quick-row">
+    <button class="qbtn" onclick="showTab('ny-ordre')">➕ Opret ordre</button>
+    <button class="qbtn" onclick="showTab('ny-tilbud')">📝 Opret tilbud</button>
+    <button class="qbtn" onclick="showTab('tavle')">🗂 Åbn flytavle</button>
+    <button class="qbtn" onclick="showTab('ledelse')">📊 Ledelsesoversigt</button>
+    <button class="qbtn" onclick="showTab('arkiv')">🔍 Søg i arkiv</button>
+  </div>
+</div>
+
+<!-- ═══ FLYTAVLE ═══ -->
+<div class="main hidden" id="view-tavle">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+    <div class="filter-bar">
+      <span style="font-size:12px;color:var(--text-muted);font-weight:500;">Afdeling:</span>
+      <div class="fchip fc-all active" onclick="setFilter('all',this)">Alle</div>
+      <div class="fchip fc-ft1" onclick="setFilter('ft1',this)" style="border-left:3px solid var(--ft1)">Foodtruck 1</div>
+      <div class="fchip fc-ft2" onclick="setFilter('ft2',this)" style="border-left:3px solid var(--ft2)">Foodtruck 2</div>
+      <div class="fchip fc-reffen" onclick="setFilter('reffen',this)" style="border-left:3px solid var(--reffen)">Reffen</div>
+      <div class="fchip fc-naestved" onclick="setFilter('naestved',this)" style="border-left:3px solid var(--naestved)">Næstved</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="showTab('ny-ordre')">➕ Opret ordre</button>
+  </div>
+  <div class="board" id="board"></div>
+</div>
+
+<!-- ═══ TILBUD ═══ -->
+<div class="main hidden" id="view-tilbud">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <h2 style="font-size:15px;font-weight:600;">Tilbud</h2>
+    <button class="btn btn-primary btn-sm" onclick="showTab('ny-tilbud')">📝 Opret tilbud</button>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th>Tilbudsnr.</th><th>Kunde</th><th>Afdeling</th><th>Beskrivelse</th><th>Leveringstid</th><th>Pris</th><th>Status</th><th>Handling</th>
+    </tr></thead><tbody id="quote-body"></tbody></table>
+  </div>
+</div>
+
+<!-- ═══ OPRET ORDRE ═══ -->
+<div class="main hidden" id="view-ny-ordre">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-secondary btn-sm" onclick="showTab('forside')">← Tilbage</button>
+    <h2 style="font-size:15px;font-weight:600;" id="ordre-form-title">Opret ordre</h2>
+  </div>
+  <div style="max-width:640px;">
+    <div class="fgrid" id="ordre-form"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="showTab('forside')">Annuller</button>
+      <button class="btn btn-primary" id="ordre-form-btn" onclick="gemOrdre()">✓ Opret ordre</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OPRET TILBUD ═══ -->
+<div class="main hidden" id="view-ny-tilbud">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button class="btn btn-secondary btn-sm" onclick="showTab('forside')">← Tilbage</button>
+    <h2 style="font-size:15px;font-weight:600;">Opret tilbud</h2>
+  </div>
+  <div style="max-width:640px;">
+    <div class="fgrid" id="tilbud-form"></div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="showTab('forside')">Annuller</button>
+      <button class="btn btn-primary" onclick="gemTilbud()">✓ Opret tilbud</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LEDELSE ═══ -->
+<div class="main hidden" id="view-ledelse">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h2 style="font-size:15px;font-weight:600;">Ledelsesoversigt</h2>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:3px;">Kun synlig for ledelsen — salgsværdi og produktionsøkonomi</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select class="finp" style="max-width:160px;padding:6px 10px;font-size:12px;" id="ledelse-dept-filter" onchange="renderLedelse()">
+        <option value="all">Alle afdelinger</option>
+        <option value="ft1">Foodtruck 1</option>
+        <option value="ft2">Foodtruck 2</option>
+        <option value="reffen">Reffen</option>
+        <option value="naestved">Næstved</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Økonomi hovednøgletal -->
+  <div class="stats-grid" id="led-stats"></div>
+
+  <!-- Per afdeling -->
+  <div class="sec-lbl" style="margin-top:8px;">Opdeling per afdeling</div>
+  <div id="led-dept-rows" style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;"></div>
+
+  <!-- Aktive ordrer med pris -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <div class="sec-lbl" style="margin-bottom:0">Igangværende ordrer</div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th>Ordrenr.</th><th>Kunde</th><th>Afdeling</th><th>Status</th><th>Leveringstid</th><th>Pris</th><th>Betaling</th>
+    </tr></thead><tbody id="led-orders"></tbody></table>
+  </div>
+</div>
+
+<!-- ═══ ARKIV ═══ -->
+<div class="main hidden" id="view-arkiv">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <h2 style="font-size:15px;font-weight:600;">Arkiv</h2>
+    <input type="text" class="finp" style="max-width:260px" placeholder="Søg på ordre, kunde..." oninput="filterArkiv(this.value)">
+  </div>
+  <div class="tbl-wrap">
+    <table class="dtbl"><thead><tr>
+      <th>Ordrenr.</th><th>Kunde</th><th>Afdeling</th><th>Beskrivelse</th><th>Levering</th><th>Pris</th><th>Betaling</th><th>Afsluttet</th>
+    </tr></thead><tbody id="arkiv-body"></tbody></table>
+  </div>
+</div>
+
+<div class="tc" id="toast-container"></div>
+
+<!-- MODAL -->
+<div class="ov hidden" id="modal-ov" onclick="lukkModalOv(event)">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mttl" id="m-title"></span>
+      <button class="mclose" onclick="lukkModal()">✕</button>
+    </div>
+    <div class="mbody" id="m-body"></div>
+    <div class="mfoot" id="m-foot"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+let ordrer = [], tilbud = [], arkiv = [];
+let ordreNr = 1, tilbudNr = 1;
+let aktivFilter = 'all';
+let warned = new Set();
+let redigererId = null;
+
+const DEPTS = {
+  ft1:      { label:'Foodtruck 1', color:'#e07b2a', cap:5 },
+  ft2:      { label:'Foodtruck 2', color:'#9b59b6', cap:5 },
+  reffen:   { label:'Reffen',      color:'#27ae60', cap:8 },
+  naestved: { label:'Næstved',     color:'#2980b9', cap:4 },
+};
+const COLS = ['ny','klar','produktion','levering','afsluttet'];
+const COL_LBL = { ny:'Nye ordrer', klar:'Klar til prod.', produktion:'I produktion', levering:'Klar til levering', afsluttet:'Nyligt afsluttet' };
+const PAY_LBL = { paid:'Betalt', ondelivery:'Ved levering', pending:'Afventer', invoice:'Faktureres' };
+const PAY_CLS = { paid:'py-g', ondelivery:'py-y', pending:'py-r', invoice:'py-b' };
+const PRIO_LBL = { red:'🔴 Haster', yellow:'🟡 Vigtig', green:'🟢 Normal', none:'⚫ Ingen' };
+const PRIO_COL = { red:'#e74c3c', yellow:'#f39c12', green:'#2ecc71', none:'#444' };
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+const pZ = n => String(n).padStart(2,'0');
+const nu = () => { const d=new Date(); return `${pZ(d.getDate())}.${pZ(d.getMonth()+1)}.${d.getFullYear()} kl. ${pZ(d.getHours())}:${pZ(d.getMinutes())}`; };
+const nxtOrdre = () => { const y=String(new Date().getFullYear()).slice(-2); return `${y}-${String(ordreNr++).padStart(4,'0')}`; };
+const nxtTilbud = () => { const y=String(new Date().getFullYear()).slice(-2); return `T${y}-${String(tilbudNr++).padStart(4,'0')}`; };
+const minUntil = dt => dt ? (new Date(dt)-new Date())/60000 : 9999;
+const fmtDT = dt => { if(!dt) return '—'; const d=new Date(dt); return `${pZ(d.getDate())}.${pZ(d.getMonth()+1)} kl. ${pZ(d.getHours())}:${pZ(d.getMinutes())}`; };
+const kr = v => { const n=parseFloat(v); return isNaN(n) ? '—' : n.toLocaleString('da-DK')+ ' kr.'; };
+
+function kortFarve(o) {
+  if (o.status==='produktion') return o.priority==='red' ? '#e74c3c' : '#2ecc71';
+  const m = minUntil(o.deliveryTime);
+  if (o.priority==='red') return '#e74c3c';
+  if (m<2)  return '#e74c3c';
+  if (m<15) return '#e67e22';
+  return PRIO_COL[o.priority]||'#444';
+}
+
+// ═══════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════
+setInterval(() => {
+  const d=new Date();
+  document.getElementById('clock').textContent=`${pZ(d.getHours())}:${pZ(d.getMinutes())}:${pZ(d.getSeconds())}`;
+},1000);
+
+// ═══════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════
+const TABS = ['forside','tavle','tilbud','ny-ordre','ny-tilbud','ledelse','arkiv'];
+function showTab(name) {
+  TABS.forEach(t => {
+    document.getElementById(`view-${t}`).classList.toggle('hidden', t!==name);
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('active', t===name);
+  });
+  if (name==='forside')   renderForside();
+  if (name==='tavle')     renderBoard();
+  if (name==='tilbud')    renderTilbud();
+  if (name==='ny-ordre')  { redigererId=null; renderOrdreForm(); document.getElementById('ordre-form-title').textContent='Opret ordre'; document.getElementById('ordre-form-btn').textContent='✓ Opret ordre'; document.getElementById('ordre-form-btn').setAttribute('onclick','gemOrdre()'); }
+  if (name==='ny-tilbud') renderTilbudForm();
+  if (name==='ledelse')   renderLedelse();
+  if (name==='arkiv')     renderArkiv();
+  opdaterBadges();
+}
+
+function opdaterBadges() {
+  const aktive = ordrer.filter(o=>o.status!=='afsluttet').length;
+  document.getElementById('badge-tavle').textContent = aktive;
+  document.getElementById('ncc-tavle').textContent = aktive;
+  const aabne = tilbud.filter(q=>q.status==='aabent'||q.status==='sendt').length;
+  document.getElementById('badge-tilbud').textContent = aabne;
+  document.getElementById('ncc-tilbud').textContent = aabne;
+  document.getElementById('ncc-arkiv').textContent = arkiv.length;
+}
+
+// ═══════════════════════════════════════
+// FORSIDE
+// ═══════════════════════════════════════
+function renderForside() {
+  opdaterBadges();
+  const d=new Date(), h=d.getHours();
+  const hilsen = h<10?'God morgen':h<14?'God dag':h<18?'God eftermiddag':'God aften';
+  const dage=['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+  const mdr=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
+  document.getElementById('dash-greeting').textContent=`${hilsen} 👋`;
+  document.getElementById('dash-date').textContent=`${dage[d.getDay()]} d. ${d.getDate()}. ${mdr[d.getMonth()]} ${d.getFullYear()}`;
+
+  // Alerts
+  const urgent = ordrer.filter(o=>{ const m=minUntil(o.deliveryTime); return m<15&&m>-30&&!['levering','afsluttet'].includes(o.status); });
+  document.getElementById('dash-alerts').innerHTML = urgent.map(o => {
+    const m=Math.round(minUntil(o.deliveryTime));
+    return `<div class="alert ${m<2?'':'alert-warn'}" onclick="showTab('tavle')">⚠ <strong>${o.number}</strong> — ${o.customer} — levering ${fmtDT(o.deliveryTime)} (${m<0?'OVERSKREDET':m+' min.'})</div>`;
+  }).join('');
+
+  // Stats
+  const inProd = ordrer.filter(o=>o.status==='produktion').length;
+  const pending = ordrer.filter(o=>o.status==='ny'||o.status==='klar').length;
+  const klar = ordrer.filter(o=>o.status==='levering').length;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" style="color:var(--paid)">${inProd}</div><div class="stat-sub">ordrer i køkkenet</div></div>
+    <div class="stat"><div class="stat-lbl">Afventer start</div><div class="stat-val" style="color:var(--ondelivery)">${pending}</div><div class="stat-sub">ny + klar til prod.</div></div>
+    <div class="stat"><div class="stat-lbl">Klar til levering</div><div class="stat-val" style="color:var(--naestved)">${klar}</div><div class="stat-sub">afventer afhentning</div></div>
+    <div class="stat"><div class="stat-lbl">Arkiv i dag</div><div class="stat-val" style="color:var(--text-dim)">${arkiv.length}</div><div class="stat-sub">afsluttede ordrer</div></div>`;
+
+  // Kapacitet
+  const cnts={ft1:0,ft2:0,reffen:0,naestved:0};
+  ordrer.filter(o=>['ny','klar','produktion','levering'].includes(o.status)).forEach(o=>cnts[o.dept]++);
+  document.getElementById('dash-cap').innerHTML = Object.entries(DEPTS).map(([k,d])=>{
+    const pct=Math.round((cnts[k]/d.cap)*100);
+    const fc=pct<70?'#27ae60':pct<100?'#f1c40f':pct===100?'#e67e22':'#e74c3c';
+    return `<div class="cap-row"><div class="cap-name" style="color:${d.color}">${d.label}</div><div class="cap-track"><div class="cap-fill" style="width:${Math.min(pct,100)}%;background:${fc}"></div></div><div class="cap-pct" style="color:${fc}">${pct}%</div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// FLYTAVLE
+// ═══════════════════════════════════════
+function setFilter(val, el) {
+  aktivFilter=val;
+  document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderBoard();
+}
+
+function sortOrdrer(arr) {
+  const p={red:0,yellow:1,green:2,none:3};
+  return [...arr].sort((a,b)=>{
+    if(p[a.priority]!==p[b.priority]) return p[a.priority]-p[b.priority];
+    if(a.deliveryTime&&b.deliveryTime) return new Date(a.deliveryTime)-new Date(b.deliveryTime);
+    return new Date(a.created)-new Date(b.created);
+  });
+}
+
+function renderBoard() {
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  const vis = aktivFilter==='all' ? ordrer : ordrer.filter(o=>o.dept===aktivFilter);
+  COLS.forEach(col=>{
+    const liste=sortOrdrer(vis.filter(o=>o.status===col));
+    const div=document.createElement('div');
+    div.className='col';
+    div.innerHTML=`<div class="col-hdr"><span class="col-ttl">${COL_LBL[col]}</span><span class="col-cnt">${liste.length}</span></div>
+      <div class="col-body">${liste.length===0?'<div class="empty-col">Tom</div>':liste.map(o=>kortHTML(o)).join('')}</div>`;
+    board.appendChild(div);
+  });
+  opdaterBadges();
+}
+
+function kortHTML(o) {
+  const dept=DEPTS[o.dept];
+  const pc=kortFarve(o);
+  const mins=minUntil(o.deliveryTime);
+  const warn=o.status!=='produktion'&&mins<2&&mins>-60?'<span class="card-warn">⚠ HASTER</span>':'';
+  const sw=o.status==='produktion'?`<span class="card-sw" id="sw-${o.id}">⏱ 00:00</span>`:'';
+  const worker=o.worker?`<span style="font-size:10px;color:var(--text-dim)">👤 ${o.worker}</span>`:'';
+  return `<div class="card dl-${o.dept}" onclick="aabneOrdre('${o.id}')" style="border-top-color:${pc}">
+    <div style="position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:${pc}"></div>
+    <div class="card-num">${o.number}</div>
+    <div class="card-name">${o.customer}</div>
+    <div class="card-desc">${o.description}</div>
+    <div class="card-foot">
+      <span class="card-time" style="color:${mins<10?'#e74c3c':'var(--text-dim)'}">🕐 ${fmtDT(o.deliveryTime)}</span>
+      <span class="cpay ${PAY_CLS[o.payment]}">${PAY_LBL[o.payment]}</span>
+    </div>
+    ${worker||sw||warn?`<div class="card-foot" style="margin-top:4px">${worker}${sw}${warn}</div>`:''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// STOPWATCH + AUTO-ARKIV + ADVARSLER
+// ═══════════════════════════════════════
+setInterval(()=>{
+  ordrer.filter(o=>o.status==='produktion'&&o.startedAt).forEach(o=>{
+    const el=document.getElementById(`sw-${o.id}`); if(!el) return;
+    const s=Math.floor((Date.now()-o.startedAt)/1000);
+    el.textContent=`⏱ ${pZ(Math.floor(s/60))}:${pZ(s%60)}`;
+  });
+},1000);
+
+setInterval(()=>{
+  let changed=false;
+  ordrer.filter(o=>o.status==='afsluttet'&&o.completedAt).forEach(o=>{
+    if(Date.now()-o.completedAt>5*60*1000){ arkiv.push({...o,archivedAt:nu()}); ordrer=ordrer.filter(x=>x.id!==o.id); changed=true; }
+  });
+  if(changed){ renderBoard(); }
+},10000);
+
+setInterval(()=>{
+  ordrer.forEach(o=>{
+    if(warned.has(o.id)) return;
+    const m=minUntil(o.deliveryTime);
+    if(m<2&&m>0&&!['produktion','levering','afsluttet'].includes(o.status)){
+      toast(`⚠ ${o.number} — ${o.customer} levering om ${Math.round(m)} min!`,'err');
+      warned.add(o.id); renderBoard();
+    }
+  });
+},5000);
+
+setInterval(renderBoard,60000);
+
+// ═══════════════════════════════════════
+// ORDRE DETALJE MODAL
+// ═══════════════════════════════════════
+function aabneOrdre(id) {
+  const o=ordrer.find(x=>x.id===id); if(!o) return;
+  const dept=DEPTS[o.dept], pc=kortFarve(o), mins=minUntil(o.deliveryTime);
+  visModal(`Ordre ${o.number}`,`
+    <div class="dgrid">
+      <div class="ditem"><div class="dlbl">Ordrenummer</div><div class="dval" style="font-family:monospace">${o.number}</div></div>
+      <div class="ditem"><div class="dlbl">Afdeling</div><div class="dval" style="color:${dept.color}">${dept.label}</div></div>
+      <div class="ditem"><div class="dlbl">Kunde</div><div class="dval">${o.customer}</div></div>
+      <div class="ditem"><div class="dlbl">Kontakt</div><div class="dval">${o.contact||'—'}</div></div>
+      <div class="ditem dfull"><div class="dlbl">Beskrivelse</div><div class="dval">${o.description}</div></div>
+      <div class="ditem"><div class="dlbl">Antal</div><div class="dval">${o.quantity||'—'}</div></div>
+      <div class="ditem"><div class="dlbl">Pris</div><div class="dval" style="color:var(--paid);font-weight:600">${kr(o.price)}</div></div>
+      <div class="ditem"><div class="dlbl">Leveringstidspunkt</div><div class="dval" style="color:${mins<10?'#e74c3c':'inherit'}">${fmtDT(o.deliveryTime)}</div></div>
+      <div class="ditem"><div class="dlbl">Leveringsform</div><div class="dval">${o.deliveryType||'—'}</div></div>
+      <div class="ditem"><div class="dlbl">Betaling</div><div class="dval"><span class="cpay ${PAY_CLS[o.payment]}" style="font-size:12px;padding:3px 9px">${PAY_LBL[o.payment]}</span></div></div>
+      <div class="ditem"><div class="dlbl">Prioritet</div><div class="dval">${PRIO_LBL[o.priority]}</div></div>
+      ${o.worker?`<div class="ditem"><div class="dlbl">Ansvarlig</div><div class="dval">👤 ${o.worker}</div></div>`:''}
+      ${o.notes?`<div class="ditem dfull"><div class="dlbl">Instruktioner</div><div class="dval">${o.notes}</div></div>`:''}
+      <div class="ditem"><div class="dlbl">Status</div><div class="dval"><span class="sbadge" style="background:${pc}22;color:${pc}">${COL_LBL[o.status]}</span></div></div>
+      <div class="ditem"><div class="dlbl">Oprettet</div><div class="dval" style="font-size:12px;color:var(--text-dim)">${o.created}</div></div>
+    </div>`, bygActions(o));
+}
+
+function bygActions(o) {
+  let h='';
+  if(o.status==='ny')         h+=`<button class="btn btn-secondary btn-sm" onclick="flytOrdre('${o.id}','klar')">→ Klar til produktion</button>`;
+  if(o.status==='klar')       h+=`<button class="btn btn-primary btn-sm" onclick="startProd('${o.id}')">▶ Start produktion</button>`;
+  if(o.status==='produktion') h+=`<button class="btn btn-success btn-sm" onclick="flytOrdre('${o.id}','levering')">✓ Klar til levering</button>`;
+  if(o.status==='levering')   h+=o.payment==='ondelivery'
+    ?`<button class="btn btn-success btn-sm" onclick="afslutOrdre('${o.id}','paid')">💳 Betalt & afslut</button>`
+    :`<button class="btn btn-success btn-sm" onclick="afslutOrdre('${o.id}',null)">✓ Afslut ordre</button>`;
+  if(o.status!=='afsluttet')  h+=`<button class="btn btn-secondary btn-sm" onclick="redigerOrdre('${o.id}')">✏ Rediger</button>`;
+  h+=`<button class="btn btn-secondary btn-sm" onclick="lukkModal()">Luk</button>`;
+  return h;
+}
+
+function startProd(id) {
+  const o=ordrer.find(x=>x.id===id); if(!o) return;
+  const w=prompt('Hvem starter denne ordre?',''); if(w===null) return;
+  o.worker=w||'Ikke angivet'; o.startedAt=Date.now(); o.status='produktion';
+  lukkModal(); renderBoard();
+  toast(`▶ ${o.number} — startet af ${o.worker}`,'ok');
+}
+function flytOrdre(id,s) {
+  const o=ordrer.find(x=>x.id===id); if(!o) return;
+  o.status=s; lukkModal(); renderBoard();
+  toast(`${o.number} → ${COL_LBL[s]}`,'ok');
+}
+function afslutOrdre(id,np) {
+  const o=ordrer.find(x=>x.id===id); if(!o) return;
+  if(np) o.payment=np; o.status='afsluttet'; o.completedAt=Date.now();
+  lukkModal(); renderBoard();
+  toast(`✓ ${o.number} afsluttet — arkiveres om 5 min.`,'ok');
+}
+
+// ═══════════════════════════════════════
+// ORDRE FORMULAR
+// ═══════════════════════════════════════
+function ordreFormHTML(pre={}) {
+  const dOpts=Object.entries(DEPTS).map(([k,d])=>`<option value="${k}"${pre.dept===k?' selected':''}>${d.label}</option>`).join('');
+  return `
+    <div class="fsec">Kundeoplysninger</div>
+    <div class="fgrp ffull"><label class="flbl">Kundenavn *</label><input class="finp" id="f-k" value="${pre.customer||''}" placeholder="Navn eller virksomhed"></div>
+    <div class="fgrp"><label class="flbl">Kontakt</label><input class="finp" id="f-ko" value="${pre.contact||''}" placeholder="Tlf. / email"></div>
+    <div class="fgrp"><label class="flbl">Afdeling *</label><select class="fsel" id="f-d">${dOpts}</select></div>
+    <div class="fsec">Opgave</div>
+    <div class="fgrp ffull"><label class="flbl">Beskrivelse *</label><input class="finp" id="f-b" value="${pre.description||''}" placeholder="Fx: 30 pers. frokostbuffet"></div>
+    <div class="fgrp"><label class="flbl">Antal</label><input class="finp" id="f-a" value="${pre.quantity||''}" placeholder="Fx: 30 kuverter"></div>
+    <div class="fgrp"><label class="flbl">Pris (kr.)</label><input class="finp" id="f-p" value="${pre.price||''}" placeholder="0" type="number"></div>
+    <div class="fgrp"><label class="flbl">Leveringstidspunkt *</label><input class="finp" type="datetime-local" id="f-dt" value="${pre.deliveryTime||''}"></div>
+    <div class="fgrp"><label class="flbl">Leveringsform</label><select class="fsel" id="f-lf">
+      <option value="afhentning">Afhentning</option>
+      <option value="levering">Levering til adresse</option>
+      <option value="stedet">Spises på stedet</option>
+    </select></div>
+    <div class="fsec">Betaling og prioritet</div>
+    <div class="fgrp"><label class="flbl">Betalingsform</label><select class="fsel" id="f-pay">
+      <option value="paid">Betalt ved bestilling</option>
+      <option value="ondelivery">Betaling ved levering</option>
+      <option value="pending">Afventer betaling</option>
+      <option value="invoice">Faktureres</option>
+    </select></div>
+    <div class="fgrp"><label class="flbl">Prioritet</label><select class="fsel" id="f-pr">
+      <option value="none">⚫ Ingen</option>
+      <option value="green">🟢 Normal</option>
+      <option value="yellow">🟡 Vigtig</option>
+      <option value="red">🔴 Haster</option>
+    </select></div>
+    <div class="fsec">Ekstra</div>
+    <div class="fgrp ffull"><label class="flbl">Instruktioner / allergier</label><textarea class="ftxt" id="f-n" placeholder="Fx: Ingen nødder...">${pre.notes||''}</textarea></div>
+    <input type="hidden" id="f-qref" value="${pre.quoteRef||''}">`;
+}
+
+function renderOrdreForm(pre={}) {
+  document.getElementById('ordre-form').innerHTML=ordreFormHTML(pre);
+  if(pre.priority) { const el=document.getElementById('f-pr'); if(el) el.value=pre.priority; }
+  if(pre.payment)  { const el=document.getElementById('f-pay'); if(el) el.value=pre.payment; }
+}
+
+function gemOrdre() {
+  const k=document.getElementById('f-k').value.trim();
+  const b=document.getElementById('f-b').value.trim();
+  if(!k||!b){ toast('Udfyld kunde og beskrivelse','err'); return; }
+  const o={
+    id:crypto.randomUUID(), number:nxtOrdre(),
+    customer:k, contact:document.getElementById('f-ko').value.trim(),
+    dept:document.getElementById('f-d').value,
+    description:b,
+    quantity:document.getElementById('f-a').value.trim(),
+    price:document.getElementById('f-p').value.trim(),
+    deliveryTime:document.getElementById('f-dt').value,
+    deliveryType:document.getElementById('f-lf').value,
+    payment:document.getElementById('f-pay').value,
+    priority:document.getElementById('f-pr').value,
+    notes:document.getElementById('f-n').value.trim(),
+    quoteRef:document.getElementById('f-qref').value||null,
+    status:'ny', created:nu(), worker:null, startedAt:null, completedAt:null,
+  };
+  ordrer.push(o);
+  toast(`✓ Ordre ${o.number} oprettet for ${o.customer}`,'ok');
+  showTab('tavle');
+}
+
+function redigerOrdre(id) {
+  lukkModal();
+  const o=ordrer.find(x=>x.id===id); if(!o) return;
+  redigererId=id;
+  showTab('ny-ordre');
+  renderOrdreForm(o);
+  document.getElementById('ordre-form-title').textContent=`Rediger ${o.number}`;
+  document.getElementById('ordre-form-btn').textContent='✓ Gem ændringer';
+  document.getElementById('ordre-form-btn').setAttribute('onclick','opdaterOrdre()');
+}
+
+function opdaterOrdre() {
+  const o=ordrer.find(x=>x.id===redigererId); if(!o) return;
+  const k=document.getElementById('f-k').value.trim();
+  const b=document.getElementById('f-b').value.trim();
+  if(!k||!b){ toast('Udfyld kunde og beskrivelse','err'); return; }
+  Object.assign(o,{
+    customer:k, contact:document.getElementById('f-ko').value.trim(),
+    dept:document.getElementById('f-d').value,
+    description:b,
+    quantity:document.getElementById('f-a').value.trim(),
+    price:document.getElementById('f-p').value.trim(),
+    deliveryTime:document.getElementById('f-dt').value,
+    deliveryType:document.getElementById('f-lf').value,
+    payment:document.getElementById('f-pay').value,
+    priority:document.getElementById('f-pr').value,
+    notes:document.getElementById('f-n').value.trim(),
+  });
+  redigererId=null;
+  toast(`✏ ${o.number} opdateret`,'warn');
+  showTab('tavle');
+}
+
+// ═══════════════════════════════════════
+// TILBUD FORMULAR
+// ═══════════════════════════════════════
+function renderTilbudForm() {
+  const dOpts=Object.entries(DEPTS).map(([k,d])=>`<option value="${k}">${d.label}</option>`).join('');
+  document.getElementById('tilbud-form').innerHTML=`
+    <div class="fgrp ffull"><label class="flbl">Kundenavn *</label><input class="finp" id="q-k" placeholder="Navn eller virksomhed"></div>
+    <div class="fgrp"><label class="flbl">Kontakt</label><input class="finp" id="q-ko" placeholder="Tlf. / email"></div>
+    <div class="fgrp"><label class="flbl">Afdeling</label><select class="fsel" id="q-d">${dOpts}</select></div>
+    <div class="fgrp ffull"><label class="flbl">Beskrivelse *</label><input class="finp" id="q-b" placeholder="Hvad ønsker kunden?"></div>
+    <div class="fgrp"><label class="flbl">Forventet antal</label><input class="finp" id="q-a" placeholder="Fx: 30 kuverter"></div>
+    <div class="fgrp"><label class="flbl">Tilbudt pris (kr.)</label><input class="finp" id="q-p" placeholder="0" type="number"></div>
+    <div class="fgrp"><label class="flbl">Ønsket leveringstidspunkt</label><input class="finp" type="datetime-local" id="q-dt"></div>
+    <div class="fgrp"><label class="flbl">Gyldig til</label><input class="finp" type="date" id="q-ex"></div>
+    <div class="fgrp ffull"><label class="flbl">Bemærkninger</label><textarea class="ftxt" id="q-n" placeholder="Interne noter..."></textarea></div>`;
+}
+
+function gemTilbud() {
+  const k=document.getElementById('q-k').value.trim();
+  const b=document.getElementById('q-b').value.trim();
+  if(!k||!b){ toast('Udfyld kunde og beskrivelse','err'); return; }
+  const q={
+    id:crypto.randomUUID(), number:nxtTilbud(),
+    customer:k, contact:document.getElementById('q-ko').value.trim(),
+    dept:document.getElementById('q-d').value,
+    description:b,
+    quantity:document.getElementById('q-a').value.trim(),
+    price:document.getElementById('q-p').value.trim(),
+    deliveryTime:document.getElementById('q-dt').value,
+    expires:document.getElementById('q-ex').value,
+    notes:document.getElementById('q-n').value.trim(),
+    status:'aabent', created:nu(),
+  };
+  tilbud.push(q);
+  toast(`✓ Tilbud ${q.number} oprettet`,'ok');
+  showTab('tilbud');
+}
+
+// ═══════════════════════════════════════
+// TILBUD LISTE
+// ═══════════════════════════════════════
+function renderTilbud() {
+  const tbody=document.getElementById('quote-body');
+  if(!tilbud.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">Ingen tilbud endnu</td></tr>'; return; }
+  const sl={aabent:'🔵 Åbent',sendt:'📤 Sendt',accepteret:'✅ Accepteret',afvist:'❌ Afvist'};
+  tbody.innerHTML=tilbud.map(q=>{
+    const d=DEPTS[q.dept];
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${q.number}</td>
+      <td>${q.customer}</td>
+      <td style="color:${d.color}">${d.label}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${q.description}</td>
+      <td style="font-size:12px">${fmtDT(q.deliveryTime)}</td>
+      <td>${q.price?kr(q.price):'—'}</td>
+      <td>${sl[q.status]||q.status}</td>
+      <td style="white-space:nowrap;display:flex;gap:4px">
+        ${q.status==='aabent'?`<button class="btn btn-xs btn-secondary" onclick="setTS('${q.id}','sendt')">📤 Send</button>`:''}
+        ${(q.status==='aabent'||q.status==='sendt')?`<button class="btn btn-xs btn-success" onclick="konverter('${q.id}')">→ Ordre</button>`:''}
+        ${(q.status!=='afvist'&&q.status!=='accepteret')?`<button class="btn btn-xs btn-danger" onclick="setTS('${q.id}','afvist')">✕</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+function setTS(id,s){ const q=tilbud.find(x=>x.id===id); if(q){q.status=s;renderTilbud();opdaterBadges();} }
+function konverter(id){
+  const q=tilbud.find(x=>x.id===id); if(!q) return;
+  q.status='accepteret';
+  showTab('ny-ordre');
+  renderOrdreForm({customer:q.customer,contact:q.contact,dept:q.dept,description:q.description,quantity:q.quantity,price:q.price,deliveryTime:q.deliveryTime,notes:q.notes,quoteRef:q.number});
+  toast(`Tilbud ${q.number} klar til ordre`,'warn');
+}
+
+// ═══════════════════════════════════════
+// LEDELSE
+// ═══════════════════════════════════════
+function renderLedelse() {
+  const df=document.getElementById('ledelse-dept-filter').value;
+  const aktive=ordrer.filter(o=>o.status!=='afsluttet'&&(df==='all'||o.dept===df));
+  const arkivDag=arkiv.filter(o=>df==='all'||o.dept===df);
+
+  const totalAktiv=aktive.reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+  const iProd=aktive.filter(o=>o.status==='produktion').reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+  const arkivVal=arkivDag.reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+  const alleOrdrer=[...aktive,...arkivDag];
+  const totalDag=alleOrdrer.reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+
+  document.getElementById('led-stats').innerHTML=`
+    <div class="stat" style="border-left:3px solid var(--paid)"><div class="stat-lbl">Dagens salgsværdi</div><div class="stat-val" style="color:var(--paid)">${Math.round(totalDag).toLocaleString('da-DK')}</div><div class="stat-sub">kr. — alle ordrer i dag</div></div>
+    <div class="stat" style="border-left:3px solid var(--ft1)"><div class="stat-lbl">Aktive ordrer — værdi</div><div class="stat-val" style="color:var(--ft1)">${Math.round(totalAktiv).toLocaleString('da-DK')}</div><div class="stat-sub">kr. — igangværende</div></div>
+    <div class="stat" style="border-left:3px solid var(--ondelivery)"><div class="stat-lbl">I produktion — værdi</div><div class="stat-val" style="color:var(--ondelivery)">${Math.round(iProd).toLocaleString('da-DK')}</div><div class="stat-sub">kr. — aktivt i køkkenet</div></div>
+    <div class="stat" style="border-left:3px solid var(--text-dim)"><div class="stat-lbl">Afsluttet i dag</div><div class="stat-val" style="color:var(--text-dim)">${Math.round(arkivVal).toLocaleString('da-DK')}</div><div class="stat-sub">kr. — arkiverede ordrer</div></div>`;
+
+  // Per afdeling
+  const depts=df==='all'?Object.keys(DEPTS):[df];
+  document.getElementById('led-dept-rows').innerHTML=depts.map(k=>{
+    const d=DEPTS[k];
+    const dAkt=aktive.filter(o=>o.dept===k);
+    const dArk=arkivDag.filter(o=>o.dept===k);
+    const vAkt=dAkt.reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+    const vArk=dArk.reduce((s,o)=>s+(parseFloat(o.price)||0),0);
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${d.color};border-radius:8px;padding:14px 18px;display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+      <div style="min-width:120px"><div style="font-size:12px;font-weight:600;color:${d.color}">${d.label}</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">${dAkt.length} aktive · ${dArk.length} afsluttede</div></div>
+      <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Aktive ordrer</div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--ft1)">${Math.round(vAkt).toLocaleString('da-DK')} kr.</div></div>
+      <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Afsluttet i dag</div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--paid)">${Math.round(vArk).toLocaleString('da-DK')} kr.</div></div>
+      <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Total i dag</div><div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600">${Math.round(vAkt+vArk).toLocaleString('da-DK')} kr.</div></div>
+    </div>`;
+  }).join('');
+
+  // Ordretabel
+  const tbody=document.getElementById('led-orders');
+  if(!aktive.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Ingen aktive ordrer</td></tr>'; return; }
+  tbody.innerHTML=sortOrdrer(aktive).map(o=>{
+    const d=DEPTS[o.dept];
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${o.number}</td>
+      <td>${o.customer}</td>
+      <td style="color:${d.color}">${d.label}</td>
+      <td><span class="sbadge" style="background:${kortFarve(o)}22;color:${kortFarve(o)};font-size:11px">${COL_LBL[o.status]}</span></td>
+      <td style="font-size:12px">${fmtDT(o.deliveryTime)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--paid)">${kr(o.price)}</td>
+      <td><span class="cpay ${PAY_CLS[o.payment]}">${PAY_LBL[o.payment]}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// ARKIV
+// ═══════════════════════════════════════
+function renderArkiv(filter='') {
+  const tbody=document.getElementById('arkiv-body');
+  const items=filter?arkiv.filter(o=>o.number.toLowerCase().includes(filter)||o.customer.toLowerCase().includes(filter)||o.description.toLowerCase().includes(filter)):arkiv;
+  if(!items.length){ tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">Ingen arkiverede ordrer endnu</td></tr>'; return; }
+  tbody.innerHTML=items.map(o=>{
+    const d=DEPTS[o.dept];
+    return `<tr>
+      <td style="font-family:monospace;font-size:12px">${o.number}</td>
+      <td>${o.customer}</td>
+      <td style="color:${d.color}">${d.label}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.description}</td>
+      <td style="font-size:12px">${fmtDT(o.deliveryTime)}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${kr(o.price)}</td>
+      <td><span class="cpay ${PAY_CLS[o.payment]}">${PAY_LBL[o.payment]}</span></td>
+      <td style="font-size:11px;color:var(--text-dim)">${o.archivedAt}</td>
+    </tr>`;
+  }).join('');
+}
+function filterArkiv(v){ renderArkiv(v.toLowerCase()); }
+
+// ═══════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════
+function visModal(t,b,f){ document.getElementById('m-title').textContent=t; document.getElementById('m-body').innerHTML=b; document.getElementById('m-foot').innerHTML=f; document.getElementById('modal-ov').classList.remove('hidden'); }
+function lukkModal(){ document.getElementById('modal-ov').classList.add('hidden'); }
+function lukkModalOv(e){ if(e.target===document.getElementById('modal-ov')) lukkModal(); }
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className=`toast t-${type}`; el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),4000);
+}
+
+// ═══════════════════════════════════════
+// DEMO DATA
+// ═══════════════════════════════════════
+function loadDemo(){
+  const now=new Date();
+  const dt=(h,m)=>{ const d=new Date(now); d.setHours(h,m,0); return d.toISOString().slice(0,16); };
+  ordrer=[
+    {id:crypto.randomUUID(),number:'26-0001',customer:'Andersen Events ApS',contact:'tlf. 2233 4455',dept:'reffen',description:'Libanesisk frokostbuffet, 40 kuverter',quantity:'40 kuverter',price:'3800',deliveryTime:dt(now.getHours(),now.getMinutes()+25),deliveryType:'levering',payment:'paid',priority:'red',notes:'2 vegetariske retter, ingen nødder',quoteRef:'T26-0031',status:'produktion',created:nu(),worker:'Nano',startedAt:Date.now()-18*60*1000,completedAt:null},
+    {id:crypto.randomUUID(),number:'26-0002',customer:'Hansen ApS',contact:'tlf. 2012 3456',dept:'ft1',description:'30 pers. frokostbuffet',quantity:'30 kuverter',price:'2700',deliveryTime:dt(now.getHours()+1,now.getMinutes()),deliveryType:'afhentning',payment:'ondelivery',priority:'yellow',notes:'',quoteRef:null,status:'klar',created:nu(),worker:null,startedAt:null,completedAt:null},
+    {id:crypto.randomUUID(),number:'26-0003',customer:'Reffen Festival',contact:'info@reffen.dk',dept:'reffen',description:'Libanesisk mezze til 20',quantity:'20 kuverter',price:'1800',deliveryTime:dt(now.getHours()+2,30),deliveryType:'stedet',payment:'paid',priority:'green',notes:'',quoteRef:null,status:'ny',created:nu(),worker:null,startedAt:null,completedAt:null},
+    {id:crypto.randomUUID(),number:'26-0004',customer:'Næstved Gymnasium',contact:'tlf. 5555 6666',dept:'naestved',description:'Fødselsdagsbuffet 15 pers.',quantity:'15 kuverter',price:'1200',deliveryTime:dt(now.getHours()+3,0),deliveryType:'afhentning',payment:'pending',priority:'none',notes:'Ingen svinekød',quoteRef:null,status:'ny',created:nu(),worker:null,startedAt:null,completedAt:null},
+    {id:crypto.randomUUID(),number:'26-0005',customer:'City Catering',contact:'tlf. 3344 5566',dept:'ft2',description:'Event catering 60 kuverter',quantity:'60 kuverter',price:'6000',deliveryTime:dt(now.getHours()+4,0),deliveryType:'levering',payment:'invoice',priority:'green',notes:'Leveres til Rådhuspladsen',quoteRef:'T26-0040',status:'levering',created:nu(),worker:'Sara',startedAt:Date.now()-45*60*1000,completedAt:null},
+  ];
+  tilbud=[
+    {id:crypto.randomUUID(),number:'T26-0045',customer:'Novo Nordisk Kantine',contact:'hr@novo.dk',dept:'ft1',description:'Ugentlig catering 50 pers.',quantity:'50 kuverter',price:'4500',deliveryTime:dt(now.getHours()+24,0),expires:'2026-03-20',notes:'Tilbagevendende ordre mulig',status:'sendt',created:nu()},
+    {id:crypto.randomUUID(),number:'T26-0046',customer:'Aarhus Street Food',contact:'kontakt@asf.dk',dept:'reffen',description:'Libanesisk menu til pop-up event',quantity:'100 kuverter',price:'9500',deliveryTime:dt(now.getHours()+48,0),expires:'2026-03-25',notes:'',status:'aabent',created:nu()},
+  ];
+  ordreNr=6; tilbudNr=47;
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+loadDemo();
+showTab('forside');
+</script>
+</body>
+</html>
