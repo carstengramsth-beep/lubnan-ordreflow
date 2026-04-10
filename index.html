@@ -864,6 +864,8 @@ function addToKurv(nr){
 }
 
 function removeFromKurv(nr){kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}
+function øgAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal++;renderKurv();}}
+function mindreAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal--;if(ex.antal<=0)kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}}
 function tomKurv(){kurv=[];renderKurv();}
 
 function renderKurv(){
@@ -879,7 +881,7 @@ function renderKurv(){
       <span>${v.antal>1?v.antal+'× ':''} ${v.navn}</span>
       <span style="display:flex;align-items:center;gap:6px;">
         <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span>
-        <button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button>
+        <button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button><span style="font-family:monospace;min-width:20px;text-align:center;">${v.antal}</span><button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button><button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button>
       </span>
     </div>`).join('');
   document.getElementById('kurv-total').textContent=total.toLocaleString('da')+' kr.';
