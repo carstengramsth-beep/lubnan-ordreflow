@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.3</title>
+<title>Lubnan Ordreflow 3.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -208,7 +208,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.3</span>
+    <span class="hdr-ver">Ordreflow 3.4</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -343,6 +343,15 @@ textarea{resize:vertical;min-height:80px;}
 
     <div class="form-section">
       <div class="form-section-title">Vælg varer</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Hurtig tilføj via dropdown</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="vare-dropdown" style="flex:1;" onchange="addFromDropdown(this.value)">
+            <option value="">— Vælg en vare —</option>
+          </select>
+          <span id="vare-dropdown-pris" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);min-width:80px;text-align:right;"></span>
+        </div>
+      </div>
       <div class="vare-section">
         <div class="vare-cats" id="vare-cats"></div>
         <div class="vare-grid" id="vare-grid"></div>
@@ -471,6 +480,23 @@ textarea{resize:vertical;min-height:80px;}
 <div id="page-prisliste" class="hidden">
   <div class="page-hdr">
     <div><div style="font-family:'Playfair Display',serif;font-size:24px;">Prisliste</div></div>
+    <button class="btn btn-secondary btn-sm" onclick="togglePrisGuide()">📖 Guide: Ret priser</button>
+  </div>
+  <div id="pris-guide" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px;margin-bottom:16px;max-width:680px;">
+    <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:12px;color:var(--accent);">Sådan retter du prislisten</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text-dim);">
+      <p style="margin-bottom:8px;">Priser beregnes automatisk ud fra <strong style="color:var(--text);">råvarepris</strong> med fast avance og moms:</p>
+      <div style="background:var(--surface3);border-radius:6px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:12px;color:var(--blue2);">
+        Salgspris = råvare × 1,35 (avance 35%) × 1,25 (moms 25%)<br>
+        <span style="color:var(--text-muted);">Eks: råvare 48 kr. → 48 × 1,35 × 1,25 = <strong style="color:var(--accent);">81 kr.</strong></span>
+      </div>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 1:</strong> Åbn filen <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">index.html</code> i en teksteditor (fx Notepad++ eller VS Code).</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 2:</strong> Søg efter <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const VARER = [</code> (ca. linje 600).</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 3:</strong> Find den vare du vil ændre og ret <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">raavare:</code>-tallet.</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 4:</strong> Gem filen og upload til Netlify via <a href="https://app.netlify.com" target="_blank" style="color:var(--blue2);">app.netlify.com</a> → Sites → lubnan-ordreflow → Deploys → drag &amp; drop filen.</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Vil du ændre avance?</strong> Find <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const AVANCE = 0.35;</code> og ret tallet (0.40 = 40% osv.)</p>
+      <p><strong style="color:var(--text);">Vil du ændre moms?</strong> Find <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const MOMS = 0.25;</code> og ret tallet.</p>
+    </div>
   </div>
   <input type="text" style="width:100%;max-width:360px;margin-bottom:14px;" placeholder="🔍 Søg..." oninput="sogPrisliste(this.value)">
   <table class="pl-table">
@@ -731,6 +757,30 @@ async function sletOrdreIDB(dbId) {
   if(error) console.error('Slet fejl:', error);
 }
 
+async function hentKunder() {
+  const { data, error } = await db.from('customers').select('*').order('name', {ascending:true});
+  if(error) { console.error('Hent kunder fejl:', error); return; }
+  kunder = (data||[]).map(r => ({
+    id: r.id,
+    navn: r.name,
+    kontakt: r.contact_person||'',
+    email: r.email||'',
+    landekode: r.phone_country_code||'+45',
+    tlf: r.phone||'',
+    adresse: r.address||'',
+    postnr: r.postal_code||'',
+    by: r.city||'',
+    gruppe: r.customer_group||'Privat',
+    noter: r.notes||''
+  }));
+  renderKunder();
+}
+
+async function sletKundeIDB(id) {
+  const { error } = await db.from('customers').delete().eq('id', id);
+  if(error) console.error('Slet kunde fejl:', error);
+}
+
 async function testForbindelse() {
   const statusEl = document.getElementById('db-status');
   const { error } = await db.from('orders').select('id').limit(1);
@@ -741,6 +791,7 @@ async function testForbindelse() {
     statusEl.textContent = '✅ Database OK';
     statusEl.className = 'db-status db-ok';
     await hentOrdrer();
+    await hentKunder();
   }
 }
 
@@ -766,7 +817,7 @@ function showPage(page) {
   if(page==='prisliste') renderPrisliste();
   if(page==='ledelse') { populerAfdelingSelect(); renderLedelse(); }
   if(page==='kunder') renderKunder();
-  if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); }
+  if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); populerVareDropdown(); }
   if(page==='opret-tilbud') populerAfdelingSelect();
   if(page==='forside') { renderAlerts(); renderCapRows(); }
   if(page==='arkiv') loadArkiv();
@@ -916,10 +967,13 @@ function renderVareVaelger() {
 }
 
 function filterVareKat(kat){currentVareKat=kat;renderVareVaelger();}
+function populerVareDropdown(){const sel=document.getElementById('vare-dropdown');if(!sel)return;const kats=[...new Set(VARER.map(v=>v.kat))];sel.innerHTML='<option value="">— Vælg en vare —</option>'+kats.map(kat=>`<optgroup label="${kat}">${VARER.filter(v=>v.kat===kat).map(v=>`<option value="${v.nr}">${v.navn} — ${getSalgspris(v)} kr.</option>`).join('')}</optgroup>`).join('');}
+function addFromDropdown(nr){if(!nr)return;addToKurv(nr);const sel=document.getElementById('vare-dropdown');if(sel)sel.value='';const pEl=document.getElementById('vare-dropdown-pris');if(pEl)pEl.textContent='';}
 function addToKurv(nr){const v=VARER.find(x=>x.nr===nr);if(!v)return;const ex=kurv.find(x=>x.nr===nr);if(ex)ex.antal++;else kurv.push({...v,antal:1});renderKurv();showToast('✓ '+v.navn+' tilføjet');}
 function removeFromKurv(nr){kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}
 function øgAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal++;renderKurv();}}
 function mindreAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal--;if(ex.antal<=0)kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}}
+function setAntal(nr,val){const ex=kurv.find(x=>x.nr===nr);const n=parseInt(val)||1;if(ex){if(n<=0)kurv=kurv.filter(x=>x.nr!==nr);else ex.antal=n;renderKurv();}}
 function tomKurv(){kurv=[];renderKurv();}
 
 function renderKurv(){
@@ -929,7 +983,7 @@ function renderKurv(){
   const total=kurv.reduce((s,v)=>s+getSalgspris(v)*v.antal,0);
   const exMoms=Math.round(total/(1+MOMS));
   const moms=total-exMoms;
-  document.getElementById('kurv-items').innerHTML=kurv.map(v=>`<div class="kurv-item"><span>${v.navn}</span><span style="display:flex;align-items:center;gap:6px;"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span><button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button><span style="font-family:monospace;min-width:20px;text-align:center;font-weight:600;">${v.antal}</span><button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button><button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button></span></div>`).join('');
+  document.getElementById('kurv-items').innerHTML=kurv.map(v=>`<div class="kurv-item"><span>${v.navn}</span><span style="display:flex;align-items:center;gap:6px;"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span><button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button><input type="number" min="1" value="${v.antal}" onchange="setAntal('${v.nr}',this.value)" style="width:44px;text-align:center;font-family:monospace;font-weight:600;background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;"><button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button><button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button></span></div>`).join('');
   document.getElementById('kurv-total').textContent=total.toLocaleString('da')+' kr.';
   document.getElementById('kurv-moms').textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. | Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
   document.getElementById('o-pris').value=total;
@@ -973,12 +1027,13 @@ function sogKunder(val){renderKunder(val,currentKundeFilter);}
 function filterKunder(gruppe,btn){currentKundeFilter=gruppe;document.querySelectorAll('#page-kunder .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderKunder('',gruppe);}
 
 function openNyKunde(){document.getElementById('modal-title').textContent='Ny kunde';document.getElementById('modal-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="form-group full"><label>Kundenavn / Virksomhed *</label><input id="nk-navn" type="text" placeholder="Navn eller virksomhedsnavn"></div><div class="form-group full"><label>Kontaktperson</label><input id="nk-kontakt" type="text" placeholder="Navn på kontaktperson"></div><div class="form-group"><label>Email</label><input id="nk-email" type="email" placeholder="email@eksempel.dk"></div><div class="form-group"><label>Telefon</label><div class="tlf-group"><select class="tlf-landekode" id="nk-landekode"><option value="+45">🇩🇰 +45</option><option value="+46">🇸🇪 +46</option><option value="+47">🇳🇴 +47</option><option value="+49">🇩🇪 +49</option><option value="+44">🇬🇧 +44</option><option value="+1">🇺🇸 +1</option><option value="+961">🇱🇧 +961</option></select><input type="tel" class="tlf-nr" id="nk-tlf" placeholder="Fx: 20 30 40 50"></div></div><div class="form-group full"><label>Adresse</label><input id="nk-adresse" type="text" placeholder="Vejnavn og husnummer"></div><div class="form-group"><label>Postnummer</label><input id="nk-postnr" type="text" placeholder="Fx: 2650" maxlength="4"></div><div class="form-group"><label>By</label><input id="nk-by" type="text" placeholder="Fx: Hvidovre"></div><div class="form-group"><label>Kundegruppe</label><select id="nk-gruppe"><option>Privat</option><option>Erhverv</option><option>Storkunde</option></select></div><div class="form-group full"><label>Noter</label><textarea id="nk-noter" style="min-height:60px;" placeholder="Interne noter..."></textarea></div></div>`;document.getElementById('modal-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="gemNyKunde()">✓ Gem kunde</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
-function gemNyKunde(){const navn=document.getElementById('nk-navn').value.trim();if(!navn){alert('Udfyld venligst kundenavn');return;}kunder.push({id:'k'+Date.now(),navn,kontakt:document.getElementById('nk-kontakt').value,email:document.getElementById('nk-email').value,landekode:document.getElementById('nk-landekode').value,tlf:document.getElementById('nk-tlf').value,adresse:document.getElementById('nk-adresse').value,postnr:document.getElementById('nk-postnr').value,by:document.getElementById('nk-by').value,gruppe:document.getElementById('nk-gruppe').value,noter:document.getElementById('nk-noter').value});closeModal();renderKunder();showToast('✓ Kunde gemt!');}
+async function gemNyKunde(){const navn=document.getElementById('nk-navn').value.trim();if(!navn){alert('Udfyld venligst kundenavn');return;}const nyKunde={navn,kontakt:document.getElementById('nk-kontakt').value,email:document.getElementById('nk-email').value,landekode:document.getElementById('nk-landekode').value,tlf:document.getElementById('nk-tlf').value,adresse:document.getElementById('nk-adresse').value,postnr:document.getElementById('nk-postnr').value,by:document.getElementById('nk-by').value,gruppe:document.getElementById('nk-gruppe').value,noter:document.getElementById('nk-noter').value};const{data,error}=await db.from('customers').insert({name:nyKunde.navn,contact_person:nyKunde.kontakt,email:nyKunde.email,phone_country_code:nyKunde.landekode,phone:nyKunde.tlf,address:nyKunde.adresse,postal_code:nyKunde.postnr,city:nyKunde.by,customer_group:nyKunde.gruppe,notes:nyKunde.noter}).select().single();if(error){console.error('Gem kunde fejl:',error);alert('Fejl ved gemning af kunde: '+error.message);return;}nyKunde.id=data.id;kunder.push(nyKunde);closeModal();renderKunder();showToast('✓ Kunde gemt i database!');}
 function openKundeModal(id){const k=kunder.find(x=>x.id===id);if(!k)return;document.getElementById('modal-title').textContent=k.navn;document.getElementById('modal-body').innerHTML=`<div class="modal-detail"><span class="modal-lbl">Kontaktperson</span><span class="modal-val">${k.kontakt||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Email</span><span class="modal-val">${k.email||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Telefon</span><span class="modal-val">${k.landekode||''} ${k.tlf||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${k.adresse||'—'}${k.postnr?' · '+k.postnr:''}${k.by?' '+k.by:''}</span></div><div class="modal-detail"><span class="modal-lbl">Gruppe</span><span class="modal-val">${k.gruppe||'—'}</span></div>${k.noter?`<div class="modal-detail"><span class="modal-lbl">Noter</span><span class="modal-val">${k.noter}</span></div>`:''}`;document.getElementById('modal-actions').innerHTML=`<button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button><button class="btn btn-danger btn-sm" onclick="sletKunde('${id}')">🗑 Slet</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
-function sletKunde(id){if(confirm('Slet kunden?')){kunder=kunder.filter(x=>x.id!==id);closeModal();renderKunder();showToast('Kunde slettet');}}
+async function sletKunde(id){if(confirm('Slet kunden?')){await sletKundeIDB(id);kunder=kunder.filter(x=>x.id!==id);closeModal();renderKunder();showToast('Kunde slettet');}}
 
 function renderPrisliste(filter=''){const tbody=document.getElementById('pl-tbody');if(!tbody)return;const kats=[...new Set(VARER.map(v=>v.kat))];let html='';kats.forEach(kat=>{const varer=VARER.filter(v=>v.kat===kat&&(!filter||v.navn.toLowerCase().includes(filter.toLowerCase())||v.nr.toLowerCase().includes(filter.toLowerCase())));if(!varer.length)return;html+=`<tr class="pl-cat-row"><td colspan="7">${kat}</td></tr>`;varer.forEach(v=>{html+=`<tr><td class="pl-nr">${v.nr}</td><td>${v.navn}</td><td style="color:var(--text-dim);font-size:11px;">${v.kat}</td><td class="pl-pris">${getSalgspris(v)} kr.</td><td class="pl-db">${getDB(v)} kr.</td><td class="pl-db">${getDBpct(v)}%</td><td style="color:var(--text-dim);font-family:'JetBrains Mono',monospace;">${v.tid} min</td></tr>`;});});tbody.innerHTML=html;}
 function sogPrisliste(val){renderPrisliste(val);}
+function togglePrisGuide(){const el=document.getElementById('pris-guide');if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 function renderLedelse(){const filter=document.getElementById('ldr-filter')?document.getElementById('ldr-filter').value:'alle';const filtered=filter==='alle'?ordrer.filter(o=>o.status!=='ARKIVERET'):ordrer.filter(o=>o.afd===filter&&o.status!=='ARKIVERET');const total=filtered.reduce((s,o)=>s+o.pris,0);const prod=filtered.filter(o=>o.status==='I PRODUKTION').reduce((s,o)=>s+o.pris,0);const moms=Math.round(total/(1+MOMS)*MOMS);const el=document.getElementById('ldr-stats');if(el)el.innerHTML=`<div class="ldr-card"><div class="ldr-lbl">Salgsværdi</div><div class="ldr-val">${total.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr. incl. moms</div></div><div class="ldr-card"><div class="ldr-lbl">Heraf moms</div><div class="ldr-val" style="color:var(--blue2);">${moms.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div><div class="ldr-card"><div class="ldr-lbl">I produktion</div><div class="ldr-val" style="color:var(--yellow);">${prod.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div><div class="ldr-card"><div class="ldr-lbl">Antal aktive</div><div class="ldr-val" style="color:var(--accent);">${filtered.length}</div><div style="font-size:11px;color:var(--text-dim);">ordrer</div></div>`;const afdEl=document.getElementById('ldr-afd');if(afdEl)afdEl.innerHTML=lokationer.map(l=>{const la=ordrer.filter(o=>o.afd===l.id&&o.status!=='ARKIVERET');const lv=la.reduce((s,o)=>s+o.pris,0);if(!la.length)return'';return`<div class="afd-row"><span class="afd-name">${l.navn}</span><div style="display:flex;gap:20px;font-family:'JetBrains Mono',monospace;font-size:12px;"><span>${la.length} aktive</span><span style="color:var(--accent);">${lv.toLocaleString('da')} kr.</span></div></div>`;}).join('');const tbody=document.getElementById('ldr-tbody');if(tbody)tbody.innerHTML=filtered.map(o=>{const lok=lokationer.find(l=>l.id===o.afd);const t=new Date(o.tid);return`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.id}</td><td>${o.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:o.afd}</td><td><span class="tag tag-afventer" style="font-size:10px;">${o.status}</span></td><td>${t.toLocaleDateString('da')} kl. ${t.toTimeString().slice(0,5)}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${o.pris.toLocaleString('da')} kr.</td><td>${o.betal}</td></tr>`;}).join('');}
 

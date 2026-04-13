@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.2</title>
+<title>Lubnan Ordreflow 3.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -120,13 +120,11 @@ textarea{resize:vertical;min-height:80px;}
 .page-title{font-family:'Playfair Display',serif;font-size:24px;color:var(--text);margin-bottom:20px;}
 .page-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 
-/* ALLERGI FREMHÆVNING */
 .allergi-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:12px;}
 .allergi-box label{color:var(--red);font-weight:600;font-size:12px;}
 .allergi-box textarea{border-color:rgba(239,68,68,.4);}
 .allergi-box textarea:focus{border-color:var(--red);}
 
-/* TELEFON MED LANDEKODE */
 .tlf-group{display:flex;gap:6px;}
 .tlf-landekode{width:90px!important;flex-shrink:0;}
 .tlf-nr{flex:1;}
@@ -162,9 +160,6 @@ textarea{resize:vertical;min-height:80px;}
 .kt-privat{background:rgba(59,130,246,.2);color:var(--blue2);}
 .kt-erhverv{background:rgba(249,115,22,.2);color:var(--accent);}
 .kt-storkunde{background:rgba(168,85,247,.2);color:var(--purple);}
-.kt-nyhedsbrev{background:rgba(34,197,94,.2);color:var(--green);}
-.kt-klub{background:rgba(234,179,8,.2);color:var(--yellow);}
-.kt-rabat{background:rgba(239,68,68,.2);color:var(--red);}
 .kunde-search{width:100%;max-width:400px;margin-bottom:16px;}
 
 .pl-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -213,7 +208,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.2</span>
+    <span class="hdr-ver">Ordreflow 3.4</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -296,8 +291,6 @@ textarea{resize:vertical;min-height:80px;}
   <div class="back-btn" onclick="showPage('flytavle')">← Tilbage</div>
   <div class="page-title">Opret ordre</div>
   <div class="form-page">
-
-    <!-- KUNDEOPLYSNINGER -->
     <div class="form-section">
       <div class="form-section-title">Kundeoplysninger</div>
       <div class="form-grid">
@@ -314,8 +307,6 @@ textarea{resize:vertical;min-height:80px;}
           <label>Afdeling <span class="req">*</span></label>
           <select id="o-afd"></select>
         </div>
-
-        <!-- ADRESSE SPLIT I 3 FELTER -->
         <div class="form-group full">
           <label>Leveringsadresse</label>
           <input type="text" id="o-adresse" placeholder="Vejnavn og husnummer">
@@ -328,8 +319,6 @@ textarea{resize:vertical;min-height:80px;}
           <label>By</label>
           <input type="text" id="o-by" placeholder="Fx: Hvidovre">
         </div>
-
-        <!-- SMS MED LANDEKODE -->
         <div class="form-group">
           <label>SMS opdatering</label>
           <select id="o-sms"><option value="nej">Nej tak</option><option value="ja">Ja — send SMS</option></select>
@@ -345,9 +334,6 @@ textarea{resize:vertical;min-height:80px;}
               <option value="+44">🇬🇧 +44</option>
               <option value="+1">🇺🇸 +1</option>
               <option value="+961">🇱🇧 +961</option>
-              <option value="+33">🇫🇷 +33</option>
-              <option value="+31">🇳🇱 +31</option>
-              <option value="+971">🇦🇪 +971</option>
             </select>
             <input type="tel" class="tlf-nr" id="o-sms-tlf" placeholder="Fx: 20 30 40 50">
           </div>
@@ -355,9 +341,17 @@ textarea{resize:vertical;min-height:80px;}
       </div>
     </div>
 
-    <!-- VARER -->
     <div class="form-section">
       <div class="form-section-title">Vælg varer</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Hurtig tilføj via dropdown</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="vare-dropdown" style="flex:1;" onchange="addFromDropdown(this.value)">
+            <option value="">— Vælg en vare —</option>
+          </select>
+          <span id="vare-dropdown-pris" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);min-width:80px;text-align:right;"></span>
+        </div>
+      </div>
       <div class="vare-section">
         <div class="vare-cats" id="vare-cats"></div>
         <div class="vare-grid" id="vare-grid"></div>
@@ -370,12 +364,11 @@ textarea{resize:vertical;min-height:80px;}
       </div>
     </div>
 
-    <!-- OPGAVE -->
     <div class="form-section">
       <div class="form-section-title">Opgave</div>
       <div class="form-grid">
         <div class="form-group full">
-          <label>Beskrivelse <span class="req">*</span> <span style="color:var(--text-muted);font-weight:400;">— vælg standard eller skriv selv</span></label>
+          <label>Beskrivelse <span class="req">*</span></label>
           <select id="o-beskr-standard" onchange="valgStandardBeskr(this.value)" style="margin-bottom:6px;">
             <option value="">— Vælg standard beskrivelse —</option>
             <option value="Frokost til {antal} personer">Frokost til X personer</option>
@@ -389,10 +382,8 @@ textarea{resize:vertical;min-height:80px;}
           </select>
           <input type="text" id="o-beskr" placeholder="Eller skriv fritekst beskrivelse her...">
         </div>
-
-        <!-- ANTAL SOM TALRUBRIK -->
         <div class="form-group">
-          <label>Antal <span style="color:var(--text-muted);font-size:11px;">(personer / kuverter / portioner)</span></label>
+          <label>Antal</label>
           <input type="number" id="o-antal" placeholder="0" min="1" style="font-size:16px;font-weight:600;">
         </div>
         <div class="form-group">
@@ -414,7 +405,6 @@ textarea{resize:vertical;min-height:80px;}
       </div>
     </div>
 
-    <!-- BETALING OG PRIORITET -->
     <div class="form-section">
       <div class="form-section-title">Betaling og prioritet</div>
       <div class="form-grid">
@@ -427,13 +417,12 @@ textarea{resize:vertical;min-height:80px;}
           <select id="o-prio"><option value="ingen">Ingen</option><option value="normal">Normal</option><option value="vigtig">⚡ Vigtig</option><option value="haster">🔴 Haster</option></select>
         </div>
         <div class="form-group full">
-          <label>Ordrebehandler <span style="color:var(--text-muted);font-size:11px;">— ansvarlig for produktion og levering</span></label>
+          <label>Ordrebehandler</label>
           <select id="o-handler"><option>Nano</option><option>Sanne</option><option>Carsten</option><option>Kurt</option><option>Sara</option><option>Ahmed</option></select>
         </div>
       </div>
     </div>
 
-    <!-- ALLERGIER FREMHÆVET -->
     <div class="form-section">
       <div class="allergi-box">
         <label>⚠️ Allergier og særlige hensyn</label>
@@ -491,6 +480,23 @@ textarea{resize:vertical;min-height:80px;}
 <div id="page-prisliste" class="hidden">
   <div class="page-hdr">
     <div><div style="font-family:'Playfair Display',serif;font-size:24px;">Prisliste</div></div>
+    <button class="btn btn-secondary btn-sm" onclick="togglePrisGuide()">📖 Guide: Ret priser</button>
+  </div>
+  <div id="pris-guide" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px;margin-bottom:16px;max-width:680px;">
+    <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:12px;color:var(--accent);">Sådan retter du prislisten</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text-dim);">
+      <p style="margin-bottom:8px;">Priser beregnes automatisk ud fra <strong style="color:var(--text);">råvarepris</strong> med fast avance og moms:</p>
+      <div style="background:var(--surface3);border-radius:6px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:12px;color:var(--blue2);">
+        Salgspris = råvare × 1,35 (avance 35%) × 1,25 (moms 25%)<br>
+        <span style="color:var(--text-muted);">Eks: råvare 48 kr. → 48 × 1,35 × 1,25 = <strong style="color:var(--accent);">81 kr.</strong></span>
+      </div>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 1:</strong> Åbn filen <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">index.html</code> i en teksteditor (fx Notepad++ eller VS Code).</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 2:</strong> Søg efter <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const VARER = [</code> (ca. linje 600).</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 3:</strong> Find den vare du vil ændre og ret <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">raavare:</code>-tallet.</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Trin 4:</strong> Gem filen og upload til Netlify via <a href="https://app.netlify.com" target="_blank" style="color:var(--blue2);">app.netlify.com</a> → Sites → lubnan-ordreflow → Deploys → drag &amp; drop filen.</p>
+      <p style="margin-bottom:6px;"><strong style="color:var(--text);">Vil du ændre avance?</strong> Find <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const AVANCE = 0.35;</code> og ret tallet (0.40 = 40% osv.)</p>
+      <p><strong style="color:var(--text);">Vil du ændre moms?</strong> Find <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const MOMS = 0.25;</code> og ret tallet.</p>
+    </div>
   </div>
   <input type="text" style="width:100%;max-width:360px;margin-bottom:14px;" placeholder="🔍 Søg..." oninput="sogPrisliste(this.value)">
   <table class="pl-table">
@@ -545,7 +551,6 @@ textarea{resize:vertical;min-height:80px;}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── SUPABASE OPSÆTNING ───────────────────────────────────────
 const SUPABASE_URL = 'https://grlarvatvpededvzdvpc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_u5YHbCqbYPekUvF5ir9TiQ_C9YZN7u0';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -553,7 +558,6 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const MOMS = 0.25;
 const AVANCE = 0.35;
 
-// ── STANDARD BESKRIVELSER ────────────────────────────────────
 function valgStandardBeskr(val) {
   if(!val) return;
   const antal = document.getElementById('o-antal').value || 'X';
@@ -562,7 +566,6 @@ function valgStandardBeskr(val) {
   document.getElementById('o-beskr-standard').value = '';
 }
 
-// ── LOKATIONER ───────────────────────────────────────────────
 let lokationer = [
   {id:'hvidovre', navn:'Hvidovre', fast:true, cap:8},
   {id:'ft1', navn:'Foodtruck 1', fast:false, cap:5},
@@ -620,7 +623,6 @@ function populerAfdelingSelect() {
     lokationer.map(l=>`<option value="${l.id}">${l.navn}</option>`).join('');
 }
 
-// ── VARER ────────────────────────────────────────────────────
 const VARER = [
   {nr:'F001',navn:'Hummus',kat:'Forret/Mezze',raavare:18,tid:5},
   {nr:'F002',navn:'Baba Ghanoush',kat:'Forret/Mezze',raavare:20,tid:8},
@@ -674,7 +676,6 @@ const STAFET = [
   {nr:4, label:'Klar til afhentning', icon:'✅'},
 ];
 
-// ── DATA ─────────────────────────────────────────────────────
 let ordrer = [];
 let tilbud = [];
 let kunder = [];
@@ -684,7 +685,6 @@ let currentVareKat = 'Alle';
 let currentKundeFilter = 'alle';
 let openModalId = null;
 
-// ── SUPABASE FUNKTIONER ──────────────────────────────────────
 async function hentOrdrer() {
   const { data, error } = await db.from('orders').select('*').neq('status','ARKIVERET').order('created_at', {ascending:false});
   if(error) { console.error(error); return; }
@@ -757,22 +757,44 @@ async function sletOrdreIDB(dbId) {
   if(error) console.error('Slet fejl:', error);
 }
 
-// ── TEST FORBINDELSE ─────────────────────────────────────────
+async function hentKunder() {
+  const { data, error } = await db.from('customers').select('*').order('name', {ascending:true});
+  if(error) { console.error('Hent kunder fejl:', error); return; }
+  kunder = (data||[]).map(r => ({
+    id: r.id,
+    navn: r.name,
+    kontakt: r.contact_person||'',
+    email: r.email||'',
+    landekode: r.phone_country_code||'+45',
+    tlf: r.phone||'',
+    adresse: r.address||'',
+    postnr: r.postal_code||'',
+    by: r.city||'',
+    gruppe: r.customer_group||'Privat',
+    noter: r.notes||''
+  }));
+  renderKunder();
+}
+
+async function sletKundeIDB(id) {
+  const { error } = await db.from('customers').delete().eq('id', id);
+  if(error) console.error('Slet kunde fejl:', error);
+}
+
 async function testForbindelse() {
   const statusEl = document.getElementById('db-status');
   const { error } = await db.from('orders').select('id').limit(1);
   if(error) {
     statusEl.textContent = '❌ Database fejl';
     statusEl.className = 'db-status db-err';
-    showToast('❌ Kunne ikke forbinde til database');
   } else {
     statusEl.textContent = '✅ Database OK';
     statusEl.className = 'db-status db-ok';
     await hentOrdrer();
+    await hentKunder();
   }
 }
 
-// ── CLOCK ────────────────────────────────────────────────────
 function updateClock() {
   const n = new Date();
   document.getElementById('clock').textContent = n.toTimeString().slice(0,8);
@@ -784,7 +806,6 @@ function updateClock() {
 setInterval(updateClock,1000);
 updateClock();
 
-// ── NAVIGATION ───────────────────────────────────────────────
 function showPage(page) {
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
@@ -796,7 +817,7 @@ function showPage(page) {
   if(page==='prisliste') renderPrisliste();
   if(page==='ledelse') { populerAfdelingSelect(); renderLedelse(); }
   if(page==='kunder') renderKunder();
-  if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); }
+  if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); populerVareDropdown(); }
   if(page==='opret-tilbud') populerAfdelingSelect();
   if(page==='forside') { renderAlerts(); renderCapRows(); }
   if(page==='arkiv') loadArkiv();
@@ -810,7 +831,6 @@ function setDefaultDT() {
   if(el && !el.value) el.value = now.toISOString().slice(0,16);
 }
 
-// ── ALERTS ───────────────────────────────────────────────────
 function renderAlerts() {
   const now = new Date();
   const el = document.getElementById('alerts');
@@ -822,7 +842,6 @@ function renderAlerts() {
   }).join('');
 }
 
-// ── STATS ────────────────────────────────────────────────────
 function updateStats() {
   const prod=ordrer.filter(o=>o.status==='I PRODUKTION').length;
   const afv=ordrer.filter(o=>o.status==='NYE ORDRER'||o.status==='KLAR TIL PROD.').length;
@@ -834,7 +853,6 @@ function updateStats() {
   ['badge-tilbud','sc-tilbud'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=tilbud.length;});
 }
 
-// ── STAFET ───────────────────────────────────────────────────
 function renderStafetBar(o) {
   return `<div style="display:flex;gap:4px;margin-top:6px;">` +
     STAFET.map(s => {
@@ -865,7 +883,6 @@ async function fremrykStafet(id) {
   if(openModalId === id) openModal(id);
 }
 
-// ── BOARD ────────────────────────────────────────────────────
 const COLS = ['NYE ORDRER','KLAR TIL PROD.','I PRODUKTION','KLAR TIL LEVERING','ARKIVERET'];
 const COL_LABELS = ['Nye ordrer','Klar til prod.','I produktion','Klar til levering','Nyligt afsluttet'];
 
@@ -927,99 +944,53 @@ function filterFly(afd, btn) {
   renderBoard();
 }
 
-// ── TILBUD ───────────────────────────────────────────────────
 function renderTilbud() {
   const tbody = document.getElementById('tilbud-tbody');
   if(!tbody) return;
   if(!tilbud.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen tilbud endnu</td></tr>'; return; }
   tbody.innerHTML = tilbud.map(t=>{
     const lok = lokationer.find(l=>l.id===t.afd);
-    return `<tr>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td>
-      <td>${t.kunde}</td>
-      <td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td>
-      <td>${t.beskr}</td>
-      <td>${t.tid ? new Date(t.tid).toLocaleDateString('da') : '—'}</td>
-      <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td>
-      <td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td>
-      <td style="display:flex;gap:4px;">
-        <button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button>
-        <button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button>
-      </td>
-    </tr>`;
+    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${t.tid?new Date(t.tid).toLocaleDateString('da'):'—'}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;"><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button><button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button></td></tr>`;
   }).join('');
 }
 
-function konverterTilbud(id){
-  const t=tilbud.find(x=>x.id===id);if(!t)return;
-  const nr='26-00'+String(Date.now()).slice(-4);
-  const nyOrdre = {id:nr,kunde:t.kunde,kontakt:'',afd:t.afd,beskr:t.beskr,antal:t.antal,pris:t.pris,tid:t.tid,levform:'Spises på stedet',betal:'Faktureres',status:'NYE ORDRER',handler:'',prio:'normal',adresse:'',postnr:'',by:'',landekode:'+45',smsTlf:'',instrukt:'',stafetTrin:1,stafetTider:{'1':new Date().toTimeString().slice(0,5)}};
-  ordrer.push(nyOrdre);
-  gemOrdreIDB(nyOrdre);
-  tilbud=tilbud.filter(x=>x.id!==id);
-  updateStats();renderTilbud();renderBoard();showToast('✓ Konverteret til ordre '+nr);
-}
+function konverterTilbud(id){const t=tilbud.find(x=>x.id===id);if(!t)return;const nr='26-00'+String(Date.now()).slice(-4);const nyOrdre={id:nr,kunde:t.kunde,kontakt:'',afd:t.afd,beskr:t.beskr,antal:t.antal,pris:t.pris,tid:t.tid,levform:'Spises på stedet',betal:'Faktureres',status:'NYE ORDRER',handler:'',prio:'normal',adresse:'',postnr:'',by:'',landekode:'+45',smsTlf:'',instrukt:'',stafetTrin:1,stafetTider:{'1':new Date().toTimeString().slice(0,5)}};ordrer.push(nyOrdre);gemOrdreIDB(nyOrdre);tilbud=tilbud.filter(x=>x.id!==id);updateStats();renderTilbud();renderBoard();showToast('✓ Konverteret til ordre '+nr);}
 function sletTilbud(id){tilbud=tilbud.filter(x=>x.id!==id);renderTilbud();updateStats();showToast('Tilbud slettet');}
 
-// ── OPRET ORDRE ──────────────────────────────────────────────
 function renderVareVaelger() {
   const kats = ['Alle',...new Set(VARER.map(v=>v.kat))];
   const catsEl = document.getElementById('vare-cats');
   if(catsEl) catsEl.innerHTML = kats.map(k=>`<button class="vcat ${k===currentVareKat?'active':''}" onclick="filterVareKat('${k}')">${k}</button>`).join('');
   const filtered = currentVareKat==='Alle'?VARER:VARER.filter(v=>v.kat===currentVareKat);
   const gridEl = document.getElementById('vare-grid');
-  if(gridEl) gridEl.innerHTML = filtered.map(v=>`
-    <div class="vare-card" onclick="addToKurv('${v.nr}')">
-      <div class="vare-nr">${v.nr}</div>
-      <div class="vare-navn">${v.navn}</div>
-      <div class="vare-pris">${getSalgspris(v)} kr.</div>
-      <div class="vare-kat">${v.kat} · ${v.tid} min</div>
-    </div>`).join('');
+  if(gridEl) gridEl.innerHTML = filtered.map(v=>`<div class="vare-card" onclick="addToKurv('${v.nr}')"><div class="vare-nr">${v.nr}</div><div class="vare-navn">${v.navn}</div><div class="vare-pris">${getSalgspris(v)} kr.</div><div class="vare-kat">${v.kat} · ${v.tid} min</div></div>`).join('');
 }
 
 function filterVareKat(kat){currentVareKat=kat;renderVareVaelger();}
-
-function addToKurv(nr){
-  const v=VARER.find(x=>x.nr===nr);if(!v)return;
-  const ex=kurv.find(x=>x.nr===nr);
-  if(ex)ex.antal++;else kurv.push({...v,antal:1});
-  renderKurv();showToast('✓ '+v.navn+' tilføjet');
-}
-
+function populerVareDropdown(){const sel=document.getElementById('vare-dropdown');if(!sel)return;const kats=[...new Set(VARER.map(v=>v.kat))];sel.innerHTML='<option value="">— Vælg en vare —</option>'+kats.map(kat=>`<optgroup label="${kat}">${VARER.filter(v=>v.kat===kat).map(v=>`<option value="${v.nr}">${v.navn} — ${getSalgspris(v)} kr.</option>`).join('')}</optgroup>`).join('');}
+function addFromDropdown(nr){if(!nr)return;addToKurv(nr);const sel=document.getElementById('vare-dropdown');if(sel)sel.value='';const pEl=document.getElementById('vare-dropdown-pris');if(pEl)pEl.textContent='';}
+function addToKurv(nr){const v=VARER.find(x=>x.nr===nr);if(!v)return;const ex=kurv.find(x=>x.nr===nr);if(ex)ex.antal++;else kurv.push({...v,antal:1});renderKurv();showToast('✓ '+v.navn+' tilføjet');}
 function removeFromKurv(nr){kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}
 function øgAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal++;renderKurv();}}
 function mindreAntal(nr){const ex=kurv.find(x=>x.nr===nr);if(ex){ex.antal--;if(ex.antal<=0)kurv=kurv.filter(x=>x.nr!==nr);renderKurv();}}
+function setAntal(nr,val){const ex=kurv.find(x=>x.nr===nr);const n=parseInt(val)||1;if(ex){if(n<=0)kurv=kurv.filter(x=>x.nr!==nr);else ex.antal=n;renderKurv();}}
 function tomKurv(){kurv=[];renderKurv();}
 
 function renderKurv(){
-  const el=document.getElementById('kurv');
-  if(!el)return;
+  const el=document.getElementById('kurv');if(!el)return;
   if(kurv.length===0){el.classList.add('hidden');document.getElementById('o-pris').value='';return;}
   el.classList.remove('hidden');
   const total=kurv.reduce((s,v)=>s+getSalgspris(v)*v.antal,0);
   const exMoms=Math.round(total/(1+MOMS));
   const moms=total-exMoms;
-  document.getElementById('kurv-items').innerHTML=kurv.map(v=>`
-    <div class="kurv-item">
-      <span>${v.navn}</span>
-      <span style="display:flex;align-items:center;gap:6px;">
-        <span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span>
-        <button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button>
-        <span style="font-family:monospace;min-width:20px;text-align:center;font-weight:600;">${v.antal}</span>
-        <button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button>
-        <button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button>
-      </span>
-    </div>`).join('');
+  document.getElementById('kurv-items').innerHTML=kurv.map(v=>`<div class="kurv-item"><span>${v.navn}</span><span style="display:flex;align-items:center;gap:6px;"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span><button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button><input type="number" min="1" value="${v.antal}" onchange="setAntal('${v.nr}',this.value)" style="width:44px;text-align:center;font-family:monospace;font-weight:600;background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;"><button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button><button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button></span></div>`).join('');
   document.getElementById('kurv-total').textContent=total.toLocaleString('da')+' kr.';
   document.getElementById('kurv-moms').textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. | Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
   document.getElementById('o-pris').value=total;
 }
 
 document.addEventListener('change',e=>{
-  if(e.target.id==='o-sms'){
-    const g=document.getElementById('sms-tlf-group');
-    if(g)g.style.display=e.target.value==='ja'?'flex':'none';
-  }
+  if(e.target.id==='o-sms'){const g=document.getElementById('sms-tlf-group');if(g)g.style.display=e.target.value==='ja'?'flex':'none';}
 });
 
 async function opretOrdre(){
@@ -1029,29 +1000,12 @@ async function opretOrdre(){
   if(!kunde||!beskr||!tid){alert('Udfyld venligst: Kundenavn, Beskrivelse og Leveringstidspunkt');return;}
   const nr='26-'+String(Date.now()).slice(-6);
   const now=new Date();
-  const nyOrdre = {
-    id:nr, kunde, kontakt:document.getElementById('o-kontakt').value,
-    afd:document.getElementById('o-afd').value,
-    beskr, antal:parseInt(document.getElementById('o-antal').value)||0,
-    pris:parseInt(document.getElementById('o-pris').value)||0,
-    tid, levform:document.getElementById('o-levform').value,
-    betal:document.getElementById('o-betal').value,
-    status:'NYE ORDRER', handler:document.getElementById('o-handler').value,
-    prio:document.getElementById('o-prio').value,
-    adresse:document.getElementById('o-adresse').value,
-    postnr:document.getElementById('o-postnr').value,
-    by:document.getElementById('o-by').value,
-    landekode:document.getElementById('o-landekode')?.value||'+45',
-    smsTlf:document.getElementById('o-sms-tlf').value,
-    instrukt:document.getElementById('o-instrukt').value,
-    stafetTrin:1, stafetTider:{'1':now.toTimeString().slice(0,5)},
-  };
+  const nyOrdre={id:nr,kunde,kontakt:document.getElementById('o-kontakt').value,afd:document.getElementById('o-afd').value,beskr,antal:parseInt(document.getElementById('o-antal').value)||0,pris:parseInt(document.getElementById('o-pris').value)||0,tid,levform:document.getElementById('o-levform').value,betal:document.getElementById('o-betal').value,status:'NYE ORDRER',handler:document.getElementById('o-handler').value,prio:document.getElementById('o-prio').value,adresse:document.getElementById('o-adresse').value,postnr:document.getElementById('o-postnr').value,by:document.getElementById('o-by').value,landekode:document.getElementById('o-landekode')?.value||'+45',smsTlf:document.getElementById('o-sms-tlf').value,instrukt:document.getElementById('o-instrukt').value,stafetTrin:1,stafetTider:{'1':now.toTimeString().slice(0,5)}};
   ordrer.push(nyOrdre);
   await gemOrdreIDB(nyOrdre);
   kurv=[];
   ['o-kunde','o-kontakt','o-beskr','o-antal','o-adresse','o-postnr','o-by','o-instrukt','o-sms-tlf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('o-pris').value='';
-  document.getElementById('o-tid').value='';
+  document.getElementById('o-pris').value='';document.getElementById('o-tid').value='';
   updateStats();showToast('✓ Ordre '+nr+' gemt i database!');showPage('flytavle');
 }
 
@@ -1065,266 +1019,34 @@ function opretTilbud(){
   updateStats();showToast('✓ Tilbud '+nr+' oprettet!');showPage('tilbud');
 }
 
-// ── AUTOCOMPLETE ─────────────────────────────────────────────
-function autocompleteKunde(val){
-  const el=document.getElementById('kunde-suggestions');
-  if(!val||val.length<2){el.innerHTML='';return;}
-  const matches=kunder.filter(k=>k.navn.toLowerCase().includes(val.toLowerCase()));
-  if(!matches.length){el.innerHTML='';return;}
-  el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;">${
-    matches.map(k=>`<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmousedown="valgKunde('${k.id}')">
-      <strong>${k.navn}</strong> <span style="color:var(--text-muted);font-size:11px;">${k.gruppe||''}</span>
-    </div>`).join('')
-  }</div>`;
-}
+function autocompleteKunde(val){const el=document.getElementById('kunde-suggestions');if(!val||val.length<2){el.innerHTML='';return;}const matches=kunder.filter(k=>k.navn.toLowerCase().includes(val.toLowerCase()));if(!matches.length){el.innerHTML='';return;}el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;">${matches.map(k=>`<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmousedown="valgKunde('${k.id}')"><strong>${k.navn}</strong> <span style="color:var(--text-muted);font-size:11px;">${k.gruppe||''}</span></div>`).join('')}</div>`;}
+function valgKunde(id){const k=kunder.find(x=>x.id===id);if(!k)return;document.getElementById('o-kunde').value=k.navn;document.getElementById('o-kontakt').value=k.kontakt||k.tlf||k.email||'';document.getElementById('o-adresse').value=k.adresse||'';document.getElementById('o-postnr').value=k.postnr||'';document.getElementById('o-by').value=k.by||'';document.getElementById('kunde-suggestions').innerHTML='';}
 
-function valgKunde(id){
-  const k=kunder.find(x=>x.id===id);if(!k)return;
-  document.getElementById('o-kunde').value=k.navn;
-  document.getElementById('o-kontakt').value=k.kontakt||k.tlf||k.email||'';
-  document.getElementById('o-adresse').value=k.adresse||'';
-  document.getElementById('o-postnr').value=k.postnr||'';
-  document.getElementById('o-by').value=k.by||'';
-  document.getElementById('kunde-suggestions').innerHTML='';
-}
-
-// ── KUNDER ───────────────────────────────────────────────────
-function renderKunder(filter='',gruppe='alle'){
-  const el=document.getElementById('kunde-grid');
-  if(!el)return;
-  let liste=kunder;
-  if(filter) liste=liste.filter(k=>k.navn.toLowerCase().includes(filter.toLowerCase()));
-  if(gruppe!=='alle') liste=liste.filter(k=>k.gruppe===gruppe);
-  if(!liste.length){el.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;">Ingen kunder endnu — opret en!</div>';return;}
-  el.innerHTML=liste.map(k=>`
-    <div class="kunde-card" onclick="openKundeModal('${k.id}')">
-      <div class="kunde-navn">${k.navn}</div>
-      <div class="kunde-info">${k.kontakt||''} ${k.tlf?'· '+k.tlf:''}</div>
-      <div class="kunde-info">${k.email||''}</div>
-      <div class="kunde-tags">
-        <span class="kunde-tag kt-${(k.gruppe||'').toLowerCase()}">${k.gruppe||''}</span>
-      </div>
-    </div>`).join('');
-}
-
+function renderKunder(filter='',gruppe='alle'){const el=document.getElementById('kunde-grid');if(!el)return;let liste=kunder;if(filter)liste=liste.filter(k=>k.navn.toLowerCase().includes(filter.toLowerCase()));if(gruppe!=='alle')liste=liste.filter(k=>k.gruppe===gruppe);if(!liste.length){el.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;">Ingen kunder endnu — opret en!</div>';return;}el.innerHTML=liste.map(k=>`<div class="kunde-card" onclick="openKundeModal('${k.id}')"><div class="kunde-navn">${k.navn}</div><div class="kunde-info">${k.kontakt||''} ${k.tlf?'· '+k.tlf:''}</div><div class="kunde-info">${k.email||''}</div><div class="kunde-tags"><span class="kunde-tag kt-${(k.gruppe||'').toLowerCase()}">${k.gruppe||''}</span></div></div>`).join('');}
 function sogKunder(val){renderKunder(val,currentKundeFilter);}
-function filterKunder(gruppe,btn){
-  currentKundeFilter=gruppe;
-  document.querySelectorAll('#page-kunder .filter-btn').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  renderKunder('',gruppe);
-}
+function filterKunder(gruppe,btn){currentKundeFilter=gruppe;document.querySelectorAll('#page-kunder .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderKunder('',gruppe);}
 
-function openNyKunde(){
-  document.getElementById('modal-title').textContent='Ny kunde';
-  document.getElementById('modal-body').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="form-group full"><label>Kundenavn / Virksomhed *</label><input id="nk-navn" type="text" placeholder="Navn eller virksomhedsnavn"></div>
-      <div class="form-group full"><label>Kontaktperson / Medarbejder</label><input id="nk-kontakt" type="text" placeholder="Navn på kontaktperson"></div>
-      <div class="form-group"><label>Email</label><input id="nk-email" type="email" placeholder="email@eksempel.dk"></div>
-      <div class="form-group"><label>Telefon</label>
-        <div class="tlf-group">
-          <select class="tlf-landekode" id="nk-landekode">
-            <option value="+45">🇩🇰 +45</option>
-            <option value="+46">🇸🇪 +46</option>
-            <option value="+47">🇳🇴 +47</option>
-            <option value="+49">🇩🇪 +49</option>
-            <option value="+44">🇬🇧 +44</option>
-            <option value="+1">🇺🇸 +1</option>
-            <option value="+961">🇱🇧 +961</option>
-          </select>
-          <input type="tel" class="tlf-nr" id="nk-tlf" placeholder="Fx: 20 30 40 50">
-        </div>
-      </div>
-      <div class="form-group full"><label>Adresse</label><input id="nk-adresse" type="text" placeholder="Vejnavn og husnummer"></div>
-      <div class="form-group"><label>Postnummer</label><input id="nk-postnr" type="text" placeholder="Fx: 2650" maxlength="4"></div>
-      <div class="form-group"><label>By</label><input id="nk-by" type="text" placeholder="Fx: Hvidovre"></div>
-      <div class="form-group"><label>Kundegruppe</label><select id="nk-gruppe"><option>Privat</option><option>Erhverv</option><option>Storkunde</option></select></div>
-      <div class="form-group full"><label>Noter</label><textarea id="nk-noter" style="min-height:60px;" placeholder="Interne noter om kunden..."></textarea></div>
-    </div>`;
-  document.getElementById('modal-actions').innerHTML=`
-    <button class="btn btn-primary btn-sm" onclick="gemNyKunde()">✓ Gem kunde</button>
-    <button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;
-  document.getElementById('modal-overlay').classList.remove('hidden');
-}
+function openNyKunde(){document.getElementById('modal-title').textContent='Ny kunde';document.getElementById('modal-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="form-group full"><label>Kundenavn / Virksomhed *</label><input id="nk-navn" type="text" placeholder="Navn eller virksomhedsnavn"></div><div class="form-group full"><label>Kontaktperson</label><input id="nk-kontakt" type="text" placeholder="Navn på kontaktperson"></div><div class="form-group"><label>Email</label><input id="nk-email" type="email" placeholder="email@eksempel.dk"></div><div class="form-group"><label>Telefon</label><div class="tlf-group"><select class="tlf-landekode" id="nk-landekode"><option value="+45">🇩🇰 +45</option><option value="+46">🇸🇪 +46</option><option value="+47">🇳🇴 +47</option><option value="+49">🇩🇪 +49</option><option value="+44">🇬🇧 +44</option><option value="+1">🇺🇸 +1</option><option value="+961">🇱🇧 +961</option></select><input type="tel" class="tlf-nr" id="nk-tlf" placeholder="Fx: 20 30 40 50"></div></div><div class="form-group full"><label>Adresse</label><input id="nk-adresse" type="text" placeholder="Vejnavn og husnummer"></div><div class="form-group"><label>Postnummer</label><input id="nk-postnr" type="text" placeholder="Fx: 2650" maxlength="4"></div><div class="form-group"><label>By</label><input id="nk-by" type="text" placeholder="Fx: Hvidovre"></div><div class="form-group"><label>Kundegruppe</label><select id="nk-gruppe"><option>Privat</option><option>Erhverv</option><option>Storkunde</option></select></div><div class="form-group full"><label>Noter</label><textarea id="nk-noter" style="min-height:60px;" placeholder="Interne noter..."></textarea></div></div>`;document.getElementById('modal-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="gemNyKunde()">✓ Gem kunde</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
+async function gemNyKunde(){const navn=document.getElementById('nk-navn').value.trim();if(!navn){alert('Udfyld venligst kundenavn');return;}const nyKunde={navn,kontakt:document.getElementById('nk-kontakt').value,email:document.getElementById('nk-email').value,landekode:document.getElementById('nk-landekode').value,tlf:document.getElementById('nk-tlf').value,adresse:document.getElementById('nk-adresse').value,postnr:document.getElementById('nk-postnr').value,by:document.getElementById('nk-by').value,gruppe:document.getElementById('nk-gruppe').value,noter:document.getElementById('nk-noter').value};const{data,error}=await db.from('customers').insert({name:nyKunde.navn,contact_person:nyKunde.kontakt,email:nyKunde.email,phone_country_code:nyKunde.landekode,phone:nyKunde.tlf,address:nyKunde.adresse,postal_code:nyKunde.postnr,city:nyKunde.by,customer_group:nyKunde.gruppe,notes:nyKunde.noter}).select().single();if(error){console.error('Gem kunde fejl:',error);alert('Fejl ved gemning af kunde: '+error.message);return;}nyKunde.id=data.id;kunder.push(nyKunde);closeModal();renderKunder();showToast('✓ Kunde gemt i database!');}
+function openKundeModal(id){const k=kunder.find(x=>x.id===id);if(!k)return;document.getElementById('modal-title').textContent=k.navn;document.getElementById('modal-body').innerHTML=`<div class="modal-detail"><span class="modal-lbl">Kontaktperson</span><span class="modal-val">${k.kontakt||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Email</span><span class="modal-val">${k.email||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Telefon</span><span class="modal-val">${k.landekode||''} ${k.tlf||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${k.adresse||'—'}${k.postnr?' · '+k.postnr:''}${k.by?' '+k.by:''}</span></div><div class="modal-detail"><span class="modal-lbl">Gruppe</span><span class="modal-val">${k.gruppe||'—'}</span></div>${k.noter?`<div class="modal-detail"><span class="modal-lbl">Noter</span><span class="modal-val">${k.noter}</span></div>`:''}`;document.getElementById('modal-actions').innerHTML=`<button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button><button class="btn btn-danger btn-sm" onclick="sletKunde('${id}')">🗑 Slet</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
+async function sletKunde(id){if(confirm('Slet kunden?')){await sletKundeIDB(id);kunder=kunder.filter(x=>x.id!==id);closeModal();renderKunder();showToast('Kunde slettet');}}
 
-function gemNyKunde(){
-  const navn=document.getElementById('nk-navn').value.trim();
-  if(!navn){alert('Udfyld venligst kundenavn');return;}
-  kunder.push({
-    id:'k'+Date.now(), navn,
-    kontakt:document.getElementById('nk-kontakt').value,
-    email:document.getElementById('nk-email').value,
-    landekode:document.getElementById('nk-landekode').value,
-    tlf:document.getElementById('nk-tlf').value,
-    adresse:document.getElementById('nk-adresse').value,
-    postnr:document.getElementById('nk-postnr').value,
-    by:document.getElementById('nk-by').value,
-    gruppe:document.getElementById('nk-gruppe').value,
-    noter:document.getElementById('nk-noter').value,
-  });
-  closeModal();renderKunder();showToast('✓ Kunde gemt!');
-}
-
-function openKundeModal(id){
-  const k=kunder.find(x=>x.id===id);if(!k)return;
-  document.getElementById('modal-title').textContent=k.navn;
-  document.getElementById('modal-body').innerHTML=`
-    <div class="modal-detail"><span class="modal-lbl">Kontaktperson</span><span class="modal-val">${k.kontakt||'—'}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Email</span><span class="modal-val">${k.email||'—'}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Telefon</span><span class="modal-val">${k.landekode||''} ${k.tlf||'—'}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${k.adresse||'—'}${k.postnr?' · '+k.postnr:''}${k.by?' '+k.by:''}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Gruppe</span><span class="modal-val">${k.gruppe||'—'}</span></div>
-    ${k.noter?`<div class="modal-detail"><span class="modal-lbl">Noter</span><span class="modal-val">${k.noter}</span></div>`:''}`;
-  document.getElementById('modal-actions').innerHTML=`
-    <button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button>
-    <button class="btn btn-danger btn-sm" onclick="sletKunde('${id}')">🗑 Slet</button>`;
-  document.getElementById('modal-overlay').classList.remove('hidden');
-}
-
-function sletKunde(id){if(confirm('Slet kunden?')){kunder=kunder.filter(x=>x.id!==id);closeModal();renderKunder();showToast('Kunde slettet');}}
-
-// ── PRISLISTE ────────────────────────────────────────────────
-function renderPrisliste(filter=''){
-  const tbody=document.getElementById('pl-tbody');
-  if(!tbody)return;
-  const kats=[...new Set(VARER.map(v=>v.kat))];
-  let html='';
-  kats.forEach(kat=>{
-    const varer=VARER.filter(v=>v.kat===kat&&(!filter||v.navn.toLowerCase().includes(filter.toLowerCase())||v.nr.toLowerCase().includes(filter.toLowerCase())));
-    if(!varer.length)return;
-    html+=`<tr class="pl-cat-row"><td colspan="7">${kat}</td></tr>`;
-    varer.forEach(v=>{html+=`<tr><td class="pl-nr">${v.nr}</td><td>${v.navn}</td><td style="color:var(--text-dim);font-size:11px;">${v.kat}</td><td class="pl-pris">${getSalgspris(v)} kr.</td><td class="pl-db">${getDB(v)} kr.</td><td class="pl-db">${getDBpct(v)}%</td><td style="color:var(--text-dim);font-family:'JetBrains Mono',monospace;">${v.tid} min</td></tr>`;});
-  });
-  tbody.innerHTML=html;
-}
+function renderPrisliste(filter=''){const tbody=document.getElementById('pl-tbody');if(!tbody)return;const kats=[...new Set(VARER.map(v=>v.kat))];let html='';kats.forEach(kat=>{const varer=VARER.filter(v=>v.kat===kat&&(!filter||v.navn.toLowerCase().includes(filter.toLowerCase())||v.nr.toLowerCase().includes(filter.toLowerCase())));if(!varer.length)return;html+=`<tr class="pl-cat-row"><td colspan="7">${kat}</td></tr>`;varer.forEach(v=>{html+=`<tr><td class="pl-nr">${v.nr}</td><td>${v.navn}</td><td style="color:var(--text-dim);font-size:11px;">${v.kat}</td><td class="pl-pris">${getSalgspris(v)} kr.</td><td class="pl-db">${getDB(v)} kr.</td><td class="pl-db">${getDBpct(v)}%</td><td style="color:var(--text-dim);font-family:'JetBrains Mono',monospace;">${v.tid} min</td></tr>`;});});tbody.innerHTML=html;}
 function sogPrisliste(val){renderPrisliste(val);}
+function togglePrisGuide(){const el=document.getElementById('pris-guide');if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
-// ── LEDELSE ──────────────────────────────────────────────────
-function renderLedelse(){
-  const filter=document.getElementById('ldr-filter')?document.getElementById('ldr-filter').value:'alle';
-  const filtered=filter==='alle'?ordrer.filter(o=>o.status!=='ARKIVERET'):ordrer.filter(o=>o.afd===filter&&o.status!=='ARKIVERET');
-  const total=filtered.reduce((s,o)=>s+o.pris,0);
-  const prod=filtered.filter(o=>o.status==='I PRODUKTION').reduce((s,o)=>s+o.pris,0);
-  const moms=Math.round(total/(1+MOMS)*MOMS);
-  const el=document.getElementById('ldr-stats');
-  if(el)el.innerHTML=`
-    <div class="ldr-card"><div class="ldr-lbl">Salgsværdi</div><div class="ldr-val">${total.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr. incl. moms</div></div>
-    <div class="ldr-card"><div class="ldr-lbl">Heraf moms</div><div class="ldr-val" style="color:var(--blue2);">${moms.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div>
-    <div class="ldr-card"><div class="ldr-lbl">I produktion</div><div class="ldr-val" style="color:var(--yellow);">${prod.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div>
-    <div class="ldr-card"><div class="ldr-lbl">Antal aktive</div><div class="ldr-val" style="color:var(--accent);">${filtered.length}</div><div style="font-size:11px;color:var(--text-dim);">ordrer</div></div>`;
-  const afdEl=document.getElementById('ldr-afd');
-  if(afdEl)afdEl.innerHTML=lokationer.map(l=>{
-    const la=ordrer.filter(o=>o.afd===l.id&&o.status!=='ARKIVERET');
-    const lv=la.reduce((s,o)=>s+o.pris,0);
-    if(!la.length)return'';
-    return`<div class="afd-row"><span class="afd-name">${l.navn}</span><div style="display:flex;gap:20px;font-family:'JetBrains Mono',monospace;font-size:12px;"><span>${la.length} aktive</span><span style="color:var(--accent);">${lv.toLocaleString('da')} kr.</span></div></div>`;
-  }).join('');
-  const tbody=document.getElementById('ldr-tbody');
-  if(tbody)tbody.innerHTML=filtered.map(o=>{
-    const lok=lokationer.find(l=>l.id===o.afd);
-    const t=new Date(o.tid);
-    return`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.id}</td><td>${o.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:o.afd}</td><td><span class="tag tag-afventer" style="font-size:10px;">${o.status}</span></td><td>${t.toLocaleDateString('da')} kl. ${t.toTimeString().slice(0,5)}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${o.pris.toLocaleString('da')} kr.</td><td>${o.betal}</td></tr>`;
-  }).join('');
-}
+function renderLedelse(){const filter=document.getElementById('ldr-filter')?document.getElementById('ldr-filter').value:'alle';const filtered=filter==='alle'?ordrer.filter(o=>o.status!=='ARKIVERET'):ordrer.filter(o=>o.afd===filter&&o.status!=='ARKIVERET');const total=filtered.reduce((s,o)=>s+o.pris,0);const prod=filtered.filter(o=>o.status==='I PRODUKTION').reduce((s,o)=>s+o.pris,0);const moms=Math.round(total/(1+MOMS)*MOMS);const el=document.getElementById('ldr-stats');if(el)el.innerHTML=`<div class="ldr-card"><div class="ldr-lbl">Salgsværdi</div><div class="ldr-val">${total.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr. incl. moms</div></div><div class="ldr-card"><div class="ldr-lbl">Heraf moms</div><div class="ldr-val" style="color:var(--blue2);">${moms.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div><div class="ldr-card"><div class="ldr-lbl">I produktion</div><div class="ldr-val" style="color:var(--yellow);">${prod.toLocaleString('da')}</div><div style="font-size:11px;color:var(--text-dim);">kr.</div></div><div class="ldr-card"><div class="ldr-lbl">Antal aktive</div><div class="ldr-val" style="color:var(--accent);">${filtered.length}</div><div style="font-size:11px;color:var(--text-dim);">ordrer</div></div>`;const afdEl=document.getElementById('ldr-afd');if(afdEl)afdEl.innerHTML=lokationer.map(l=>{const la=ordrer.filter(o=>o.afd===l.id&&o.status!=='ARKIVERET');const lv=la.reduce((s,o)=>s+o.pris,0);if(!la.length)return'';return`<div class="afd-row"><span class="afd-name">${l.navn}</span><div style="display:flex;gap:20px;font-family:'JetBrains Mono',monospace;font-size:12px;"><span>${la.length} aktive</span><span style="color:var(--accent);">${lv.toLocaleString('da')} kr.</span></div></div>`;}).join('');const tbody=document.getElementById('ldr-tbody');if(tbody)tbody.innerHTML=filtered.map(o=>{const lok=lokationer.find(l=>l.id===o.afd);const t=new Date(o.tid);return`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.id}</td><td>${o.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:o.afd}</td><td><span class="tag tag-afventer" style="font-size:10px;">${o.status}</span></td><td>${t.toLocaleDateString('da')} kl. ${t.toTimeString().slice(0,5)}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${o.pris.toLocaleString('da')} kr.</td><td>${o.betal}</td></tr>`;}).join('');}
 
-// ── ARKIV ────────────────────────────────────────────────────
-async function loadArkiv() {
-  const ark = await hentArkiv();
-  const tbody = document.getElementById('arkiv-tbody');
-  if(!tbody) return;
-  if(!ark||!ark.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen arkiverede ordrer endnu</td></tr>';return;}
-  tbody.innerHTML = ark.map(o=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.id}</td><td>${o.kunde}</td><td>${o.afd}</td><td>${o.beskr}</td><td>${new Date(o.tid).toLocaleDateString('da')}</td><td style="color:var(--accent);">${o.pris.toLocaleString('da')} kr.</td><td>${o.betal}</td></tr>`).join('');
-}
+async function loadArkiv(){const ark=await hentArkiv();const tbody=document.getElementById('arkiv-tbody');if(!tbody)return;if(!ark||!ark.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen arkiverede ordrer endnu</td></tr>';return;}tbody.innerHTML=ark.map(o=>`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${o.id}</td><td>${o.kunde}</td><td>${o.afd}</td><td>${o.beskr}</td><td>${new Date(o.tid).toLocaleDateString('da')}</td><td style="color:var(--accent);">${o.pris.toLocaleString('da')} kr.</td><td>${o.betal}</td></tr>`).join('');}
+function sogArkiv(val){const rows=document.querySelectorAll('#arkiv-tbody tr');rows.forEach(r=>{r.style.display=!val||r.textContent.toLowerCase().includes(val.toLowerCase())?'':'none';});}
 
-function sogArkiv(val){
-  const rows = document.querySelectorAll('#arkiv-tbody tr');
-  rows.forEach(r=>{r.style.display=!val||r.textContent.toLowerCase().includes(val.toLowerCase())?'':'none';});
-}
+function openModal(id){openModalId=id;const o=ordrer.find(x=>x.id===id);if(!o)return;const t=new Date(o.tid);const lok=lokationer.find(l=>l.id===o.afd);const adresseFull=[o.adresse,o.postnr,o.by].filter(Boolean).join(', ');document.getElementById('modal-title').textContent=o.id+' — '+o.kunde;document.getElementById('modal-body').innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Stafetløb</div><div style="display:flex;gap:6px;">`+STAFET.map(s=>{const done=o.stafetTrin>s.nr;const active=o.stafetTrin===s.nr;const tid=o.stafetTider&&o.stafetTider[s.nr]?o.stafetTider[s.nr]:'';const bg=done?'rgba(34,197,94,.2)':active?'rgba(249,115,22,.2)':'rgba(255,255,255,.05)';const col=done?'var(--green)':active?'var(--accent)':'var(--text-muted)';return`<div style="flex:1;background:${bg};border-radius:6px;padding:8px 4px;text-align:center;"><div style="font-size:14px;">${s.icon}</div><div style="font-size:9px;color:${col};font-weight:600;">${s.label}</div>${tid?`<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);">kl. ${tid}</div>`:''}${done?'<div style="color:var(--green);font-size:10px;">✓</div>':active?'<div style="color:var(--accent);font-size:10px;">▶ NU</div>':''}</div>`;}).join('')+`</div></div><div class="modal-detail"><span class="modal-lbl">Afdeling</span><span class="modal-val" style="color:var(--blue2);">${lok?lok.navn:o.afd}</span></div><div class="modal-detail"><span class="modal-lbl">Beskrivelse</span><span class="modal-val">${o.beskr}</span></div>${o.antal?`<div class="modal-detail"><span class="modal-lbl">Antal</span><span class="modal-val">${o.antal} personer/portioner</span></div>`:''}<div class="modal-detail"><span class="modal-lbl">Pris</span><span class="modal-val" style="color:var(--accent);">${o.pris.toLocaleString('da')} kr.</span></div><div class="modal-detail"><span class="modal-lbl">Leveringstid</span><span class="modal-val">${t.toLocaleDateString('da')} kl. ${t.toTimeString().slice(0,5)}</span></div><div class="modal-detail"><span class="modal-lbl">Leveringsform</span><span class="modal-val">${o.levform||'—'}</span></div>${adresseFull?`<div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${adresseFull}</span></div>`:''}<div class="modal-detail"><span class="modal-lbl">Kontakt</span><span class="modal-val">${o.kontakt||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Behandler</span><span class="modal-val">${o.handler||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Betaling</span><span class="modal-val">${o.betal}</span></div>${o.instrukt?`<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:10px;margin-top:10px;"><div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:4px;">⚠️ ALLERGIER / SÆRLIGE HENSYN</div><div style="font-size:13px;">${o.instrukt}</div></div>`:''}<div style="margin-top:12px;"><label style="font-size:12px;color:var(--text-dim);">Skift status:</label><select id="modal-status" style="margin-top:6px;" onchange="skiftStatus('${id}',this.value)">${['NYE ORDRER','KLAR TIL PROD.','I PRODUKTION','KLAR TIL LEVERING','ARKIVERET'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></div>`;const kanFremrykke=o.stafetTrin<4;document.getElementById('modal-actions').innerHTML=`${kanFremrykke?`<button class="btn btn-primary btn-sm" onclick="fremrykStafet('${id}')">▶ ${STAFET[o.stafetTrin].label}</button>`:''}<button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button><button class="btn btn-danger btn-sm" onclick="sletOrdre('${id}')">🗑 Slet</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
 
-// ── MODAL ────────────────────────────────────────────────────
-function openModal(id){
-  openModalId=id;
-  const o=ordrer.find(x=>x.id===id);if(!o)return;
-  const t=new Date(o.tid);
-  const lok=lokationer.find(l=>l.id===o.afd);
-  const adresseFull = [o.adresse, o.postnr, o.by].filter(Boolean).join(', ');
-  document.getElementById('modal-title').textContent=o.id+' — '+o.kunde;
-  document.getElementById('modal-body').innerHTML=`
-    <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Stafetløb</div>
-      <div style="display:flex;gap:6px;">` +
-      STAFET.map(s=>{
-        const done=o.stafetTrin>s.nr;
-        const active=o.stafetTrin===s.nr;
-        const tid=o.stafetTider&&o.stafetTider[s.nr]?o.stafetTider[s.nr]:'';
-        const bg=done?'rgba(34,197,94,.2)':active?'rgba(249,115,22,.2)':'rgba(255,255,255,.05)';
-        const col=done?'var(--green)':active?'var(--accent)':'var(--text-muted)';
-        return`<div style="flex:1;background:${bg};border-radius:6px;padding:8px 4px;text-align:center;">
-          <div style="font-size:14px;">${s.icon}</div>
-          <div style="font-size:9px;color:${col};font-weight:600;">${s.label}</div>
-          ${tid?`<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-muted);">kl. ${tid}</div>`:''}
-          ${done?'<div style="color:var(--green);font-size:10px;">✓</div>':active?'<div style="color:var(--accent);font-size:10px;">▶ NU</div>':''}
-        </div>`;
-      }).join('') +
-    `</div></div>
-    <div class="modal-detail"><span class="modal-lbl">Afdeling</span><span class="modal-val" style="color:var(--blue2);">${lok?lok.navn:o.afd}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Beskrivelse</span><span class="modal-val">${o.beskr}</span></div>
-    ${o.antal?`<div class="modal-detail"><span class="modal-lbl">Antal</span><span class="modal-val">${o.antal} personer/portioner</span></div>`:''}
-    <div class="modal-detail"><span class="modal-lbl">Pris</span><span class="modal-val" style="color:var(--accent);">${o.pris.toLocaleString('da')} kr.</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Leveringstid</span><span class="modal-val">${t.toLocaleDateString('da')} kl. ${t.toTimeString().slice(0,5)}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Leveringsform</span><span class="modal-val">${o.levform||'—'}</span></div>
-    ${adresseFull?`<div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${adresseFull}</span></div>`:''}
-    <div class="modal-detail"><span class="modal-lbl">Kontakt</span><span class="modal-val">${o.kontakt||'—'}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Behandler</span><span class="modal-val">${o.handler||'—'}</span></div>
-    <div class="modal-detail"><span class="modal-lbl">Betaling</span><span class="modal-val">${o.betal}</span></div>
-    ${o.instrukt?`<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:10px;margin-top:10px;"><div style="font-size:11px;color:var(--red);font-weight:600;margin-bottom:4px;">⚠️ ALLERGIER / SÆRLIGE HENSYN</div><div style="font-size:13px;">${o.instrukt}</div></div>`:''}
-    <div style="margin-top:12px;"><label style="font-size:12px;color:var(--text-dim);">Skift status:</label>
-    <select id="modal-status" style="margin-top:6px;" onchange="skiftStatus('${id}',this.value)">
-      ${['NYE ORDRER','KLAR TIL PROD.','I PRODUKTION','KLAR TIL LEVERING','ARKIVERET'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
-    </select></div>`;
-  const kanFremrykke=o.stafetTrin<4;
-  document.getElementById('modal-actions').innerHTML=`
-    ${kanFremrykke?`<button class="btn btn-primary btn-sm" onclick="fremrykStafet('${id}')">▶ ${STAFET[o.stafetTrin].label}</button>`:''}
-    <button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button>
-    <button class="btn btn-danger btn-sm" onclick="sletOrdre('${id}')">🗑 Slet</button>`;
-  document.getElementById('modal-overlay').classList.remove('hidden');
-}
+async function skiftStatus(id,status){const o=ordrer.find(x=>x.id===id);if(o){o.status=status;await gemOrdreIDB(o);if(status==='ARKIVERET')ordrer=ordrer.filter(x=>x.id!==id);updateStats();renderBoard();showToast('Status: '+status);}}
+async function sletOrdre(id){const o=ordrer.find(x=>x.id===id);if(confirm('Slet ordre '+id+'?')){if(o&&o.dbId)await sletOrdreIDB(o.dbId);ordrer=ordrer.filter(x=>x.id!==id);closeModal();updateStats();renderBoard();showToast('Ordre slettet');}}
+function closeModal(e){if(!e||e.target.id==='modal-overlay'){document.getElementById('modal-overlay').classList.add('hidden');openModalId=null;}}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-async function skiftStatus(id,status){
-  const o=ordrer.find(x=>x.id===id);
-  if(o){
-    o.status=status;
-    await gemOrdreIDB(o);
-    if(status==='ARKIVERET') ordrer=ordrer.filter(x=>x.id!==id);
-    updateStats();renderBoard();showToast('Status: '+status);
-  }
-}
-
-async function sletOrdre(id){
-  const o=ordrer.find(x=>x.id===id);
-  if(confirm('Slet ordre '+id+'?')){
-    if(o&&o.dbId) await sletOrdreIDB(o.dbId);
-    ordrer=ordrer.filter(x=>x.id!==id);
-    closeModal();updateStats();renderBoard();showToast('Ordre slettet');
-  }
-}
-
-function closeModal(e){
-  if(!e||e.target.id==='modal-overlay'){
-    document.getElementById('modal-overlay').classList.add('hidden');
-    openModalId=null;
-  }
-}
-
-// ── TOAST ────────────────────────────────────────────────────
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
-}
-
-// ── INIT ─────────────────────────────────────────────────────
 populerAfdelingSelect();
 renderFlyFilter();
 renderPrisliste();
