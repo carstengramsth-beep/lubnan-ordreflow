@@ -1508,7 +1508,7 @@ function populerTilbudDropdown(){
   sel.innerHTML='<option value="">— Eller vælg fra liste —</option>'+kats.map(kat=>`<optgroup label="${kat}">${VARER.filter(v=>v.kat===kat).map(v=>`<option value="${v.nr}">${v.nr} · ${v.navn} — ${getSalgspris(v)} kr.</option>`).join('')}</optgroup>`).join('');
 }
 
-function opretTilbud(){
+async function opretTilbud(){
   const kunde=document.getElementById('t-kunde').value.trim();
   const beskr=document.getElementById('t-beskr').value.trim();
   if(!kunde||!beskr){alert('Udfyld venligst: Kundenavn og Arrangementsbeskrivelse');return;}
