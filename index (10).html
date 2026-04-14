@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.9</title>
+<title>Lubnan Ordreflow 4.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.9</span>
+    <span class="hdr-ver">Ordreflow 4.0</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -638,7 +638,8 @@ textarea{resize:vertical;min-height:80px;}
       <button class="btn btn-primary btn-sm" onclick="kalenderIDag()">I dag</button>
     </div>
   </div>
-  <div id="kalender-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;"></div>
+  <div id="kalender-konflikter" style="margin-bottom:16px;"></div>
+  <div id="kalender-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px;"></div>
   <div id="kalender-dag-detail" style="margin-top:20px;"></div>
 </div>
 
@@ -1493,11 +1494,87 @@ testForbindelse();
 let kalenderDato = new Date();
 kalenderDato.setDate(1);
 
+function tjekKonflikter(){
+  const konflikter=[];
+  // Grupper ordrer og tilbud per dag
+  const alleArrangementer=[
+    ...ordrer.filter(o=>o.status!=='ARKIVERET'&&o.tid).map(o=>({...o,type:'ordre'})),
+    ...tilbud.filter(t=>t.tid).map(t=>({...t,type:'tilbud'}))
+  ];
+  const perDag={};
+  alleArrangementer.forEach(a=>{
+    const dag=a.tid.slice(0,10);
+    if(!perDag[dag])perDag[dag]=[];
+    perDag[dag].push(a);
+  });
+  // Check konflikter per dag
+  Object.entries(perDag).forEach(([dag,arr])=>{
+    if(arr.length>1){
+      // Foodtruck dobbeltbooking
+      const foodtrucks=arr.filter(a=>a.levform==='Foodtruck');
+      if(foodtrucks.length>1){
+        konflikter.push({
+          type:'foodtruck',
+          dag,
+          besked:`🚚 Foodtruck dobbeltbooket ${new Date(dag).toLocaleDateString('da-DK',{day:'numeric',month:'short'})}: ${foodtrucks.map(f=>f.kunde).join(' + ')}`,
+          alvor:'kritisk'
+        });
+      }
+      // Flere arrangementer samme dag - advarsel
+      if(arr.length>=2){
+        const datoStr=new Date(dag).toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
+        const totalTid=arr.filter(a=>a.linjer).reduce((s,a)=>s+(a.linjer||[]).reduce((ss,l)=>ss+l.tid*l.antal,0),0);
+        if(totalTid>480){ // mere end 8 timer
+          konflikter.push({
+            type:'kapacitet',
+            dag,
+            besked:`⏱ Overbelastning ${datoStr}: ${Math.round(totalTid/60)} timers produktion planlagt`,
+            alvor:'advarsel'
+          });
+        } else {
+          konflikter.push({
+            type:'info',
+            dag,
+            besked:`📅 ${arr.length} arrangementer ${datoStr}: ${arr.map(a=>a.kunde).join(', ')}`,
+            alvor:'info'
+          });
+        }
+      }
+    }
+  });
+  return konflikter;
+}
+
+function visKonflikterIKalender(){
+  const konflikter=tjekKonflikter();
+  const el=document.getElementById('kalender-konflikter');
+  if(!el)return;
+  if(!konflikter.length){el.innerHTML='<div style="color:var(--green);font-size:13px;padding:8px 0;">✓ Ingen konflikter eller dobbeltbookinger</div>';return;}
+  el.innerHTML=konflikter.map(k=>{
+    const bg=k.alvor==='kritisk'?'rgba(239,68,68,.15)':k.alvor==='advarsel'?'rgba(234,179,8,.15)':'rgba(59,130,246,.1)';
+    const border=k.alvor==='kritisk'?'rgba(239,68,68,.4)':k.alvor==='advarsel'?'rgba(234,179,8,.4)':'rgba(59,130,246,.3)';
+    const color=k.alvor==='kritisk'?'var(--red)':k.alvor==='advarsel'?'var(--yellow)':'var(--blue2)';
+    return `<div onclick="gaaOmTilDag('${k.dag}')" style="background:${bg};border:1px solid ${border};border-radius:6px;padding:10px 14px;margin-bottom:6px;cursor:pointer;font-size:13px;color:${color};">${k.besked} <span style="font-size:11px;opacity:.7;">→ klik for at se</span></div>`;
+  }).join('');
+}
+
+function gaaOmTilDag(dagStr){
+  const d=new Date(dagStr);
+  kalenderDato=new Date(d.getFullYear(),d.getMonth(),1);
+  renderKalender();
+  visKalenderDag(dagStr);
+  setTimeout(()=>{
+    const detail=document.getElementById('kalender-dag-detail');
+    if(detail)detail.scrollIntoView({behavior:'smooth'});
+  },100);
+}
+
 function kalenderIDag(){kalenderDato=new Date();kalenderDato.setDate(1);renderKalender();}
 function kalenderForrige(){kalenderDato.setMonth(kalenderDato.getMonth()-1);renderKalender();}
 function kalenderNaeste(){kalenderDato.setMonth(kalenderDato.getMonth()+1);renderKalender();}
 
 function renderKalender(){
+  visKonflikterIKalender();
   const mndr=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
   const titel=document.getElementById('kalender-titel');
   if(titel)titel.textContent=mndr[kalenderDato.getMonth()]+' '+kalenderDato.getFullYear();
@@ -1516,11 +1593,14 @@ function renderKalender(){
     const dagStr=dagDato.toISOString().slice(0,10);
     const iDag=new Date().toISOString().slice(0,10)===dagStr;
     const ordrerDag=ordrer.filter(o=>o.tid&&o.tid.slice(0,10)===dagStr&&o.status!=='ARKIVERET');
+    const konflikterDag=tjekKonflikter().filter(k=>k.dag===dagStr);
+    const harKritisk=konflikterDag.some(k=>k.type==='foodtruck'||k.type==='kapacitet');
     const tilbudDag=tilbud.filter(t=>t.tid&&t.tid.slice(0,10)===dagStr);
     const harFoodtruck=ordrerDag.some(o=>o.levform==='Foodtruck')||tilbudDag.some(t=>t.levform==='Foodtruck');
     const total=ordrerDag.length+tilbudDag.length;
-    html+=`<div onclick="visKalenderDag('${dagStr}')" style="min-height:70px;background:${iDag?'rgba(249,115,22,.15)':'var(--surface)'};border:${iDag?'1px solid var(--accent)':'1px solid var(--border)'};border-radius:6px;padding:6px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='${iDag?'var(--accent)':'var(--border)'}'">
-      <div style="font-size:13px;font-weight:${iDag?'700':'400'};color:${iDag?'var(--accent)':'var(--text)'};">${dag}</div>
+    html+=`<div onclick="visKalenderDag('${dagStr}')" style="min-height:70px;background:${iDag?'rgba(249,115,22,.15)':'var(--surface)'};border:${iDag?'1px solid var(--accent)':'1px solid var(--border)'};border-radius:6px;padding:6px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='${harKritisk?'var(--red)':iDag?'var(--accent)':'var(--border)'}'">
+      ${harKritisk?`<div style="font-size:9px;color:var(--red);font-weight:700;margin-bottom:2px;">⚠ KONFLIKT</div>`:''}
+      <div style="font-size:13px;font-weight:${iDag?'700':'400'};color:${harKritisk?'var(--red)':iDag?'var(--accent)':'var(--text)'};">${dag}</div>
       ${ordrerDag.length?`<div style="background:rgba(59,130,246,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--blue2);margin-top:3px;">📋 ${ordrerDag.length} ordre${ordrerDag.length>1?'r':''}</div>`:''}
       ${tilbudDag.length?`<div style="background:rgba(234,179,8,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--yellow);margin-top:3px;">📄 ${tilbudDag.length} tilbud</div>`:''}
       ${harFoodtruck?`<div style="background:rgba(168,85,247,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--purple);margin-top:3px;">🚚 Foodtruck</div>`:''}
