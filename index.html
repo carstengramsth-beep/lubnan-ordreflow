@@ -987,16 +987,25 @@ async function sletKundeIDB(id) {
 
 async function testForbindelse() {
   const statusEl = document.getElementById('db-status');
-  const { error } = await db.from('orders').select('id').limit(1);
-  if(error) {
+  statusEl.textContent = '⏳ Forbinder...';
+  // Vis siden med det samme - vent ikke på DB
+  showPage('forside');
+  try {
+    const { error } = await db.from('orders').select('id').limit(1);
+    if(error) {
+      statusEl.textContent = '❌ Database fejl';
+      statusEl.className = 'db-status db-err';
+    } else {
+      statusEl.textContent = '✅ Database OK';
+      statusEl.className = 'db-status db-ok';
+      await hentOrdrer();
+      await hentKunder();
+      await hentTilbud();
+    }
+  } catch(e) {
     statusEl.textContent = '❌ Database fejl';
     statusEl.className = 'db-status db-err';
-  } else {
-    statusEl.textContent = '✅ Database OK';
-    statusEl.className = 'db-status db-ok';
-    await hentOrdrer();
-    await hentKunder();
-    await hentTilbud();
+    console.error('DB fejl:', e);
   }
 }
 
