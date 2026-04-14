@@ -482,7 +482,20 @@ textarea{resize:vertical;min-height:80px;}
       <div class="form-grid">
         <div class="form-group full"><label>Arrangementstype / beskrivelse <span class="req">*</span></label><input type="text" id="t-beskr" placeholder="Fx: Fødselsdagsarrangement for 30 personer"></div>
         <div class="form-group"><label>Dato og tidspunkt <span class="req">*</span></label><input type="datetime-local" id="t-tid" style="color:var(--text);"></div>
-        <div class="form-group"><label>Gyldig til</label><input type="date" id="t-gyldig" style="color:var(--text);"></div>
+        <div class="form-group">
+          <label>Gyldig til</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="date" id="t-gyldig" style="color:var(--text);flex:1;">
+            <select onchange="setGyldigPeriode(this.value)" style="width:130px;font-size:12px;">
+              <option value="">Hurtigvalg...</option>
+              <option value="1">1 måned</option>
+              <option value="2">2 måneder</option>
+              <option value="3">3 måneder</option>
+              <option value="6">6 måneder</option>
+              <option value="12">12 måneder</option>
+            </select>
+          </div>
+        </div>
         <div class="form-group"><label>Leveringsform</label>
           <select id="t-levform">
             <option>Spises på stedet</option>
@@ -1036,7 +1049,7 @@ function showPage(page) {
   if(page==='ledelse') { populerAfdelingSelect(); renderLedelse(); }
   if(page==='kunder') renderKunder();
   if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); populerVareDropdown(); }
-  if(page==='opret-tilbud') { populerAfdelingSelect(); populerTilbudDropdown(); tilbudKurv=[]; renderTilbudKurv(); }
+  if(page==='opret-tilbud') { populerAfdelingSelect(); populerTilbudDropdown(); tilbudKurv=[]; renderTilbudKurv(); setDefaultGyldig(); }
   if(page==='forside') { renderAlerts(); renderCapRows(); }
   if(page==='arkiv') loadArkiv();
   if(page==='kalender') renderKalender();
@@ -1655,6 +1668,23 @@ function renderTilbudKalkulation(){
   if(totalEl)totalEl.textContent=totalFinal.toLocaleString('da')+' kr.';
   const momsEl=document.getElementById('t-kurv-moms');
   if(momsEl)momsEl.textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
+}
+
+function setGyldigPeriode(maaneder){
+  if(!maaneder)return;
+  const d=new Date();
+  d.setMonth(d.getMonth()+parseInt(maaneder));
+  const el=document.getElementById('t-gyldig');
+  if(el)el.value=d.toISOString().slice(0,10);
+}
+
+function setDefaultGyldig(){
+  const el=document.getElementById('t-gyldig');
+  if(el&&!el.value){
+    const d=new Date();
+    d.setMonth(d.getMonth()+1);
+    el.value=d.toISOString().slice(0,10);
+  }
 }
 
 function populerTilbudDropdown(){
