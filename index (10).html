@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.8</title>
+<title>Lubnan Ordreflow 3.9</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.8</span>
+    <span class="hdr-ver">Ordreflow 3.9</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -227,6 +227,7 @@ textarea{resize:vertical;min-height:80px;}
   <div class="ntab" data-page="kunder" onclick="showPage('kunder')">👥 Kunder</div>
   <div class="ntab" data-page="prisliste" onclick="showPage('prisliste')">💰 Prisliste</div>
   <div class="ntab" data-page="ledelse" onclick="showPage('ledelse')">📊 Ledelse</div>
+  <div class="ntab" data-page="kalender" onclick="showPage('kalender')">📅 Kalender</div>
   <div class="ntab" data-page="arkiv" onclick="showPage('arkiv')">🗄 Arkiv</div>
 </nav>
 
@@ -626,6 +627,21 @@ textarea{resize:vertical;min-height:80px;}
   <tbody id="ldr-tbody"></tbody></table>
 </div>
 
+<!-- KALENDER -->
+<div id="page-kalender" class="hidden">
+  <div class="page-hdr">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;">Arrangementsoversigt</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-secondary btn-sm" onclick="kalenderForrige()">← Forrige</button>
+      <span id="kalender-titel" style="font-size:15px;font-weight:600;min-width:160px;text-align:center;"></span>
+      <button class="btn btn-secondary btn-sm" onclick="kalenderNaeste()">Næste →</button>
+      <button class="btn btn-primary btn-sm" onclick="kalenderIDag()">I dag</button>
+    </div>
+  </div>
+  <div id="kalender-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;"></div>
+  <div id="kalender-dag-detail" style="margin-top:20px;"></div>
+</div>
+
 <!-- ARKIV -->
 <div id="page-arkiv" class="hidden">
   <div style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:16px;">Arkiv</div>
@@ -930,6 +946,7 @@ function showPage(page) {
   if(page==='opret-tilbud') { populerAfdelingSelect(); populerTilbudDropdown(); tilbudKurv=[]; renderTilbudKurv(); }
   if(page==='forside') { renderAlerts(); renderCapRows(); }
   if(page==='arkiv') loadArkiv();
+  if(page==='kalender') renderKalender();
   updateStats();
 }
 
@@ -1121,7 +1138,7 @@ function udskrivTilbud(id){
   </div>
   <div class="detaljer">
     <div class="detalje-box"><div class="detalje-lbl">Arrangement</div><div class="detalje-val">${t.beskr}</div></div>
-    <div class="detalje-box"><div class="detalje-lbl">Dato</div><div class="detalje-val">${dato}</div></div>
+    <div class="detalje-box"><div class="detalje-lbl">Dato og leveringstidspunkt</div><div class="detalje-val">${dato}${t.tid?' kl. '+new Date(t.tid).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'}):''}</div></div>
     <div class="detalje-box"><div class="detalje-lbl">Leveringsform</div><div class="detalje-val">${t.levform||'—'}</div></div>
     <div class="detalje-box"><div class="detalje-lbl">Leveringsadresse</div><div class="detalje-val">${levAdr||kundeAdr||'—'}</div></div>
   </div>
@@ -1471,6 +1488,70 @@ populerAfdelingSelect();
 renderFlyFilter();
 renderPrisliste();
 testForbindelse();
+
+// KALENDER
+let kalenderDato = new Date();
+kalenderDato.setDate(1);
+
+function kalenderIDag(){kalenderDato=new Date();kalenderDato.setDate(1);renderKalender();}
+function kalenderForrige(){kalenderDato.setMonth(kalenderDato.getMonth()-1);renderKalender();}
+function kalenderNaeste(){kalenderDato.setMonth(kalenderDato.getMonth()+1);renderKalender();}
+
+function renderKalender(){
+  const mndr=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+  const titel=document.getElementById('kalender-titel');
+  if(titel)titel.textContent=mndr[kalenderDato.getMonth()]+' '+kalenderDato.getFullYear();
+  const grid=document.getElementById('kalender-grid');
+  if(!grid)return;
+  const aar=kalenderDato.getFullYear();
+  const mnd=kalenderDato.getMonth();
+  const foersteDag=new Date(aar,mnd,1).getDay();
+  const startOffset=foersteDag===0?6:foersteDag-1;
+  const dageIMnd=new Date(aar,mnd+1,0).getDate();
+  const dagNavne=['Man','Tir','Ons','Tor','Fre','Lør','Søn'];
+  let html=dagNavne.map(d=>`<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text-muted);padding:6px 0;text-transform:uppercase;">${d}</div>`).join('');
+  for(let i=0;i<startOffset;i++)html+=`<div></div>`;
+  for(let dag=1;dag<=dageIMnd;dag++){
+    const dagDato=new Date(aar,mnd,dag);
+    const dagStr=dagDato.toISOString().slice(0,10);
+    const iDag=new Date().toISOString().slice(0,10)===dagStr;
+    const ordrerDag=ordrer.filter(o=>o.tid&&o.tid.slice(0,10)===dagStr&&o.status!=='ARKIVERET');
+    const tilbudDag=tilbud.filter(t=>t.tid&&t.tid.slice(0,10)===dagStr);
+    const harFoodtruck=ordrerDag.some(o=>o.levform==='Foodtruck')||tilbudDag.some(t=>t.levform==='Foodtruck');
+    const total=ordrerDag.length+tilbudDag.length;
+    html+=`<div onclick="visKalenderDag('${dagStr}')" style="min-height:70px;background:${iDag?'rgba(249,115,22,.15)':'var(--surface)'};border:${iDag?'1px solid var(--accent)':'1px solid var(--border)'};border-radius:6px;padding:6px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='${iDag?'var(--accent)':'var(--border)'}'">
+      <div style="font-size:13px;font-weight:${iDag?'700':'400'};color:${iDag?'var(--accent)':'var(--text)'};">${dag}</div>
+      ${ordrerDag.length?`<div style="background:rgba(59,130,246,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--blue2);margin-top:3px;">📋 ${ordrerDag.length} ordre${ordrerDag.length>1?'r':''}</div>`:''}
+      ${tilbudDag.length?`<div style="background:rgba(234,179,8,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--yellow);margin-top:3px;">📄 ${tilbudDag.length} tilbud</div>`:''}
+      ${harFoodtruck?`<div style="background:rgba(168,85,247,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--purple);margin-top:3px;">🚚 Foodtruck</div>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+}
+
+function visKalenderDag(dagStr){
+  const detail=document.getElementById('kalender-dag-detail');if(!detail)return;
+  const dato=new Date(dagStr).toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const ordrerDag=ordrer.filter(o=>o.tid&&o.tid.slice(0,10)===dagStr&&o.status!=='ARKIVERET');
+  const tilbudDag=tilbud.filter(t=>t.tid&&t.tid.slice(0,10)===dagStr);
+  if(!ordrerDag.length&&!tilbudDag.length){detail.innerHTML=`<div style="color:var(--text-muted);font-size:13px;padding:16px 0;">Ingen arrangementer ${dato}</div>`;return;}
+  let html=`<div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--accent);">${dato}</div>`;
+  if(ordrerDag.length){
+    html+=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:8px;">Ordrer</div>`;
+    html+=ordrerDag.map(o=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:600;">${o.kunde}</div><div style="font-size:11px;color:var(--text-dim);">${o.beskr} · ${o.levform||''} ${o.levform==='Foodtruck'?'🚚':''}</div></div>
+      <div style="text-align:right;"><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);">${o.pris.toLocaleString('da')} kr.</div><div style="font-size:10px;color:var(--text-muted);">kl. ${new Date(o.tid).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})}</div></div>
+    </div>`).join('');
+  }
+  if(tilbudDag.length){
+    html+=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin:12px 0 8px;">Tilbud (ikke bekræftet)</div>`;
+    html+=tilbudDag.map(t=>`<div style="background:var(--surface2);border:1px solid rgba(234,179,8,.3);border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:13px;font-weight:600;">${t.kunde}</div><div style="font-size:11px;color:var(--text-dim);">${t.beskr} · ${t.levform||''} ${t.levform==='Foodtruck'?'🚚':''}</div></div>
+      <div style="text-align:right;"><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yellow);">${t.pris.toLocaleString('da')} kr.</div><div style="font-size:10px;color:var(--text-muted);">kl. ${new Date(t.tid).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})}</div></div>
+    </div>`).join('');
+  }
+  detail.innerHTML=html;
+}
 </script>
 </body>
 </html>
