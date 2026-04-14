@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.2</title>
+<title>Lubnan Ordreflow 4.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 4.2</span>
+    <span class="hdr-ver">Ordreflow 4.3</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -1169,8 +1169,128 @@ function renderTilbud() {
   if(!tilbud.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen tilbud endnu</td></tr>'; return; }
   tbody.innerHTML = tilbud.map(t=>{
     const lok = lokationer.find(l=>l.id===t.afd);
-    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${t.tid?new Date(t.tid).toLocaleDateString('da'):'—'}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;"><button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">🖨 Udskriv</button><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button><button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button></td></tr>`;
+    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${t.tid?new Date(t.tid).toLocaleDateString('da'):'—'}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;"><button class="btn btn-secondary btn-xs" onclick="udskrivInternKalkulation('${t.id}')">📊 Intern</button><button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">🖨 Tilbud</button><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button><button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button></td></tr>`;
   }).join('');
+}
+
+function udskrivInternKalkulation(id){
+  const t=tilbud.find(x=>x.id===id);if(!t)return;
+  const dato=t.tid?new Date(t.tid).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}):'—';
+  const totalRaavare=Math.round((t.linjer||[]).filter(v=>!v.fri).reduce((s,v)=>s+v.raavare*v.antal,0));
+  const totalTid=(t.linjer||[]).filter(v=>!v.fri).reduce((s,v)=>s+v.tid*v.antal,0);
+  const exMoms=Math.round(t.pris/(1+MOMS));
+  const moms=t.pris-exMoms;
+  const db=exMoms-totalRaavare;
+  const dbPct=exMoms>0?Math.round((db/exMoms)*100):0;
+  const linjer=(t.linjer||[]).map(v=>{
+    const stkPris=v.fri?v.raavare:getSalgspris(v);
+    const pris=stkPris*v.antal;
+    const raavare=v.fri?v.raavare:v.raavare;
+    const raaTot=raavare*v.antal;
+    const dbLinje=v.fri?0:Math.round((stkPris/(1+MOMS)-raavare)*v.antal);
+    return `<tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:8px;font-size:13px;">${v.nr}</td>
+      <td style="padding:8px;font-size:13px;">${v.navn}</td>
+      <td style="padding:8px;text-align:center;font-size:13px;">${v.antal}</td>
+      <td style="padding:8px;text-align:right;font-size:13px;">${stkPris} kr.</td>
+      <td style="padding:8px;text-align:right;font-size:13px;color:#c2410c;">${raavare} kr.</td>
+      <td style="padding:8px;text-align:right;font-size:13px;">${Math.round(raaTot)} kr.</td>
+      <td style="padding:8px;text-align:right;font-size:13px;color:#16a34a;font-weight:600;">${dbLinje} kr.</td>
+      <td style="padding:8px;text-align:center;font-size:13px;color:#555;">${v.tid||0} min</td>
+    </tr>`;
+  }).join('');
+  const win=window.open('','_blank','width=900,height=900');
+  win.document.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Intern kalkulation ${t.id}</title>
+  <style>
+    body{font-family:Arial,sans-serif;color:#1a1a1a;max-width:860px;margin:30px auto;padding:0 20px;font-size:13px;}
+    .header{background:#1a1a1a;color:#fff;padding:16px 20px;border-radius:6px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+    .header-logo{font-size:22px;font-weight:700;color:#f97316;letter-spacing:2px;}
+    .intern-badge{background:#f97316;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:.06em;}
+    .kalk-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+    .kalk-box{background:#f9f7f4;border:1px solid #e5e7eb;border-radius:6px;padding:12px;text-align:center;}
+    .kalk-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+    .kalk-val{font-size:20px;font-weight:700;}
+    .kalk-sub{font-size:11px;color:#888;margin-top:2px;}
+    table{width:100%;border-collapse:collapse;margin:10px 0;}
+    thead tr{background:#1a1a1a;color:#fff;}
+    thead th{padding:8px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+    .subtotal-row td{background:#f9f7f4;padding:8px;font-weight:600;}
+    .total-row td{background:#1a1a1a;color:#fff;padding:10px 8px;font-weight:700;font-size:14px;}
+    .db-row td{background:#dcfce7;color:#166534;padding:8px;font-weight:700;}
+    @media print{body{margin:10px;}.print-btn{display:none!important;}}
+  </style></head><body>
+  <div class="header">
+    <div>
+      <div class="header-logo">LUBNAN</div>
+      <div style="font-size:11px;color:#aaa;margin-top:2px;">Fadel Aps · CVR: 40758771</div>
+    </div>
+    <div style="text-align:center;">
+      <div class="intern-badge">INTERN KALKULATION</div>
+      <div style="font-size:12px;color:#aaa;margin-top:6px;">Tilbud nr. ${t.id}</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:#aaa;">
+      <div>${t.kunde}</div>
+      <div>${dato}</div>
+      <div style="margin-top:4px;">Oprettet: ${new Date().toLocaleDateString('da-DK')}</div>
+    </div>
+  </div>
+
+  <div style="margin-bottom:16px;font-size:13px;"><strong>Arrangement:</strong> ${t.beskr} · <strong>Leveringsform:</strong> ${t.levform||'—'}</div>
+
+  <div class="kalk-grid">
+    <div class="kalk-box">
+      <div class="kalk-lbl">Salgspris inkl. moms</div>
+      <div class="kalk-val" style="color:#c2410c;">${t.pris.toLocaleString('da')}</div>
+      <div class="kalk-sub">kr.</div>
+    </div>
+    <div class="kalk-box">
+      <div class="kalk-lbl">Råvareomkostninger</div>
+      <div class="kalk-val" style="color:#dc2626;">${totalRaavare.toLocaleString('da')}</div>
+      <div class="kalk-sub">kr.</div>
+    </div>
+    <div class="kalk-box">
+      <div class="kalk-lbl">Dækningsbidrag kr.</div>
+      <div class="kalk-val" style="color:#16a34a;">${db.toLocaleString('da')}</div>
+      <div class="kalk-sub">kr. ex. moms</div>
+    </div>
+    <div class="kalk-box" style="border:2px solid #16a34a;">
+      <div class="kalk-lbl">Indtjeningsprocent</div>
+      <div class="kalk-val" style="color:#16a34a;">${dbPct}</div>
+      <div class="kalk-sub">% af salgspris</div>
+    </div>
+    <div class="kalk-box">
+      <div class="kalk-lbl">Tidsforbrug</div>
+      <div class="kalk-val" style="color:#2563eb;">${totalTid}</div>
+      <div class="kalk-sub">minutter</div>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr>
+      <th>Varenr.</th><th>Varenavn</th>
+      <th style="text-align:center;">Antal</th>
+      <th style="text-align:right;">Salgspris</th>
+      <th style="text-align:right;">Råvare/stk.</th>
+      <th style="text-align:right;">Råvare total</th>
+      <th style="text-align:right;">DB kr.</th>
+      <th style="text-align:center;">Tid</th>
+    </tr></thead>
+    <tbody>${linjer}</tbody>
+    <tfoot>
+      <tr class="subtotal-row"><td colspan="5" style="text-align:right;">Subtotal ekskl. moms</td><td colspan="3" style="text-align:right;">${exMoms.toLocaleString('da')} kr.</td></tr>
+      <tr class="subtotal-row"><td colspan="5" style="text-align:right;">Moms 25%</td><td colspan="3" style="text-align:right;">${moms.toLocaleString('da')} kr.</td></tr>
+      <tr class="total-row"><td colspan="5" style="text-align:right;">Total inkl. moms</td><td colspan="3" style="text-align:right;">${t.pris.toLocaleString('da')} kr.</td></tr>
+      <tr class="db-row"><td colspan="5" style="text-align:right;">Dækningsbidrag (${dbPct}% af salgspris)</td><td colspan="3" style="text-align:right;">${db.toLocaleString('da')} kr.</td></tr>
+    </tfoot>
+  </table>
+
+  ${t.bem?`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:12px;margin-top:16px;"><strong>Interne bemærkninger:</strong> ${t.bem}</div>`:''}
+
+  <div style="margin-top:24px;text-align:center;">
+    <button class="print-btn" onclick="window.print()" style="padding:10px 30px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">🖨 Udskriv intern kalkulation</button>
+  </div>
+  </body></html>`);
+  win.document.close();
 }
 
 function udskrivTilbud(id){
