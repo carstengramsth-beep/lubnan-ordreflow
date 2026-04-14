@@ -497,8 +497,9 @@ textarea{resize:vertical;min-height:80px;}
           </div>
         </div>
         <div class="form-group"><label>Leveringsform</label>
-          <select id="t-levform">
+          <select id="t-levform" onchange="opdaterLevAdresse(this.value)">
             <option>Spises på stedet</option>
+            <option>Leveres på adressen</option>
             <option>Levering i varme kasser</option>
             <option>Foodtruck</option>
             <option>Afhentning</option>
@@ -1668,6 +1669,20 @@ function renderTilbudKalkulation(){
   if(totalEl)totalEl.textContent=totalFinal.toLocaleString('da')+' kr.';
   const momsEl=document.getElementById('t-kurv-moms');
   if(momsEl)momsEl.textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
+}
+
+function opdaterLevAdresse(valg){
+  if(valg==='Leveres på adressen'){
+    const adr=document.getElementById('t-adresse')?.value||'';
+    const postnr=document.getElementById('t-postnr')?.value||'';
+    const by=document.getElementById('t-by')?.value||'';
+    const levAdr=document.getElementById('t-lev-adresse');
+    const levPostnr=document.getElementById('t-lev-postnr');
+    const levBy=document.getElementById('t-lev-by');
+    if(levAdr&&!levAdr.value)levAdr.value=adr;
+    if(levPostnr&&!levPostnr.value)levPostnr.value=postnr;
+    if(levBy&&!levBy.value)levBy.value=by;
+  }
 }
 
 function setGyldigPeriode(maaneder){
