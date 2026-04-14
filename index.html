@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.7</title>
+<title>Lubnan Ordreflow 3.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.7</span>
+    <span class="hdr-ver">Ordreflow 3.8</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -480,8 +480,8 @@ textarea{resize:vertical;min-height:80px;}
       <div class="form-section-title">Arrangementdetaljer</div>
       <div class="form-grid">
         <div class="form-group full"><label>Arrangementstype / beskrivelse <span class="req">*</span></label><input type="text" id="t-beskr" placeholder="Fx: Fødselsdagsarrangement for 30 personer"></div>
-        <div class="form-group"><label>Dato og tidspunkt</label><input type="datetime-local" id="t-tid"></div>
-        <div class="form-group"><label>Gyldig til</label><input type="date" id="t-gyldig"></div>
+        <div class="form-group"><label>Dato og tidspunkt <span class="req">*</span></label><input type="datetime-local" id="t-tid" style="color:var(--text);"></div>
+        <div class="form-group"><label>Gyldig til</label><input type="date" id="t-gyldig" style="color:var(--text);"></div>
         <div class="form-group"><label>Leveringsform</label>
           <select id="t-levform">
             <option>Spises på stedet</option>
@@ -491,6 +491,16 @@ textarea{resize:vertical;min-height:80px;}
           </select>
         </div>
         <div class="form-group"><label>Afdeling</label><select id="t-afd"></select></div>
+        <div class="form-group full"><label>Leveringsadresse (hvis forskellig fra kundeadresse)</label><input type="text" id="t-lev-adresse" placeholder="Vejnavn og husnummer"></div>
+        <div class="form-group"><label>Postnummer</label><input type="text" id="t-lev-postnr" placeholder="Fx: 2650"></div>
+        <div class="form-group"><label>By</label><input type="text" id="t-lev-by" placeholder="Fx: Hvidovre"></div>
+        <div class="form-group" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px;">
+          <label style="color:var(--accent);">Standard antal til varelinjer</label>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+            <input type="number" id="t-std-antal" placeholder="Fx: 30" min="1" style="width:100px;font-size:16px;font-weight:600;" value="1">
+            <span style="font-size:12px;color:var(--text-dim);">Nye varelinjer starter med dette antal</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1049,8 +1059,86 @@ function renderTilbud() {
   if(!tilbud.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen tilbud endnu</td></tr>'; return; }
   tbody.innerHTML = tilbud.map(t=>{
     const lok = lokationer.find(l=>l.id===t.afd);
-    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${t.tid?new Date(t.tid).toLocaleDateString('da'):'—'}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;"><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button><button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button></td></tr>`;
+    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${t.tid?new Date(t.tid).toLocaleDateString('da'):'—'}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;"><button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">🖨 Udskriv</button><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button><button class="btn btn-danger btn-xs" onclick="sletTilbud('${t.id}')">✕</button></td></tr>`;
   }).join('');
+}
+
+function udskrivTilbud(id){
+  const t=tilbud.find(x=>x.id===id);if(!t)return;
+  const dato=t.tid?new Date(t.tid).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}):'—';
+  const gyldig=t.gyldig?new Date(t.gyldig).toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'}):'—';
+  const exMoms=Math.round(t.pris/(1+MOMS));
+  const moms=t.pris-exMoms;
+  const levAdr=t.levAdresse?`${t.levAdresse}, ${t.levPostnr||''} ${t.levBy||''}`.trim():null;
+  const kundeAdr=t.adresse?`${t.adresse}, ${t.postnr||''} ${t.by||''}`.trim():null;
+  const linjer=(t.linjer||[]).map(v=>{
+    const pris=v.fri?v.raavare*v.antal:getSalgspris(v)*v.antal;
+    return `<tr style="border-bottom:1px solid #e5e7eb;">
+      <td style="padding:10px 8px;font-size:14px;">${v.navn}</td>
+      <td style="padding:10px 8px;text-align:center;font-size:14px;">${v.antal}</td>
+      <td style="padding:10px 8px;text-align:right;font-size:14px;">${(v.fri?v.raavare:getSalgspris(v)).toLocaleString('da')} kr.</td>
+      <td style="padding:10px 8px;text-align:right;font-size:14px;font-weight:600;">${pris.toLocaleString('da')} kr.</td>
+    </tr>`;
+  }).join('');
+  const win=window.open('','_blank','width=800,height:900');
+  win.document.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><title>Tilbud ${t.id}</title>
+  <style>
+    body{font-family:Georgia,serif;color:#1a1a1a;max-width:720px;margin:40px auto;padding:0 20px;}
+    .logo{font-size:32px;font-weight:700;color:#c2410c;letter-spacing:2px;}
+    .tagline{font-size:14px;color:#666;font-style:italic;margin-bottom:30px;}
+    .tilbud-nr{font-size:12px;color:#888;font-family:monospace;}
+    h2{font-size:20px;color:#1a1a1a;margin:30px 0 6px;}
+    .kunde-box{background:#f9f7f4;border-left:3px solid #c2410c;padding:14px 18px;margin-bottom:24px;border-radius:0 6px 6px 0;}
+    .kunde-navn{font-size:18px;font-weight:700;margin-bottom:4px;}
+    .kunde-info{font-size:13px;color:#555;line-height:1.6;}
+    table{width:100%;border-collapse:collapse;margin:16px 0;}
+    thead tr{background:#1a1a1a;color:#fff;}
+    thead th{padding:10px 8px;text-align:left;font-size:13px;font-weight:500;}
+    thead th:nth-child(2){text-align:center;}
+    thead th:nth-child(3),thead th:nth-child(4){text-align:right;}
+    .total-row{background:#f9f7f4;}
+    .total-row td{padding:10px 8px;font-size:14px;}
+    .grand-total td{background:#c2410c;color:#fff;padding:12px 8px;font-size:16px;font-weight:700;}
+    .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:12px;color:#888;text-align:center;}
+    .detaljer{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    .detalje-box{background:#f9f7f4;padding:12px 16px;border-radius:6px;}
+    .detalje-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+    .detalje-val{font-size:14px;font-weight:600;}
+    @media print{body{margin:20px;}}
+  </style></head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+    <div><div class="logo">LUBNAN</div><div class="tagline">Libanesiske specialiteter</div></div>
+    <div style="text-align:right;"><div class="tilbud-nr">Tilbud nr. ${t.id}</div><div style="font-size:12px;color:#888;">Dato: ${new Date().toLocaleDateString('da-DK')}</div></div>
+  </div>
+  <div class="kunde-box">
+    <div class="kunde-navn">${t.kunde}</div>
+    <div class="kunde-info">
+      ${t.kontakt?t.kontakt+'<br>':''}
+      ${t.email?t.email+'<br>':''}
+      ${t.tlf?t.tlf+'<br>':''}
+      ${kundeAdr?kundeAdr:''}
+    </div>
+  </div>
+  <div class="detaljer">
+    <div class="detalje-box"><div class="detalje-lbl">Arrangement</div><div class="detalje-val">${t.beskr}</div></div>
+    <div class="detalje-box"><div class="detalje-lbl">Dato</div><div class="detalje-val">${dato}</div></div>
+    <div class="detalje-box"><div class="detalje-lbl">Leveringsform</div><div class="detalje-val">${t.levform||'—'}</div></div>
+    <div class="detalje-box"><div class="detalje-lbl">Leveringsadresse</div><div class="detalje-val">${levAdr||kundeAdr||'—'}</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Beskrivelse</th><th style="text-align:center;">Antal</th><th style="text-align:right;">Stk. pris</th><th style="text-align:right;">Beløb</th></tr></thead>
+    <tbody>${linjer}</tbody>
+    <tfoot>
+      <tr class="total-row"><td colspan="3" style="text-align:right;padding:10px 8px;">Subtotal ekskl. moms</td><td style="text-align:right;padding:10px 8px;">${exMoms.toLocaleString('da')} kr.</td></tr>
+      <tr class="total-row"><td colspan="3" style="text-align:right;padding:10px 8px;">Moms 25%</td><td style="text-align:right;padding:10px 8px;">${moms.toLocaleString('da')} kr.</td></tr>
+      <tr class="grand-total"><td colspan="3" style="text-align:right;">Total inkl. moms</td><td style="text-align:right;">${t.pris.toLocaleString('da')} kr.</td></tr>
+    </tfoot>
+  </table>
+  <p style="font-size:13px;color:#555;margin-top:16px;">Dette tilbud er gyldigt til <strong>${gyldig}</strong>.</p>
+  <div class="footer">Lubnan · Libanesiske specialiteter · Kontakt: ${t.tlf||t.email||''}</div>
+  <div style="margin-top:30px;text-align:center;"><button onclick="window.print()" style="padding:10px 30px;background:#c2410c;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">🖨 Udskriv / Gem som PDF</button></div>
+  </body></html>`);
+  win.document.close();
 }
 
 function konverterTilbud(id){const t=tilbud.find(x=>x.id===id);if(!t)return;const nr='26-00'+String(Date.now()).slice(-4);const nyOrdre={id:nr,kunde:t.kunde,kontakt:'',afd:t.afd,beskr:t.beskr,antal:t.antal,pris:t.pris,tid:t.tid,levform:'Spises på stedet',betal:'Faktureres',status:'NYE ORDRER',handler:'',prio:'normal',adresse:'',postnr:'',by:'',landekode:'+45',smsTlf:'',instrukt:'',stafetTrin:1,stafetTider:{'1':new Date().toTimeString().slice(0,5)}};ordrer.push(nyOrdre);gemOrdreIDB(nyOrdre);tilbud=tilbud.filter(x=>x.id!==id);updateStats();renderTilbud();renderBoard();showToast('✓ Konverteret til ordre '+nr);}
@@ -1213,12 +1301,14 @@ function tilfoejVareNrTilbud(){
   if(fb)fb.textContent='';
 }
 
+function getStdAntal(){return parseInt(document.getElementById('t-std-antal')?.value)||1;}
+
 function addToTilbudKurv(nr){
   if(!nr)return;
   const v=VARER.find(x=>x.nr===nr);if(!v)return;
   const ex=tilbudKurv.find(x=>x.nr===nr&&!x.fri);
-  if(ex)ex.antal++;
-  else tilbudKurv.push({...v,antal:1,fri:false});
+  if(ex)ex.antal+=getStdAntal();
+  else tilbudKurv.push({...v,antal:getStdAntal(),fri:false});
   renderTilbudKurv();
   showToast('✓ '+v.navn+' tilføjet til tilbud');
 }
@@ -1336,6 +1426,9 @@ function opretTilbud(){
     tid:document.getElementById('t-tid').value||new Date().toISOString().slice(0,16),
     gyldig:document.getElementById('t-gyldig').value,
     levform:document.getElementById('t-levform').value,
+    levAdresse:document.getElementById('t-lev-adresse').value,
+    levPostnr:document.getElementById('t-lev-postnr').value,
+    levBy:document.getElementById('t-lev-by').value,
     bem:document.getElementById('t-bem').value,
     justeringType:jType, justeringPct:jPct,
     status:'Åbent',
