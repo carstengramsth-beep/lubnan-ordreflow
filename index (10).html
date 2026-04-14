@@ -140,15 +140,19 @@ textarea{resize:vertical;min-height:80px;}
 .vare-navn{font-size:12px;font-weight:600;margin:2px 0;}
 .vare-pris{font-size:13px;color:var(--accent);font-weight:600;}
 .vare-kat{font-size:10px;color:var(--text-dim);}
-.kurv{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:14px;margin-bottom:16px;}
-.kurv-title{font-size:12px;font-weight:600;color:var(--blue2);margin-bottom:10px;display:flex;justify-content:space-between;}
-.kurv-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.kurv-item:last-child{border-bottom:none;}
-.kurv-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;}
+.kurv{background:var(--surface);border:2px solid var(--accent);border-radius:8px;padding:16px;margin-bottom:16px;}
+.kurv-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.kurv-item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);}
+.kurv-item-navn{font-size:13px;font-weight:600;color:var(--text);}
+.kurv-item-stk{font-size:11px;color:var(--text-dim);}
+.kurv-item-antal{display:flex;align-items:center;gap:6px;}
+.kurv-item-pris{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);font-weight:600;min-width:70px;text-align:right;}
+.kurv-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:0 4px;}
 .kurv-remove:hover{color:var(--red);}
-.kurv-total{display:flex;justify-content:space-between;padding-top:10px;margin-top:6px;border-top:1px solid var(--border2);font-weight:600;}
-.kurv-total-val{font-size:16px;color:var(--green);font-family:'JetBrains Mono',monospace;}
-.kurv-moms{font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px;}
+.kurv-total{display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:8px;border-top:2px solid var(--border2);font-weight:600;}
+.kurv-total-val{font-size:20px;color:var(--green);font-family:'JetBrains Mono',monospace;}
+.kurv-moms{font-size:11px;color:var(--text-muted);text-align:right;margin-top:4px;}
+.vare-toggler{font-size:12px;color:var(--blue2);cursor:pointer;text-decoration:underline;margin-bottom:8px;display:inline-block;}
 
 .kunde-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .kunde-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;cursor:pointer;transition:all .2s;}
@@ -352,15 +356,21 @@ textarea{resize:vertical;min-height:80px;}
           <span id="vare-dropdown-pris" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);min-width:80px;text-align:right;"></span>
         </div>
       </div>
-      <div class="vare-section">
-        <div class="vare-cats" id="vare-cats"></div>
-        <div class="vare-grid" id="vare-grid"></div>
-      </div>
       <div class="kurv hidden" id="kurv">
-        <div class="kurv-title"><span>Valgte varer</span><button class="btn btn-xs btn-secondary" onclick="tomKurv()">Tøm</button></div>
+        <div class="kurv-title">
+          <span>🛒 Ordrelinjer</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="vare-toggler" onclick="toggleVareGrid()" id="vare-toggler-btn">+ Tilføj flere varer</span>
+            <button class="btn btn-xs btn-secondary" onclick="tomKurv()">Tøm kurv</button>
+          </div>
+        </div>
         <div id="kurv-items"></div>
         <div class="kurv-total"><span style="font-size:13px;color:var(--text-dim);">Total incl. moms</span><span class="kurv-total-val" id="kurv-total">0 kr.</span></div>
         <div class="kurv-moms" id="kurv-moms"></div>
+      </div>
+      <div class="vare-section" id="vare-section">
+        <div class="vare-cats" id="vare-cats"></div>
+        <div class="vare-grid" id="vare-grid"></div>
       </div>
     </div>
 
@@ -978,15 +988,51 @@ function tomKurv(){kurv=[];renderKurv();}
 
 function renderKurv(){
   const el=document.getElementById('kurv');if(!el)return;
-  if(kurv.length===0){el.classList.add('hidden');document.getElementById('o-pris').value='';return;}
+  if(kurv.length===0){
+    el.classList.add('hidden');
+    document.getElementById('o-pris').value='';
+    const vs=document.getElementById('vare-section');
+    if(vs)vs.style.display='';
+    return;
+  }
   el.classList.remove('hidden');
   const total=kurv.reduce((s,v)=>s+getSalgspris(v)*v.antal,0);
   const exMoms=Math.round(total/(1+MOMS));
   const moms=total-exMoms;
-  document.getElementById('kurv-items').innerHTML=kurv.map(v=>`<div class="kurv-item"><span>${v.navn}</span><span style="display:flex;align-items:center;gap:6px;"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;">${getSalgspris(v)*v.antal} kr.</span><button class="kurv-remove" onclick="mindreAntal('${v.nr}')">−</button><input type="number" min="1" value="${v.antal}" onchange="setAntal('${v.nr}',this.value)" style="width:44px;text-align:center;font-family:monospace;font-weight:600;background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;"><button class="kurv-remove" onclick="øgAntal('${v.nr}')">+</button><button class="kurv-remove" onclick="removeFromKurv('${v.nr}')">✕</button></span></div>`).join('');
+  document.getElementById('kurv-items').innerHTML=kurv.map((v,i)=>{
+    const linjeNr=i+1;
+    const stkPris=getSalgspris(v);
+    const linjePris=stkPris*v.antal;
+    return `<div class="kurv-item">
+      <div>
+        <div class="kurv-item-navn">${linjeNr}. ${v.navn}</div>
+        <div class="kurv-item-stk">${stkPris} kr. pr. stk. · ${v.kat}</div>
+      </div>
+      <div class="kurv-item-antal">
+        <button class="kurv-remove" onclick="mindreAntal('${v.nr}')" style="font-size:18px;width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">−</button>
+        <input type="number" min="1" value="${v.antal}" onchange="setAntal('${v.nr}',this.value)" style="width:48px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px;">
+        <button class="kurv-remove" onclick="øgAntal('${v.nr}')" style="font-size:18px;width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">+</button>
+      </div>
+      <div class="kurv-item-pris">${linjePris.toLocaleString('da')} kr.</div>
+      <button class="kurv-remove" onclick="removeFromKurv('${v.nr}')" title="Fjern linje" style="color:var(--red);font-size:16px;">✕</button>
+    </div>`;
+  }).join('');
   document.getElementById('kurv-total').textContent=total.toLocaleString('da')+' kr.';
-  document.getElementById('kurv-moms').textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. | Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
+  document.getElementById('kurv-moms').textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
   document.getElementById('o-pris').value=total;
+  const vs=document.getElementById('vare-section');
+  if(vs && kurv.length>0) vs.style.display='none';
+  const tb=document.getElementById('vare-toggler-btn');
+  if(tb) tb.textContent='+ Tilføj flere varer ('+kurv.length+' valgt)';
+}
+
+function toggleVareGrid(){
+  const vs=document.getElementById('vare-section');
+  if(!vs)return;
+  const open=vs.style.display==='none'||vs.style.display==='';
+  vs.style.display=open?'block':'none';
+  const tb=document.getElementById('vare-toggler-btn');
+  if(tb) tb.textContent=open?'▲ Skjul vareliste':'+ Tilføj flere varer ('+kurv.length+' valgt)';
 }
 
 document.addEventListener('change',e=>{
