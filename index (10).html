@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.5</title>
+<title>Lubnan Ordreflow 3.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.5</span>
+    <span class="hdr-ver">Ordreflow 3.6</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -348,12 +348,16 @@ textarea{resize:vertical;min-height:80px;}
     <div class="form-section">
       <div class="form-section-title">Vælg varer</div>
       <div class="form-group" style="margin-bottom:12px;">
-        <label>Hurtig tilføj via dropdown</label>
+        <label>Tilføj via varenummer eller dropdown</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <input type="text" id="vare-nr-input" placeholder="Skriv varenr. fx F-003" style="width:180px;font-family:'JetBrains Mono',monospace;" oninput="sogVareNr(this.value)" onkeydown="if(event.key==='Enter')tilfoejVareNr()">
+          <button class="btn btn-primary btn-sm" onclick="tilfoejVareNr()">+ Tilføj</button>
+          <span id="vare-nr-feedback" style="font-size:12px;color:var(--green);"></span>
+        </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <select id="vare-dropdown" style="flex:1;" onchange="addFromDropdown(this.value)">
-            <option value="">— Vælg en vare —</option>
+            <option value="">— Eller vælg fra liste —</option>
           </select>
-          <span id="vare-dropdown-pris" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);min-width:80px;text-align:right;"></span>
         </div>
       </div>
       <div class="kurv hidden" id="kurv">
@@ -634,45 +638,45 @@ function populerAfdelingSelect() {
 }
 
 const VARER = [
-  {nr:'F001',navn:'Hummus',kat:'Forret/Mezze',raavare:18,tid:5},
-  {nr:'F002',navn:'Baba Ghanoush',kat:'Forret/Mezze',raavare:20,tid:8},
-  {nr:'F003',navn:'Fattoush',kat:'Forret/Mezze',raavare:22,tid:6},
-  {nr:'F004',navn:'Tabbouleh',kat:'Forret/Mezze',raavare:20,tid:6},
-  {nr:'F005',navn:'Falafel (6 stk.)',kat:'Forret/Mezze',raavare:18,tid:8},
-  {nr:'F006',navn:'Kibbeh (4 stk.)',kat:'Forret/Mezze',raavare:32,tid:12},
-  {nr:'F007',navn:'Warak Enab (6 stk.)',kat:'Forret/Mezze',raavare:28,tid:15},
-  {nr:'F008',navn:'Mezze bord lille',kat:'Forret/Mezze',raavare:55,tid:10},
-  {nr:'F009',navn:'Mezze bord stort',kat:'Forret/Mezze',raavare:90,tid:15},
-  {nr:'H001',navn:'Shawarma kylling',kat:'Hovedret',raavare:48,tid:12},
-  {nr:'H002',navn:'Shawarma lam',kat:'Hovedret',raavare:58,tid:12},
-  {nr:'H003',navn:'Grillet kylling hel',kat:'Hovedret',raavare:75,tid:25},
-  {nr:'H004',navn:'Kafta (4 stk.)',kat:'Hovedret',raavare:52,tid:15},
-  {nr:'H005',navn:'Lahmacun (2 stk.)',kat:'Hovedret',raavare:38,tid:15},
-  {nr:'H006',navn:'Pizza Lubnan',kat:'Hovedret',raavare:45,tid:20},
-  {nr:'H007',navn:'Makanek',kat:'Hovedret',raavare:42,tid:15},
-  {nr:'H008',navn:'Samke Harra',kat:'Hovedret',raavare:68,tid:20},
-  {nr:'H009',navn:'Vegetar mezze tallerken',kat:'Hovedret',raavare:62,tid:12},
-  {nr:'M001',navn:'Menu Lille',kat:'Menu',raavare:66,tid:17},
-  {nr:'M002',navn:'Menu Mellem',kat:'Menu',raavare:145,tid:22},
-  {nr:'M003',navn:'Menu Stor',kat:'Menu',raavare:165,tid:30},
-  {nr:'M004',navn:'Familiemenu',kat:'Menu',raavare:230,tid:35},
-  {nr:'D001',navn:'Vand 50cl',kat:'Drikkevare',raavare:3,tid:1},
-  {nr:'D002',navn:'Sodavand 33cl',kat:'Drikkevare',raavare:5,tid:1},
-  {nr:'D003',navn:'Ayran',kat:'Drikkevare',raavare:8,tid:3},
-  {nr:'D004',navn:'Libanesisk te',kat:'Drikkevare',raavare:6,tid:5},
-  {nr:'D005',navn:'Kaffe',kat:'Drikkevare',raavare:7,tid:5},
-  {nr:'D006',navn:'Jallab',kat:'Drikkevare',raavare:12,tid:3},
-  {nr:'V001',navn:'Blanc de L\'Observatoire',kat:'Vin',raavare:84.8,tid:2},
-  {nr:'V002',navn:'Blanc de Blancs',kat:'Vin',raavare:95.2,tid:2},
-  {nr:'V003',navn:'Merwah',kat:'Vin',raavare:124,tid:2},
-  {nr:'V004',navn:'Chardonnay',kat:'Vin',raavare:139.2,tid:2},
-  {nr:'V005',navn:'Rosé de Ksara',kat:'Vin',raavare:84,tid:2},
-  {nr:'V006',navn:'Sunset Rosé',kat:'Vin',raavare:88,tid:2},
-  {nr:'V007',navn:'Le Prieuré',kat:'Vin',raavare:86.4,tid:2},
-  {nr:'V008',navn:'Reserve du Couvent',kat:'Vin',raavare:87.2,tid:2},
-  {nr:'V009',navn:'Cabernet Sauvignon',kat:'Vin',raavare:137.6,tid:2},
-  {nr:'V010',navn:'Château Ksara',kat:'Vin',raavare:155.2,tid:2},
-  {nr:'V011',navn:'Cuvée du 3éme Millenaire',kat:'Vin',raavare:220,tid:2},
+  {nr:'F-001',navn:'Hummus',kat:'Forret/Mezze',raavare:18,tid:5},
+  {nr:'F-002',navn:'Baba Ghanoush',kat:'Forret/Mezze',raavare:20,tid:8},
+  {nr:'F-003',navn:'Fattoush',kat:'Forret/Mezze',raavare:22,tid:6},
+  {nr:'F-004',navn:'Tabbouleh',kat:'Forret/Mezze',raavare:20,tid:6},
+  {nr:'F-005',navn:'Falafel (6 stk.)',kat:'Forret/Mezze',raavare:18,tid:8},
+  {nr:'F-006',navn:'Kibbeh (4 stk.)',kat:'Forret/Mezze',raavare:32,tid:12},
+  {nr:'F-007',navn:'Warak Enab (6 stk.)',kat:'Forret/Mezze',raavare:28,tid:15},
+  {nr:'F-008',navn:'Mezze bord lille',kat:'Forret/Mezze',raavare:55,tid:10},
+  {nr:'F-009',navn:'Mezze bord stort',kat:'Forret/Mezze',raavare:90,tid:15},
+  {nr:'H-001',navn:'Shawarma kylling',kat:'Hovedret',raavare:48,tid:12},
+  {nr:'H-002',navn:'Shawarma lam',kat:'Hovedret',raavare:58,tid:12},
+  {nr:'H-003',navn:'Grillet kylling hel',kat:'Hovedret',raavare:75,tid:25},
+  {nr:'H-004',navn:'Kafta (4 stk.)',kat:'Hovedret',raavare:52,tid:15},
+  {nr:'H-005',navn:'Lahmacun (2 stk.)',kat:'Hovedret',raavare:38,tid:15},
+  {nr:'H-006',navn:'Pizza Lubnan',kat:'Hovedret',raavare:45,tid:20},
+  {nr:'H-007',navn:'Makanek',kat:'Hovedret',raavare:42,tid:15},
+  {nr:'H-008',navn:'Samke Harra',kat:'Hovedret',raavare:68,tid:20},
+  {nr:'H-009',navn:'Vegetar mezze tallerken',kat:'Hovedret',raavare:62,tid:12},
+  {nr:'M-001',navn:'Menu Lille',kat:'Menu',raavare:66,tid:17},
+  {nr:'M-002',navn:'Menu Mellem',kat:'Menu',raavare:145,tid:22},
+  {nr:'M-003',navn:'Menu Stor',kat:'Menu',raavare:165,tid:30},
+  {nr:'M-004',navn:'Familiemenu',kat:'Menu',raavare:230,tid:35},
+  {nr:'D-001',navn:'Vand 50cl',kat:'Drikkevare',raavare:3,tid:1},
+  {nr:'D-002',navn:'Sodavand 33cl',kat:'Drikkevare',raavare:5,tid:1},
+  {nr:'D-003',navn:'Ayran',kat:'Drikkevare',raavare:8,tid:3},
+  {nr:'D-004',navn:'Libanesisk te',kat:'Drikkevare',raavare:6,tid:5},
+  {nr:'D-005',navn:'Kaffe',kat:'Drikkevare',raavare:7,tid:5},
+  {nr:'D-006',navn:'Jallab',kat:'Drikkevare',raavare:12,tid:3},
+  {nr:'V-001',navn:'Blanc de L\'Observatoire',kat:'Vin',raavare:84.8,tid:2},
+  {nr:'V-002',navn:'Blanc de Blancs',kat:'Vin',raavare:95.2,tid:2},
+  {nr:'V-003',navn:'Merwah',kat:'Vin',raavare:124,tid:2},
+  {nr:'V-004',navn:'Chardonnay',kat:'Vin',raavare:139.2,tid:2},
+  {nr:'V-005',navn:'Rosé de Ksara',kat:'Vin',raavare:84,tid:2},
+  {nr:'V-006',navn:'Sunset Rosé',kat:'Vin',raavare:88,tid:2},
+  {nr:'V-007',navn:'Le Prieuré',kat:'Vin',raavare:86.4,tid:2},
+  {nr:'V-008',navn:'Reserve du Couvent',kat:'Vin',raavare:87.2,tid:2},
+  {nr:'V-009',navn:'Cabernet Sauvignon',kat:'Vin',raavare:137.6,tid:2},
+  {nr:'V-010',navn:'Château Ksara',kat:'Vin',raavare:155.2,tid:2},
+  {nr:'V-011',navn:'Cuvée du 3éme Millenaire',kat:'Vin',raavare:220,tid:2},
 ];
 
 const getSalgspris = v => Math.round(v.raavare*(1+AVANCE)*(1+MOMS));
@@ -977,6 +981,34 @@ function renderVareVaelger() {
 }
 
 function filterVareKat(kat){currentVareKat=kat;renderVareVaelger();}
+function sogVareNr(val){
+  const fb=document.getElementById('vare-nr-feedback');
+  if(!val||val.length<2){if(fb)fb.textContent='';return;}
+  const v=VARER.find(x=>x.nr.toLowerCase()===val.toLowerCase().trim());
+  if(v){
+    if(fb)fb.textContent='✓ '+v.navn+' — '+getSalgspris(v)+' kr.';
+    if(fb)fb.style.color='var(--green)';
+  } else {
+    if(fb)fb.textContent='Ukendt varenr.';
+    if(fb)fb.style.color='var(--red)';
+  }
+}
+
+function tilfoejVareNr(){
+  const input=document.getElementById('vare-nr-input');
+  const fb=document.getElementById('vare-nr-feedback');
+  if(!input)return;
+  const val=input.value.trim();
+  const v=VARER.find(x=>x.nr.toLowerCase()===val.toLowerCase());
+  if(!v){
+    if(fb){fb.textContent='Varenr. ikke fundet';fb.style.color='var(--red)';}
+    return;
+  }
+  addToKurv(v.nr);
+  input.value='';
+  if(fb)fb.textContent='';
+}
+
 function populerVareDropdown(){const sel=document.getElementById('vare-dropdown');if(!sel)return;const kats=[...new Set(VARER.map(v=>v.kat))];sel.innerHTML='<option value="">— Vælg en vare —</option>'+kats.map(kat=>`<optgroup label="${kat}">${VARER.filter(v=>v.kat===kat).map(v=>`<option value="${v.nr}">${v.navn} — ${getSalgspris(v)} kr.</option>`).join('')}</optgroup>`).join('');}
 function addFromDropdown(nr){if(!nr)return;addToKurv(nr);const sel=document.getElementById('vare-dropdown');if(sel)sel.value='';const pEl=document.getElementById('vare-dropdown-pris');if(pEl)pEl.textContent='';}
 function addToKurv(nr){const v=VARER.find(x=>x.nr===nr);if(!v)return;const ex=kurv.find(x=>x.nr===nr);if(ex)ex.antal++;else kurv.push({...v,antal:1});renderKurv();showToast('✓ '+v.navn+' tilføjet');}
@@ -1000,12 +1032,11 @@ function renderKurv(){
   const exMoms=Math.round(total/(1+MOMS));
   const moms=total-exMoms;
   document.getElementById('kurv-items').innerHTML=kurv.map((v,i)=>{
-    const linjeNr=i+1;
     const stkPris=getSalgspris(v);
     const linjePris=stkPris*v.antal;
     return `<div class="kurv-item">
       <div>
-        <div class="kurv-item-navn">${linjeNr}. ${v.navn}</div>
+        <div class="kurv-item-navn"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);margin-right:6px;">${v.nr}</span>${v.navn}</div>
         <div class="kurv-item-stk">${stkPris} kr. pr. stk. · ${v.kat}</div>
       </div>
       <div class="kurv-item-antal">
