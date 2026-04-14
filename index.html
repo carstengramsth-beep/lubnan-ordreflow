@@ -1315,6 +1315,9 @@ function udskrivTilbud(id){
   const moms=t.pris-exMoms;
   const levAdr=t.levAdresse?`${t.levAdresse}, ${t.levPostnr||''} ${t.levBy||''}`.trim():null;
   const kundeAdr=t.adresse?`${t.adresse}, ${t.postnr||''} ${t.by||''}`.trim():null;
+  const visAdresse=['Leveres på adressen','Levering i varme kasser','Foodtruck'].includes(t.levform)
+    ? (levAdr||kundeAdr||'—')
+    : (kundeAdr||'—');
   const linjer=(t.linjer||[]).map(v=>{
     const pris=v.fri?v.raavare*v.antal:getSalgspris(v)*v.antal;
     return `<tr style="border-bottom:1px solid #e5e7eb;">
@@ -1387,7 +1390,7 @@ function udskrivTilbud(id){
     <div class="detalje-box"><div class="detalje-lbl">Arrangement</div><div class="detalje-val">${t.beskr}</div></div>
     <div class="detalje-box"><div class="detalje-lbl">Dato og leveringstidspunkt</div><div class="detalje-val">${dato}${t.tid?' kl. '+new Date(t.tid).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'}):''}</div></div>
     <div class="detalje-box"><div class="detalje-lbl">Leveringsform</div><div class="detalje-val">${t.levform||'—'}</div></div>
-    <div class="detalje-box"><div class="detalje-lbl">Leveringsadresse</div><div class="detalje-val">${levAdr||kundeAdr||'—'}</div></div>
+    <div class="detalje-box"><div class="detalje-lbl">Leveringsadresse</div><div class="detalje-val">${visAdresse}</div></div>
   </div>
   <table>
     <thead><tr><th>Beskrivelse</th><th style="text-align:center;">Antal</th><th style="text-align:right;">Stk. pris</th><th style="text-align:right;">Beløb</th></tr></thead>
