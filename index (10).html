@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 3.6</title>
+<title>Lubnan Ordreflow 3.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">Ordreflow 3.6</span>
+    <span class="hdr-ver">Ordreflow 3.7</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -455,20 +455,105 @@ textarea{resize:vertical;min-height:80px;}
 <div id="page-opret-tilbud" class="hidden">
   <div class="back-btn" onclick="showPage('tilbud')">← Tilbage</div>
   <div class="page-title">Opret tilbud</div>
-  <div class="form-page">
-    <div class="form-grid">
-      <div class="form-group full"><label>Kundenavn <span class="req">*</span></label><input type="text" id="t-kunde" placeholder="Navn eller virksomhed"></div>
-      <div class="form-group"><label>Kontakt</label><input type="text" id="t-kontakt" placeholder="Tlf. / email"></div>
-      <div class="form-group"><label>Afdeling</label><select id="t-afd"></select></div>
-      <div class="form-group full"><label>Beskrivelse <span class="req">*</span></label><input type="text" id="t-beskr" placeholder="Hvad ønsker kunden?"></div>
-      <div class="form-group"><label>Forventet antal</label><input type="number" id="t-antal" placeholder="0" min="1"></div>
-      <div class="form-group"><label>Tilbudt pris (kr.)</label><input type="number" id="t-pris" value="0"></div>
-      <div class="form-group"><label>Ønsket leveringstidspunkt</label><input type="datetime-local" id="t-tid"></div>
-      <div class="form-group"><label>Gyldig til</label><input type="date" id="t-gyldig"></div>
-      <div class="form-group full"><label>Bemærkninger</label><textarea id="t-bem" placeholder="Interne noter..."></textarea></div>
+  <div class="form-page" style="max-width:780px;">
+
+    <!-- KUNDEOPLYSNINGER -->
+    <div class="form-section">
+      <div class="form-section-title">Kundeoplysninger</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Kundenavn <span class="req">*</span></label>
+          <input type="text" id="t-kunde" placeholder="Begynd at skrive..." oninput="autocompleteKundeTilbud(this.value)">
+          <div id="t-kunde-suggestions"></div>
+        </div>
+        <div class="form-group"><label>Kontaktperson</label><input type="text" id="t-kontakt" placeholder="Navn på kontaktperson"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="t-email" placeholder="email@eksempel.dk"></div>
+        <div class="form-group"><label>Telefon</label><input type="tel" id="t-tlf" placeholder="Fx: 20 30 40 50"></div>
+        <div class="form-group full"><label>Adresse</label><input type="text" id="t-adresse" placeholder="Vejnavn og husnummer"></div>
+        <div class="form-group"><label>Postnummer</label><input type="text" id="t-postnr" placeholder="Fx: 4660"></div>
+        <div class="form-group"><label>By</label><input type="text" id="t-by" placeholder="Fx: Store Heddinge"></div>
+      </div>
     </div>
+
+    <!-- ARRANGEMENT -->
+    <div class="form-section">
+      <div class="form-section-title">Arrangementdetaljer</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Arrangementstype / beskrivelse <span class="req">*</span></label><input type="text" id="t-beskr" placeholder="Fx: Fødselsdagsarrangement for 30 personer"></div>
+        <div class="form-group"><label>Dato og tidspunkt</label><input type="datetime-local" id="t-tid"></div>
+        <div class="form-group"><label>Gyldig til</label><input type="date" id="t-gyldig"></div>
+        <div class="form-group"><label>Leveringsform</label>
+          <select id="t-levform">
+            <option>Spises på stedet</option>
+            <option>Levering i varme kasser</option>
+            <option>Foodtruck</option>
+            <option>Afhentning</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Afdeling</label><select id="t-afd"></select></div>
+      </div>
+    </div>
+
+    <!-- VARELINJER -->
+    <div class="form-section">
+      <div class="form-section-title">Varelinjer</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Tilføj via varenummer eller dropdown</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <input type="text" id="t-vare-nr-input" placeholder="Skriv varenr. fx F-003" style="width:180px;font-family:'JetBrains Mono',monospace;" oninput="sogVareNrTilbud(this.value)" onkeydown="if(event.key==='Enter')tilfoejVareNrTilbud()">
+          <button class="btn btn-primary btn-sm" onclick="tilfoejVareNrTilbud()">+ Tilføj</button>
+          <span id="t-vare-nr-feedback" style="font-size:12px;color:var(--green);"></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <select id="t-vare-dropdown" style="flex:1;" onchange="addToTilbudKurv(this.value);this.value=''">
+            <option value="">— Eller vælg fra liste —</option>
+          </select>
+        </div>
+        <!-- Fri tekstlinje -->
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+          <input type="text" id="t-fri-tekst" placeholder="Fri linje: fx Extra personale" style="flex:1;">
+          <input type="number" id="t-fri-antal" placeholder="Antal" style="width:80px;" min="1" value="1">
+          <input type="number" id="t-fri-pris" placeholder="Pris kr." style="width:100px;" min="0">
+          <button class="btn btn-secondary btn-sm" onclick="tilfoejFriLinje()">+ Fri linje</button>
+        </div>
+      </div>
+
+      <!-- TILBUD KURV -->
+      <div class="kurv hidden" id="t-kurv">
+        <div class="kurv-title">
+          <span>🛒 Tilbudslinjer</span>
+          <button class="btn btn-xs btn-secondary" onclick="tomTilbudKurv()">Tøm</button>
+        </div>
+        <div id="t-kurv-items"></div>
+        <div class="kurv-total"><span style="font-size:13px;color:var(--text-dim);">Total incl. moms</span><span class="kurv-total-val" id="t-kurv-total">0 kr.</span></div>
+        <div class="kurv-moms" id="t-kurv-moms"></div>
+      </div>
+    </div>
+
+    <!-- INTERN KALKULATION -->
+    <div class="form-section" id="t-kalkulation" style="display:none;">
+      <div class="form-section-title">Intern kalkulation</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px;" id="t-kalk-grid"></div>
+      <div class="form-group">
+        <label>Prisjustering (% tillæg eller rabat)</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="t-justering-type" style="width:140px;">
+            <option value="ingen">Ingen justering</option>
+            <option value="tillæg">% Tillæg</option>
+            <option value="rabat">% Rabat</option>
+          </select>
+          <input type="number" id="t-justering-pct" placeholder="0" min="0" max="100" style="width:80px;" oninput="renderTilbudKalkulation()">
+          <span id="t-justering-resultat" style="font-size:13px;color:var(--accent);font-family:'JetBrains Mono',monospace;"></span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:8px;">
+        <label>Interne bemærkninger</label>
+        <textarea id="t-bem" placeholder="Interne noter (vises ikke på tilbudsblanketten)..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+
     <div class="form-actions">
-      <button class="btn btn-primary" onclick="opretTilbud()">✓ Opret tilbud</button>
+      <button class="btn btn-primary" onclick="opretTilbud()">✓ Gem tilbud</button>
       <button class="btn btn-secondary" onclick="showPage('tilbud')">Annuller</button>
     </div>
   </div>
@@ -832,7 +917,7 @@ function showPage(page) {
   if(page==='ledelse') { populerAfdelingSelect(); renderLedelse(); }
   if(page==='kunder') renderKunder();
   if(page==='opret-ordre') { renderVareVaelger(); populerAfdelingSelect(); setDefaultDT(); populerVareDropdown(); }
-  if(page==='opret-tilbud') populerAfdelingSelect();
+  if(page==='opret-tilbud') { populerAfdelingSelect(); populerTilbudDropdown(); tilbudKurv=[]; renderTilbudKurv(); }
   if(page==='forside') { renderAlerts(); renderCapRows(); }
   if(page==='arkiv') loadArkiv();
   updateStats();
@@ -1086,14 +1171,179 @@ async function opretOrdre(){
   updateStats();showToast('✓ Ordre '+nr+' gemt i database!');showPage('flytavle');
 }
 
+let tilbudKurv = [];
+
+function autocompleteKundeTilbud(val){
+  const el=document.getElementById('t-kunde-suggestions');
+  if(!val||val.length<2){el.innerHTML='';return;}
+  const matches=kunder.filter(k=>k.navn.toLowerCase().includes(val.toLowerCase()));
+  if(!matches.length){el.innerHTML='';return;}
+  el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;">${matches.map(k=>`<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmousedown="valgKundeTilbud('${k.id}')"><strong>${k.navn}</strong> <span style="color:var(--text-muted);font-size:11px;">${k.gruppe||''}</span></div>`).join('')}</div>`;
+}
+
+function valgKundeTilbud(id){
+  const k=kunder.find(x=>x.id===id);if(!k)return;
+  document.getElementById('t-kunde').value=k.navn;
+  document.getElementById('t-kontakt').value=k.kontakt||'';
+  document.getElementById('t-email').value=k.email||'';
+  document.getElementById('t-tlf').value=k.tlf||'';
+  document.getElementById('t-adresse').value=k.adresse||'';
+  document.getElementById('t-postnr').value=k.postnr||'';
+  document.getElementById('t-by').value=k.by||'';
+  document.getElementById('t-kunde-suggestions').innerHTML='';
+}
+
+function sogVareNrTilbud(val){
+  const fb=document.getElementById('t-vare-nr-feedback');
+  if(!val||val.length<2){if(fb)fb.textContent='';return;}
+  const v=VARER.find(x=>x.nr.toLowerCase()===val.toLowerCase().trim());
+  if(v){if(fb){fb.textContent='✓ '+v.navn+' — '+getSalgspris(v)+' kr.';fb.style.color='var(--green)';}}
+  else{if(fb){fb.textContent='Ukendt varenr.';fb.style.color='var(--red)';}}
+}
+
+function tilfoejVareNrTilbud(){
+  const input=document.getElementById('t-vare-nr-input');
+  const fb=document.getElementById('t-vare-nr-feedback');
+  if(!input)return;
+  const val=input.value.trim();
+  const v=VARER.find(x=>x.nr.toLowerCase()===val.toLowerCase());
+  if(!v){if(fb){fb.textContent='Varenr. ikke fundet';fb.style.color='var(--red)';}return;}
+  addToTilbudKurv(v.nr);
+  input.value='';
+  if(fb)fb.textContent='';
+}
+
+function addToTilbudKurv(nr){
+  if(!nr)return;
+  const v=VARER.find(x=>x.nr===nr);if(!v)return;
+  const ex=tilbudKurv.find(x=>x.nr===nr&&!x.fri);
+  if(ex)ex.antal++;
+  else tilbudKurv.push({...v,antal:1,fri:false});
+  renderTilbudKurv();
+  showToast('✓ '+v.navn+' tilføjet til tilbud');
+}
+
+function tilfoejFriLinje(){
+  const tekst=document.getElementById('t-fri-tekst').value.trim();
+  const antal=parseInt(document.getElementById('t-fri-antal').value)||1;
+  const pris=parseInt(document.getElementById('t-fri-pris').value)||0;
+  if(!tekst){alert('Skriv venligst en beskrivelse');return;}
+  tilbudKurv.push({nr:'FRI',navn:tekst,antal,raavare:pris,kat:'Fri linje',tid:0,fri:true});
+  document.getElementById('t-fri-tekst').value='';
+  document.getElementById('t-fri-antal').value='1';
+  document.getElementById('t-fri-pris').value='';
+  renderTilbudKurv();
+  showToast('✓ Fri linje tilføjet');
+}
+
+function tomTilbudKurv(){tilbudKurv=[];renderTilbudKurv();}
+
+function getTilbudSalgspris(v){
+  if(v.fri)return v.raavare*v.antal;
+  return getSalgspris(v)*v.antal;
+}
+
+function renderTilbudKurv(){
+  const el=document.getElementById('t-kurv');if(!el)return;
+  if(tilbudKurv.length===0){el.classList.add('hidden');document.getElementById('t-kalkulation').style.display='none';return;}
+  el.classList.remove('hidden');
+  document.getElementById('t-kalkulation').style.display='';
+  document.getElementById('t-kurv-items').innerHTML=tilbudKurv.map((v,i)=>{
+    const stkPris=v.fri?v.raavare:getSalgspris(v);
+    const linjePris=stkPris*v.antal;
+    return `<div class="kurv-item">
+      <div>
+        <div class="kurv-item-navn"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);margin-right:6px;">${v.nr}</span>${v.navn}${v.fri?'<span style="font-size:10px;color:var(--purple);margin-left:6px;">FRI LINJE</span>':''}</div>
+        <div class="kurv-item-stk">${stkPris} kr. pr. stk. · ${v.kat}</div>
+      </div>
+      <div class="kurv-item-antal">
+        <button class="kurv-remove" onclick="mindreTilbudAntal(${i})" style="font-size:18px;width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">−</button>
+        <input type="number" min="1" value="${v.antal}" onchange="setTilbudAntal(${i},this.value)" style="width:48px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px;">
+        <button class="kurv-remove" onclick="øgTilbudAntal(${i})" style="font-size:18px;width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">+</button>
+      </div>
+      <div class="kurv-item-pris">${linjePris.toLocaleString('da')} kr.</div>
+      <button class="kurv-remove" onclick="fjernTilbudLinje(${i})" style="color:var(--red);font-size:16px;">✕</button>
+    </div>`;
+  }).join('');
+  renderTilbudKalkulation();
+}
+
+function øgTilbudAntal(i){if(tilbudKurv[i])tilbudKurv[i].antal++;renderTilbudKurv();}
+function mindreTilbudAntal(i){if(tilbudKurv[i]){tilbudKurv[i].antal--;if(tilbudKurv[i].antal<=0)tilbudKurv.splice(i,1);}renderTilbudKurv();}
+function setTilbudAntal(i,val){const n=parseInt(val)||1;if(tilbudKurv[i]){if(n<=0)tilbudKurv.splice(i,1);else tilbudKurv[i].antal=n;}renderTilbudKurv();}
+function fjernTilbudLinje(i){tilbudKurv.splice(i,1);renderTilbudKurv();}
+
+function renderTilbudKalkulation(){
+  const jType=document.getElementById('t-justering-type')?.value||'ingen';
+  const jPct=parseFloat(document.getElementById('t-justering-pct')?.value)||0;
+  const totalRaavare=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.raavare*v.antal,0);
+  const totalTid=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.tid*v.antal,0);
+  const totalBrutto=tilbudKurv.reduce((s,v)=>v.fri?s+v.raavare*v.antal:s+getSalgspris(v)*v.antal,0);
+  let totalFinal=totalBrutto;
+  let justeringKr=0;
+  if(jType==='tillæg'&&jPct>0){justeringKr=Math.round(totalBrutto*jPct/100);totalFinal=totalBrutto+justeringKr;}
+  if(jType==='rabat'&&jPct>0){justeringKr=Math.round(totalBrutto*jPct/100);totalFinal=totalBrutto-justeringKr;}
+  const exMoms=Math.round(totalFinal/(1+MOMS));
+  const moms=totalFinal-exMoms;
+  const db=exMoms-Math.round(totalRaavare);
+  const dbPct=exMoms>0?Math.round((db/exMoms)*100):0;
+  const grid=document.getElementById('t-kalk-grid');
+  if(grid)grid.innerHTML=`
+    <div class="stat"><div class="stat-lbl">Råvareomk.</div><div class="stat-val" style="font-size:20px;color:var(--red);">${Math.round(totalRaavare).toLocaleString('da')}</div><div class="stat-sub">kr.</div></div>
+    <div class="stat"><div class="stat-lbl">DB kr.</div><div class="stat-val" style="font-size:20px;color:var(--green);">${db.toLocaleString('da')}</div><div class="stat-sub">kr. ex. moms</div></div>
+    <div class="stat"><div class="stat-lbl">DB %</div><div class="stat-val" style="font-size:20px;color:var(--green);">${dbPct}</div><div class="stat-sub">%</div></div>
+    <div class="stat"><div class="stat-lbl">Tidsforbrug</div><div class="stat-val" style="font-size:20px;color:var(--blue2);">${totalTid}</div><div class="stat-sub">min.</div></div>
+    <div class="stat"><div class="stat-lbl">Total inkl. moms</div><div class="stat-val" style="font-size:20px;color:var(--accent);">${totalFinal.toLocaleString('da')}</div><div class="stat-sub">kr.</div></div>
+  `;
+  const jRes=document.getElementById('t-justering-resultat');
+  if(jRes&&justeringKr>0)jRes.textContent=(jType==='tillæg'?'+ ':'- ')+justeringKr.toLocaleString('da')+' kr.';
+  else if(jRes)jRes.textContent='';
+  const totalEl=document.getElementById('t-kurv-total');
+  if(totalEl)totalEl.textContent=totalFinal.toLocaleString('da')+' kr.';
+  const momsEl=document.getElementById('t-kurv-moms');
+  if(momsEl)momsEl.textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.`;
+}
+
+function populerTilbudDropdown(){
+  const sel=document.getElementById('t-vare-dropdown');if(!sel)return;
+  const kats=[...new Set(VARER.map(v=>v.kat))];
+  sel.innerHTML='<option value="">— Eller vælg fra liste —</option>'+kats.map(kat=>`<optgroup label="${kat}">${VARER.filter(v=>v.kat===kat).map(v=>`<option value="${v.nr}">${v.nr} · ${v.navn} — ${getSalgspris(v)} kr.</option>`).join('')}</optgroup>`).join('');
+}
+
 function opretTilbud(){
   const kunde=document.getElementById('t-kunde').value.trim();
   const beskr=document.getElementById('t-beskr').value.trim();
-  if(!kunde||!beskr){alert('Udfyld venligst: Kundenavn og Beskrivelse');return;}
+  if(!kunde||!beskr){alert('Udfyld venligst: Kundenavn og Arrangementsbeskrivelse');return;}
+  if(tilbudKurv.length===0){alert('Tilføj venligst mindst én varelinje');return;}
+  const jType=document.getElementById('t-justering-type')?.value||'ingen';
+  const jPct=parseFloat(document.getElementById('t-justering-pct')?.value)||0;
+  const totalBrutto=tilbudKurv.reduce((s,v)=>v.fri?s+v.raavare*v.antal:s+getSalgspris(v)*v.antal,0);
+  let totalFinal=totalBrutto;
+  if(jType==='tillæg'&&jPct>0)totalFinal=totalBrutto+Math.round(totalBrutto*jPct/100);
+  if(jType==='rabat'&&jPct>0)totalFinal=totalBrutto-Math.round(totalBrutto*jPct/100);
   const nr='T26-'+String(Date.now()).slice(-4);
-  tilbud.push({id:nr,kunde,afd:document.getElementById('t-afd').value,beskr,antal:parseInt(document.getElementById('t-antal').value)||0,pris:parseInt(document.getElementById('t-pris').value)||0,tid:document.getElementById('t-tid').value||new Date().toISOString().slice(0,16),gyldig:document.getElementById('t-gyldig').value,bem:document.getElementById('t-bem').value,status:'Åbent'});
-  ['t-kunde','t-kontakt','t-beskr','t-antal','t-bem'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  updateStats();showToast('✓ Tilbud '+nr+' oprettet!');showPage('tilbud');
+  tilbud.push({
+    id:nr, kunde, 
+    kontakt:document.getElementById('t-kontakt').value,
+    email:document.getElementById('t-email').value,
+    tlf:document.getElementById('t-tlf').value,
+    adresse:document.getElementById('t-adresse').value,
+    postnr:document.getElementById('t-postnr').value,
+    by:document.getElementById('t-by').value,
+    afd:document.getElementById('t-afd').value,
+    beskr, linjer:[...tilbudKurv],
+    pris:totalFinal,
+    tid:document.getElementById('t-tid').value||new Date().toISOString().slice(0,16),
+    gyldig:document.getElementById('t-gyldig').value,
+    levform:document.getElementById('t-levform').value,
+    bem:document.getElementById('t-bem').value,
+    justeringType:jType, justeringPct:jPct,
+    status:'Åbent',
+    oprettet:new Date().toISOString()
+  });
+  tilbudKurv=[];
+  ['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  updateStats();showToast('✓ Tilbud '+nr+' gemt!');showPage('tilbud');
 }
 
 function autocompleteKunde(val){const el=document.getElementById('kunde-suggestions');if(!val||val.length<2){el.innerHTML='';return;}const matches=kunder.filter(k=>k.navn.toLowerCase().includes(val.toLowerCase()));if(!matches.length){el.innerHTML='';return;}el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;">${matches.map(k=>`<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmousedown="valgKunde('${k.id}')"><strong>${k.navn}</strong> <span style="color:var(--text-muted);font-size:11px;">${k.gruppe||''}</span></div>`).join('')}</div>`;}
