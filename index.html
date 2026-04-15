@@ -372,6 +372,40 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
     <div class="form-section" id="t-kalkulation" style="display:none;">
       <div class="form-section-title">Intern kalkulation</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;" id="t-kalk-grid"></div>
+      <!-- TIDS- OG PRISREGULATOR -->
+      <div style="background:var(--surface2);border:2px solid var(--blue);border-radius:8px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:600;color:var(--blue2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Tids- og prisregulator</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <!-- TIDSJUSTERING -->
+          <div>
+            <label style="font-size:12px;color:var(--text-dim);">Justér tidsforbrug</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+              <button onclick="justerTid(-60)" class="btn btn-secondary btn-sm">− 1 time</button>
+              <button onclick="justerTid(-30)" class="btn btn-secondary btn-sm">− ½ time</button>
+              <button onclick="justerTid(30)" class="btn btn-secondary btn-sm">+ ½ time</button>
+              <button onclick="justerTid(60)" class="btn btn-secondary btn-sm">+ 1 time</button>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:var(--text-dim);">
+              Eller skriv justering i minutter:
+              <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                <input type="number" id="t-tid-justering" placeholder="0" style="width:80px;" oninput="renderTilbudKalkulation()" data-nav>
+                <span style="font-size:12px;color:var(--text-dim);">min. (+ eller −)</span>
+                <button onclick="nulstilTid()" class="btn btn-xs btn-secondary">Nulstil</button>
+              </div>
+            </div>
+          </div>
+          <!-- TIMEPRIS -->
+          <div>
+            <label style="font-size:12px;color:var(--text-dim);">Justér timepris</label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+              <input type="number" id="t-timepris-override" placeholder="Auto" style="width:100px;font-size:16px;font-weight:600;" oninput="renderTilbudKalkulation()" data-nav>
+              <span style="font-size:12px;color:var(--text-dim);">kr./time</span>
+              <button onclick="nulstilTimepris()" class="btn btn-xs btn-secondary">Auto</button>
+            </div>
+            <div id="t-timepris-konsekvens" style="margin-top:8px;font-size:12px;color:var(--yellow);"></div>
+          </div>
+        </div>
+      </div>
       <div style="background:var(--surface2);border:2px solid var(--border2);border-radius:8px;padding:16px;margin-bottom:12px;">
         <label style="color:var(--accent);font-size:13px;font-weight:600;">&#128260; Prisjustering &mdash; vises pa begge blanketter</label>
         <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
@@ -617,11 +651,19 @@ function bekraeftSletTilbud(id){const t=tilbud.find(x=>x.id===id);if(!t)return;d
 async function sletTilbud(id){const t=tilbud.find(x=>x.id===id);if(!t)return;if(t.dbId){const{error}=await db.from('quotes').update({status:'Slettet'}).eq('id',t.dbId);if(error){console.error('Slet tilbud fejl:',error);showToast('Fejl ved sletning!');return;}}tilbud=tilbud.filter(x=>x.id!==id);closeModal();renderTilbud();updateStats();showToast('Tilbud slettet');}
 
 // TILBUD KALKULATION - LIVE RABAT
+function minToTimer(min){const t=Math.floor(Math.abs(min)/60);const m=Math.abs(min)%60;return`${t} t ${m>0?m+' min':''}`;}
+function justerTid(min){const el=document.getElementById('t-tid-justering');if(!el)return;el.value=(parseInt(el.value)||0)+min;renderTilbudKalkulation();}
+function nulstilTid(){const el=document.getElementById('t-tid-justering');if(el)el.value='';renderTilbudKalkulation();}
+function nulstilTimepris(){const el=document.getElementById('t-timepris-override');if(el)el.value='';renderTilbudKalkulation();}
+
 function renderTilbudKalkulation(){
   const jType=document.getElementById('t-justering-type')?.value||'ingen';
   const jPct=parseFloat(document.getElementById('t-justering-pct')?.value)||0;
   const totalRaavare=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.raavare*v.antal,0);
-  const totalTid=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.tid*v.antal,0);
+  const baseTid=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.tid*v.antal,0);
+  const tidJustering=parseInt(document.getElementById('t-tid-justering')?.value)||0;
+  const totalTid=Math.max(0,baseTid+tidJustering);
+  const totalTimer=totalTid/60;
   const listepris=tilbudKurv.reduce((s,v)=>v.fri?s+v.raavare*v.antal:s+getSalgspris(v)*v.antal,0);
   let totalFinal=listepris,justeringKr=0;
   if(jType==='tillæg'&&jPct>0){justeringKr=Math.round(listepris*jPct/100);totalFinal=listepris+justeringKr;}
@@ -629,13 +671,39 @@ function renderTilbudKalkulation(){
   const exMoms=Math.round(totalFinal/(1+MOMS)),moms=totalFinal-exMoms;
   const db2=exMoms-Math.round(totalRaavare),dbPct=exMoms>0?Math.round((db2/exMoms)*100):0;
   
+  // DB pr time
+  const autoTimepris=totalTimer>0?Math.round(db2/totalTimer):0;
+  const overrideTimepris=parseFloat(document.getElementById('t-timepris-override')?.value)||0;
+  const timepris=overrideTimepris>0?overrideTimepris:autoTimepris;
+  
+  // Vis konsekvens af timepris override
+  const konsEl=document.getElementById('t-timepris-konsekvens');
+  if(konsEl){
+    if(overrideTimepris>0&&overrideTimepris!==autoTimepris){
+      const diff=Math.round((overrideTimepris-autoTimepris)*totalTimer);
+      const fortegn=diff>0?'+':'';
+      konsEl.textContent=`Forskel fra auto: ${fortegn}${diff.toLocaleString('da')} kr. ved ${Math.round(totalTimer*10)/10} timer`;
+    } else {
+      konsEl.textContent='';
+    }
+  }
+
   // Opdater kalkulation grid
   const grid=document.getElementById('t-kalk-grid');
   if(grid)grid.innerHTML=`
     <div class="stat"><div class="stat-lbl">Ravareomk.</div><div class="stat-val" style="font-size:20px;color:var(--red);">${Math.round(totalRaavare).toLocaleString('da')}</div><div class="stat-sub">kr.</div></div>
     <div class="stat"><div class="stat-lbl">DB kr.</div><div class="stat-val" style="font-size:20px;color:var(--green);">${db2.toLocaleString('da')}</div><div class="stat-sub">kr. ex. moms</div></div>
     <div class="stat"><div class="stat-lbl">DB %</div><div class="stat-val" style="font-size:20px;color:var(--green);">${dbPct}</div><div class="stat-sub">%</div></div>
-    <div class="stat"><div class="stat-lbl">Tidsforbrug</div><div class="stat-val" style="font-size:20px;color:var(--blue2);">${totalTid}</div><div class="stat-sub">min.</div></div>
+    <div class="stat" style="border:${tidJustering!==0?'2px solid var(--blue)':'1px solid var(--border)'};">
+      <div class="stat-lbl">Tidsforbrug${tidJustering!==0?` (${tidJustering>0?'+':''}${tidJustering} min)`:''}</div>
+      <div class="stat-val" style="font-size:18px;color:var(--blue2);">${totalTid} min</div>
+      <div class="stat-sub">= ${minToTimer(totalTid)}</div>
+    </div>
+    <div class="stat" style="border:2px solid var(--cyan);">
+      <div class="stat-lbl">DB pr. time</div>
+      <div class="stat-val" style="font-size:20px;color:var(--cyan);">${timepris.toLocaleString('da')}</div>
+      <div class="stat-sub">kr./time · ${Math.round(totalTimer*10)/10} timer</div>
+    </div>
     <div class="stat"><div class="stat-lbl">Tilbudspris</div><div class="stat-val" style="font-size:20px;color:var(--accent);">${totalFinal.toLocaleString('da')}</div><div class="stat-sub">kr. inkl. moms</div></div>
   `;
   
