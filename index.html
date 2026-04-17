@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.15 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.16 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.15</title>
+<title>Lubnan Ordreflow 4.16</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -193,7 +193,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.15</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.16</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -214,7 +214,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.15</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.16</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -474,17 +474,21 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 </div>
 <!-- PRISLISTE -->
 <div id="page-prisliste" class="hidden">
-  <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Prisliste</div><button class="btn btn-secondary btn-sm" onclick="togglePrisGuide()">Guide: Ret priser</button></div>
-  <div id="pris-guide" style="display:none;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:18px;margin-bottom:16px;max-width:680px;">
-    <div style="font-family:'Playfair Display',serif;font-size:17px;margin-bottom:12px;color:var(--accent);">Sadan retter du prislisten</div>
-    <div style="font-size:13px;line-height:1.7;color:var(--text-dim);">
-      <p style="margin-bottom:8px;">Salgspris = ravare x 1,35 (avance) x 1,25 (moms)</p>
-      <p>Find <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">const VARER = [</code> i koden og ret <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;">raavare:</code> vaerdien.</p>
+  <div class="page-hdr">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;">Prisliste</div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span style="font-size:12px;color:var(--text-dim);">Avance %</span>
+      <input type="number" id="avance-pct" value="30" min="0" max="100" style="width:70px;font-size:14px;font-weight:600;text-align:center;" oninput="opdaterAvance(this.value)">
+      <span style="font-size:12px;color:var(--text-dim);">%</span>
+      <button class="btn btn-secondary btn-sm" onclick="gemPrisliste()">💾 Gem priser</button>
     </div>
   </div>
-  <input type="text" style="width:100%;max-width:360px;margin-bottom:14px;" placeholder="Sog..." oninput="sogPrisliste(this.value)">
+  <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--accent2);">
+    💡 Klik på en vare for at redigere råvarepris, tidsforbrug og regulering. Salgsprisen beregnes automatisk.
+  </div>
+  <input type="text" style="width:100%;max-width:360px;margin-bottom:14px;" placeholder="Søg..." oninput="sogPrisliste(this.value)">
   <table class="pl-table">
-    <thead><tr><th>Nr.</th><th>Varenavn</th><th>Kategori</th><th>Salgspris incl. moms</th><th>DB kr.</th><th>DB %</th><th>Tid</th></tr></thead>
+    <thead><tr><th>Nr.</th><th>Varenavn</th><th>Råvarepris</th><th>Tid (min)</th><th>Avance</th><th>Regulering kr.</th><th>Salgspris inkl. moms</th><th>DB %</th></tr></thead>
     <tbody id="pl-tbody"></tbody>
   </table>
 </div>
@@ -535,8 +539,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 const SUPABASE_URL='https://grlarvatvpededvzdvpc.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdybGFydmF0dnBlZGVkdnpkdnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzM1NTcsImV4cCI6MjA5MTM0OTU1N30.pDhU14W1SQCrStY5D0krwcIF5r9SMg3z0CN_7GGIBiw';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false}});
-const MOMS=0.25,AVANCE=0.35;
-const getSalgspris=v=>Math.round(v.raavare*(1+AVANCE)*(1+MOMS));
+const MOMS=0.25;
+let AVANCE=0.30;
+let VARER_REGULERING={};
+const getSalgspris=v=>{const reg=VARER_REGULERING[v.nr]||0;return Math.round(v.raavare*(1+AVANCE)*(1+MOMS))+reg;};
 const getDB=v=>Math.round(v.raavare*AVANCE);
 const getDBpct=v=>Math.round((v.raavare*AVANCE)/(v.raavare*(1+AVANCE))*100);
 
@@ -1124,7 +1130,48 @@ function openKundeModal(id){const k=kunder.find(x=>x.id===id);if(!k)return;docum
 async function sletKunde(id){if(confirm('Slet kunden?')){await db.from('customers').delete().eq('id',id);kunder=kunder.filter(x=>x.id!==id);closeModal();renderKunder();showToast('Kunde slettet');}}
 
 // PRISLISTE
-function renderPrisliste(filter=''){const tbody=document.getElementById('pl-tbody');if(!tbody)return;const kats=[...new Set(VARER.map(v=>v.kat))];let html='';kats.forEach(kat=>{const varer=VARER.filter(v=>v.kat===kat&&(!filter||v.navn.toLowerCase().includes(filter.toLowerCase())||v.nr.toLowerCase().includes(filter.toLowerCase())));if(!varer.length)return;html+=`<tr class="pl-cat-row"><td colspan="7">${kat}</td></tr>`;varer.forEach(v=>{html+=`<tr><td class="pl-nr">${v.nr}</td><td>${v.navn}</td><td style="color:var(--text-dim);font-size:11px;">${v.kat}</td><td class="pl-pris">${getSalgspris(v)} kr.</td><td class="pl-db">${getDB(v)} kr.</td><td class="pl-db">${getDBpct(v)}%</td><td style="color:var(--text-dim);font-family:'JetBrains Mono',monospace;">${v.tid} min</td></tr>`;});});tbody.innerHTML=html;}
+function renderPrisliste(filter=''){
+  const tbody=document.getElementById('pl-tbody');if(!tbody)return;
+  const kats=[...new Set(VARER.map(v=>v.kat))];
+  let html='';
+  kats.forEach(kat=>{
+    const varer=VARER.filter(v=>v.kat===kat&&(!filter||v.navn.toLowerCase().includes(filter.toLowerCase())||v.nr.toLowerCase().includes(filter.toLowerCase())));
+    if(!varer.length)return;
+    html+=`<tr class="pl-cat-row"><td colspan="8">${kat}</td></tr>`;
+    varer.forEach(v=>{
+      const reg=VARER_REGULERING[v.nr]||0;
+      const salgspris=getSalgspris(v);
+      const dbKr=Math.round(salgspris/(1+MOMS)-v.raavare);
+      const dbPct=salgspris>0?Math.round((dbKr/(salgspris/(1+MOMS)))*100):0;
+      html+=`<tr>
+        <td class="pl-nr">${v.nr}</td>
+        <td style="font-weight:600;">${v.navn}</td>
+        <td><input type="number" value="${v.raavare}" min="0" step="0.5" style="width:80px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;" onchange="opdaterRaavare('${v.nr}',this.value)" title="Råvarepris i kr."></td>
+        <td><input type="number" value="${v.tid}" min="0" style="width:60px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;" onchange="opdaterTid('${v.nr}',this.value)" title="Tidsforbrug i minutter"></td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);">${Math.round(AVANCE*100)}%</td>
+        <td><div style="display:flex;align-items:center;gap:4px;"><span style="color:var(--text-dim);font-size:12px;">±</span><input type="number" value="${reg}" step="1" style="width:70px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;" onchange="opdaterRegulering('${v.nr}',this.value)" title="Manuel regulering i kr. (+ eller -)"></div></td>
+        <td class="pl-pris" id="pl-pris-${v.nr}">${salgspris} kr.</td>
+        <td class="pl-db" id="pl-db-${v.nr}">${dbPct}%</td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML=html;
+}
+function opdaterRaavare(nr,val){const v=VARER.find(x=>x.nr===nr);if(v){v.raavare=parseFloat(val)||0;opdaterPrisvisning(nr);}}
+function opdaterTid(nr,val){const v=VARER.find(x=>x.nr===nr);if(v){v.tid=parseInt(val)||0;}}
+function opdaterRegulering(nr,val){VARER_REGULERING[nr]=parseInt(val)||0;opdaterPrisvisning(nr);}
+function opdaterAvance(val){AVANCE=(parseFloat(val)||30)/100;renderPrisliste();}
+function opdaterPrisvisning(nr){
+  const v=VARER.find(x=>x.nr===nr);if(!v)return;
+  const salgspris=getSalgspris(v);
+  const dbKr=Math.round(salgspris/(1+MOMS)-v.raavare);
+  const dbPct=salgspris>0?Math.round((dbKr/(salgspris/(1+MOMS)))*100):0;
+  const prisEl=document.getElementById('pl-pris-'+nr);
+  const dbEl=document.getElementById('pl-db-'+nr);
+  if(prisEl)prisEl.textContent=salgspris+' kr.';
+  if(dbEl)dbEl.textContent=dbPct+'%';
+}
+function gemPrisliste(){showToast('✅ Priser opdateret — gælder til næste opdatering af siden');}
 function sogPrisliste(val){renderPrisliste(val);}
 function togglePrisGuide(){const el=document.getElementById('pris-guide');if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
