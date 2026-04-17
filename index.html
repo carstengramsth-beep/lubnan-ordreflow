@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.17 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.18 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.17</title>
+<title>Lubnan Ordreflow 4.18</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -203,7 +203,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.17</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.18</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -219,12 +219,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
   <div class="ntab" data-page="ledelse" onclick="showPage('ledelse')">&#128202; Ledelse</div>
   <div class="ntab" data-page="kalender" onclick="showPage('kalender')">&#128197; Kalender</div>
   <div class="ntab" data-page="arkiv" onclick="showPage('arkiv')">&#128452; Arkiv</div>
+  <div class="ntab" data-page="broadcast" onclick="showPage('broadcast')">📢 Broadcast</div>
+  <div class="ntab" data-page="medarbejdere" onclick="showPage('medarbejdere')">&#128100; Medarbejdere</div>
 </nav>
 <main class="main">
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.17</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.18</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -560,6 +562,121 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
   <tbody id="arkiv-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen arkiverede ordrer endnu</td></tr></tbody></table>
 </div>
 </main>
+
+<!-- BROADCAST -->
+<div id="page-broadcast" class="hidden">
+  <div class="page-hdr">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;">&#128242; Broadcast</div>
+    <div style="font-size:12px;color:var(--text-muted);">Beskeder ruller i tickeren i bunden</div>
+  </div>
+
+  <!-- NY BESKED -->
+  <div style="background:var(--surface);border:2px solid var(--accent);border-radius:10px;padding:20px;margin-bottom:20px;">
+    <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">&#10133; Ny broadcast besked</div>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px;">
+      <input type="text" id="bc-tekst" placeholder="Skriv besked fx: Personalemøde kl. 13:05 på Reffen — husk at være præcis!" style="font-size:14px;">
+      <select id="bc-type" style="width:160px;">
+        <option value="info">&#8505; Information</option>
+        <option value="vigtig">&#9888; Vigtig</option>
+        <option value="fodseldag">&#127874; Fødselsdag</option>
+        <option value="moed">&#128197; Møde</option>
+        <option value="sygdom">&#128164; Sygdom/Fravær</option>
+        <option value="version">&#9881; System</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <select id="bc-fra" style="width:180px;">
+        <option value="Ledelsen">Fra: Ledelsen</option>
+        <option value="Nano">Fra: Nano</option>
+        <option value="Sanne">Fra: Sanne</option>
+        <option value="Carsten">Fra: Carsten</option>
+      </select>
+      <button class="btn btn-primary" onclick="sendBroadcast()">&#128640; Send til ticker</button>
+      <button class="btn btn-secondary btn-sm" onclick="forhåndsvisBroadcast()">&#128065; Forhåndsvis</button>
+    </div>
+    <div id="bc-preview" style="display:none;margin-top:12px;background:var(--surface2);border-radius:6px;padding:10px;font-size:13px;color:var(--accent2);">
+      <strong>Preview:</strong> <span id="bc-preview-tekst"></span>
+    </div>
+  </div>
+
+  <!-- AKTIVE BESKEDER -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;">&#128242; Aktive beskeder i ticker</div>
+    <div id="bc-aktive"></div>
+  </div>
+
+  <!-- ARKIVEREDE BESKEDER -->
+  <div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;cursor:pointer;" onclick="toggleBcArkiv()">&#128452; Arkiverede beskeder &#9660;</div>
+    <div id="bc-arkiv" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- MEDARBEJDERE -->
+<div id="page-medarbejdere" class="hidden">
+  <div class="page-hdr">
+    <div style="font-family:'Playfair Display',serif;font-size:24px;">&#128100; Medarbejdere</div>
+    <button class="btn btn-primary btn-sm" onclick="aabNyMedarbejder()">+ Ny medarbejder</button>
+  </div>
+
+  <!-- NY/REDIGER MEDARBEJDER FORMULAR -->
+  <div id="mw-formular" style="display:none;background:var(--surface);border:2px solid var(--blue);border-radius:10px;padding:20px;margin-bottom:20px;">
+    <div style="font-size:14px;font-weight:600;color:var(--blue2);margin-bottom:14px;" id="mw-formular-titel">Ny medarbejder</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>Navn *</label><input type="text" id="mw-navn" placeholder="Fornavn Efternavn"></div>
+      <div class="form-group"><label>Rolle</label>
+        <select id="mw-rolle">
+          <option>Kok</option>
+          <option>Tjener</option>
+          <option>Chauffør</option>
+          <option>Sælger</option>
+          <option>Leder</option>
+          <option>Admin</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Telefon</label><input type="tel" id="mw-tlf" placeholder="20 30 40 50"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="mw-email" placeholder="navn@email.dk"></div>
+      <div class="form-group"><label>Lokation</label>
+        <select id="mw-lokation">
+          <option>Hvidovre</option>
+          <option>Reffen</option>
+          <option>Karrebæksminde</option>
+          <option>Salgskontor Stevns</option>
+          <option>Foodtruck 1</option>
+          <option>Foodtruck 2</option>
+          <option>Alle lokationer</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Adgangsniveau</label>
+        <select id="mw-adgang">
+          <option value="medarbejder">&#128100; Medarbejder — se egne opgaver</option>
+          <option value="saelger">&#128196; Sælger — tilbud og kunder</option>
+          <option value="leder">&#128202; Leder — alt inkl. prisliste</option>
+          <option value="admin">&#128273; Admin — fuld adgang + log</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Fødselsdag</label><input type="date" id="mw-foedselsdag"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="mw-status">
+          <option value="aktiv">&#127881; Aktiv</option>
+          <option value="syg">&#128164; Syg</option>
+          <option value="ferie">&#127958; Ferie</option>
+          <option value="moed">&#128197; Til møde</option>
+          <option value="inaktiv">&#128683; Inaktiv</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:10px;"><label>Noter</label><textarea id="mw-noter" placeholder="Særlige kompetencer, bemærkninger..." style="min-height:60px;"></textarea></div>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button class="btn btn-primary" onclick="gemMedarbejder()">&#10003; Gem medarbejder</button>
+      <button class="btn btn-secondary" onclick="lukMwFormular()">Annuller</button>
+    </div>
+  </div>
+
+  <!-- MEDARBEJDER LISTE -->
+  <div id="mw-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal" id="modal"><div class="modal-title" id="modal-title"></div><div id="modal-body"></div><div class="modal-actions" id="modal-actions"></div></div>
@@ -699,7 +816,7 @@ async function testForbindelse(){const statusEl=document.getElementById('db-stat
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toTimeString().slice(0,8);const dage=['sondag','mandag','tirsdag','onsdag','torsdag','fredag','lordag'];const mndr=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];const dato=document.getElementById('dato');if(dato)dato.textContent=`${dage[n.getDay()]} d. ${n.getDate()}. ${mndr[n.getMonth()]} ${n.getFullYear()} kl. ${n.toTimeString().slice(0,5)}`;}
 setInterval(updateClock,1000);updateClock();
 
-function showPage(page){document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');const tab=document.querySelector(`[data-page="${page}"]`);if(tab)tab.classList.add('active');if(page==='ordrestatus'){renderFlyFilter();renderBoard();}if(page==='tilbud'){redigerTilbudId=null;renderTilbud();}if(page==='prisliste')renderPrisliste();if(page==='ledelse'){populerAfdelingSelect();renderLedelse();}if(page==='kunder')renderKunder();if(page==='opret-ordre'){renderVareVaelger();populerAfdelingSelect();setDefaultDT();populerVareDropdown();}if(page==='opret-tilbud'){populerAfdelingSelect();populerTilbudDropdown();}if(page==='forside'){renderAlerts();renderCapRows();}if(page==='arkiv')loadArkiv();if(page==='kalender')renderKalender();updateStats();}
+function showPage(page){document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');const tab=document.querySelector(`[data-page="${page}"]`);if(tab)tab.classList.add('active');if(page==='ordrestatus'){renderFlyFilter();renderBoard();}if(page==='tilbud'){redigerTilbudId=null;renderTilbud();}if(page==='prisliste')renderPrisliste();if(page==='ledelse'){populerAfdelingSelect();renderLedelse();}if(page==='kunder')renderKunder();if(page==='opret-ordre'){renderVareVaelger();populerAfdelingSelect();setDefaultDT();populerVareDropdown();}if(page==='opret-tilbud'){populerAfdelingSelect();populerTilbudDropdown();}if(page==='forside'){renderAlerts();renderCapRows();}if(page==='arkiv')loadArkiv();if(page==='broadcast')renderBroadcast();if(page==='medarbejdere')renderMedarbejdere();if(page==='kalender')renderKalender();updateStats();}
 function nytTilbud(){redigerTilbudId=null;tilbudKurv=[];renderTilbudKurv();setDefaultGyldig();['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem','t-lev-adresse','t-lev-postnr','t-lev-by'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const jTypeEl=document.getElementById('t-justering-type');if(jTypeEl)jTypeEl.value='ingen';const jPctEl=document.getElementById('t-justering-pct');if(jPctEl)jPctEl.value='';['t-tid','t-sluttid','t-fri-tekst','t-fri-pris','t-fri-tid'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const friAntal=document.getElementById('t-fri-antal');if(friAntal)friAntal.value='1';const afdEl=document.getElementById('t-afd');if(afdEl)afdEl.value='hvidovre';const gemBtn=document.querySelector('[onclick="opretTilbud()"]');if(gemBtn)gemBtn.innerHTML='&#10003; Gem tilbud';showPage('opret-tilbud');}
 function nytTilbud(){redigerTilbudId=null;tilbudKurv=[];renderTilbudKurv();setDefaultGyldig();['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem','t-lev-adresse','t-lev-postnr','t-lev-by'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['t-justering-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='ingen';});['t-justering-pct','t-tid','t-sluttid','t-fri-tekst','t-fri-antal','t-fri-pris','t-fri-tid'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='t-fri-antal'?'1':'';});const afdEl=document.getElementById('t-afd');if(afdEl)afdEl.value='hvidovre';const gemBtn=document.querySelector('[onclick="opretTilbud()"]');if(gemBtn)gemBtn.innerHTML='&#10003; Gem tilbud';showPage('opret-tilbud');}
 
@@ -1381,8 +1498,10 @@ const TICKER_BESKEDER = [
 function buildTicker() {
   const inner = document.getElementById('ticker-inner');
   if (!inner) return;
-  // Gentag 2 gange for seamless loop
-  const items = [...TICKER_BESKEDER, ...TICKER_BESKEDER];
+  // Kombiner system-beskeder og broadcast-beskeder
+  const bcItems = broadcastBeskeder.map(b=>({tekst: BC_IKONER[b.type]+' '+b.tekst+' — '+b.fra}));
+  const alleItems = bcItems.length > 0 ? [...bcItems, ...TICKER_BESKEDER] : TICKER_BESKEDER;
+  const items = [...alleItems, ...alleItems];
   inner.innerHTML = items.map(b => 
     `<span class="ticker-item">${b.tekst}</span><span class="ticker-sep">◆</span>`
   ).join('');
@@ -1400,6 +1519,305 @@ function setTrafiklys(farve) {
 // Start med grøn — systemet kører
 setTrafiklys('groen');
 buildTicker();
+
+// =====================
+// BROADCAST SYSTEM
+// =====================
+let broadcastBeskeder = [];
+let broadcastArkiv = [];
+let redigerBcId = null;
+
+const BC_IKONER = {
+  info: 'ℹ️',
+  vigtig: '⚠️',
+  fodseldag: '🎂',
+  moed: '📅',
+  sygdom: '😴',
+  version: '⚙️'
+};
+
+function sendBroadcast(){
+  const tekst = document.getElementById('bc-tekst').value.trim();
+  const type = document.getElementById('bc-type').value;
+  const fra = document.getElementById('bc-fra').value;
+  if(!tekst){alert('Skriv en besked først!');return;}
+  
+  if(redigerBcId){
+    const bc = broadcastBeskeder.find(b=>b.id===redigerBcId);
+    if(bc){bc.tekst=tekst;bc.type=type;bc.fra=fra;bc.redigeret=new Date().toLocaleString('da-DK');}
+    redigerBcId = null;
+  } else {
+    const ny = {
+      id: Date.now(),
+      tekst,
+      type,
+      fra,
+      dato: new Date().toLocaleString('da-DK'),
+      aktiv: true
+    };
+    broadcastBeskeder.unshift(ny);
+  }
+  
+  document.getElementById('bc-tekst').value = '';
+  document.getElementById('bc-preview').style.display = 'none';
+  const gemBtn = document.querySelector('[onclick="sendBroadcast()"]');
+  if(gemBtn) gemBtn.innerHTML = '🚀 Send til ticker';
+  redigerBcId = null;
+  
+  gemBroadcastStorage();
+  buildTicker();
+  renderBroadcast();
+  showToast('📺 Besked sendt til ticker!');
+}
+
+function forhåndsvisBroadcast(){
+  const tekst = document.getElementById('bc-tekst').value.trim();
+  const type = document.getElementById('bc-type').value;
+  const fra = document.getElementById('bc-fra').value;
+  if(!tekst){return;}
+  const preview = document.getElementById('bc-preview');
+  const previewTekst = document.getElementById('bc-preview-tekst');
+  preview.style.display = 'block';
+  previewTekst.textContent = BC_IKONER[type] + ' ' + tekst + ' — ' + fra;
+}
+
+function redigerBroadcast(id){
+  const bc = broadcastBeskeder.find(b=>b.id===id);
+  if(!bc)return;
+  redigerBcId = id;
+  document.getElementById('bc-tekst').value = bc.tekst;
+  document.getElementById('bc-type').value = bc.type;
+  document.getElementById('bc-fra').value = bc.fra;
+  const gemBtn = document.querySelector('[onclick="sendBroadcast()"]');
+  if(gemBtn) gemBtn.innerHTML = '✓ Gem ændringer';
+  showPage('broadcast');
+  showToast('Besked åbnet til redigering');
+}
+
+function arkiverBroadcast(id){
+  const idx = broadcastBeskeder.findIndex(b=>b.id===id);
+  if(idx>=0){
+    broadcastBeskeder[idx].aktiv = false;
+    broadcastArkiv.unshift({...broadcastBeskeder[idx], arkiveretDato: new Date().toLocaleString('da-DK')});
+    broadcastBeskeder.splice(idx,1);
+  }
+  gemBroadcastStorage();
+  buildTicker();
+  renderBroadcast();
+  showToast('Besked arkiveret');
+}
+
+function sletBroadcast(id){
+  if(!confirm('Slet beskeden permanent?'))return;
+  broadcastBeskeder = broadcastBeskeder.filter(b=>b.id!==id);
+  gemBroadcastStorage();
+  buildTicker();
+  renderBroadcast();
+  showToast('Besked slettet');
+}
+
+function toggleBcArkiv(){
+  const el = document.getElementById('bc-arkiv');
+  if(el) el.style.display = el.style.display==='none'?'block':'none';
+}
+
+function renderBroadcast(){
+  // Aktive beskeder
+  const aktiveEl = document.getElementById('bc-aktive');
+  if(aktiveEl){
+    if(!broadcastBeskeder.length){
+      aktiveEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:16px;text-align:center;">Ingen aktive beskeder</div>';
+    } else {
+      aktiveEl.innerHTML = broadcastBeskeder.map(bc=>`
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div style="flex:1;">
+            <div style="font-size:15px;margin-bottom:4px;">${BC_IKONER[bc.type]} ${bc.tekst}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Fra: ${bc.fra} · ${bc.dato}${bc.redigeret?' · Redigeret: '+bc.redigeret:''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-secondary btn-xs" onclick="redigerBroadcast(${bc.id})">✏️ Rediger</button>
+            <button class="btn btn-secondary btn-xs" onclick="arkiverBroadcast(${bc.id})">🗄️ Arkiver</button>
+            <button class="btn btn-danger btn-xs" onclick="sletBroadcast(${bc.id})">Slet</button>
+          </div>
+        </div>`).join('');
+    }
+  }
+  
+  // Arkiv
+  const arkivEl = document.getElementById('bc-arkiv');
+  if(arkivEl){
+    if(!broadcastArkiv.length){
+      arkivEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px;">Ingen arkiverede beskeder</div>';
+    } else {
+      arkivEl.innerHTML = broadcastArkiv.map(bc=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;opacity:.7;">
+          <div style="font-size:13px;">${BC_IKONER[bc.type]} ${bc.tekst}</div>
+          <div style="font-size:11px;color:var(--text-muted);">Fra: ${bc.fra} · Arkiveret: ${bc.arkiveretDato}</div>
+        </div>`).join('');
+    }
+  }
+}
+
+function gemBroadcastStorage(){
+  try {
+    localStorage.setItem('lubnan_broadcast', JSON.stringify(broadcastBeskeder));
+    localStorage.setItem('lubnan_broadcast_arkiv', JSON.stringify(broadcastArkiv));
+  } catch(e){}
+}
+
+// Indlæs broadcast fra localStorage
+try {
+  const gemt = localStorage.getItem('lubnan_broadcast');
+  if(gemt) broadcastBeskeder = JSON.parse(gemt);
+  const gemtArkiv = localStorage.getItem('lubnan_broadcast_arkiv');
+  if(gemtArkiv) broadcastArkiv = JSON.parse(gemtArkiv);
+} catch(e){}
+
+// =====================
+// MEDARBEJDER SYSTEM
+// =====================
+let medarbejdere = [];
+let redigerMwId = null;
+
+const MW_STATUS_FARVE = {
+  aktiv: 'var(--green)',
+  syg: 'var(--red)',
+  ferie: 'var(--blue2)',
+  moed: 'var(--yellow)',
+  inaktiv: 'var(--text-muted)'
+};
+
+const MW_ADGANG_LABEL = {
+  medarbejder: '👤 Medarbejder',
+  saelger: '📄 Sælger',
+  leder: '📊 Leder',
+  admin: '🔑 Admin'
+};
+
+function aabNyMedarbejder(){
+  redigerMwId = null;
+  document.getElementById('mw-formular-titel').textContent = 'Ny medarbejder';
+  ['mw-navn','mw-tlf','mw-email','mw-noter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('mw-rolle').value = 'Tjener';
+  document.getElementById('mw-lokation').value = 'Hvidovre';
+  document.getElementById('mw-adgang').value = 'medarbejder';
+  document.getElementById('mw-status').value = 'aktiv';
+  document.getElementById('mw-foedselsdag').value = '';
+  document.getElementById('mw-formular').style.display = 'block';
+}
+
+function lukMwFormular(){
+  document.getElementById('mw-formular').style.display = 'none';
+  redigerMwId = null;
+}
+
+function gemMedarbejder(){
+  const navn = document.getElementById('mw-navn').value.trim();
+  if(!navn){alert('Udfyld navn!');return;}
+  
+  if(redigerMwId){
+    const mw = medarbejdere.find(m=>m.id===redigerMwId);
+    if(mw){
+      mw.navn=navn;
+      mw.rolle=document.getElementById('mw-rolle').value;
+      mw.tlf=document.getElementById('mw-tlf').value;
+      mw.email=document.getElementById('mw-email').value;
+      mw.lokation=document.getElementById('mw-lokation').value;
+      mw.adgang=document.getElementById('mw-adgang').value;
+      mw.status=document.getElementById('mw-status').value;
+      mw.foedselsdag=document.getElementById('mw-foedselsdag').value;
+      mw.noter=document.getElementById('mw-noter').value;
+    }
+  } else {
+    medarbejdere.push({
+      id: Date.now(),
+      navn,
+      rolle: document.getElementById('mw-rolle').value,
+      tlf: document.getElementById('mw-tlf').value,
+      email: document.getElementById('mw-email').value,
+      lokation: document.getElementById('mw-lokation').value,
+      adgang: document.getElementById('mw-adgang').value,
+      status: document.getElementById('mw-status').value,
+      foedselsdag: document.getElementById('mw-foedselsdag').value,
+      noter: document.getElementById('mw-noter').value,
+      oprettet: new Date().toLocaleString('da-DK')
+    });
+  }
+  
+  gemMedarbejderStorage();
+  lukMwFormular();
+  renderMedarbejdere();
+  showToast('✅ Medarbejder gemt!');
+}
+
+function redigerMedarbejder(id){
+  const mw = medarbejdere.find(m=>m.id===id);
+  if(!mw)return;
+  redigerMwId = id;
+  document.getElementById('mw-formular-titel').textContent = 'Rediger — ' + mw.navn;
+  document.getElementById('mw-navn').value = mw.navn||'';
+  document.getElementById('mw-rolle').value = mw.rolle||'Tjener';
+  document.getElementById('mw-tlf').value = mw.tlf||'';
+  document.getElementById('mw-email').value = mw.email||'';
+  document.getElementById('mw-lokation').value = mw.lokation||'Hvidovre';
+  document.getElementById('mw-adgang').value = mw.adgang||'medarbejder';
+  document.getElementById('mw-status').value = mw.status||'aktiv';
+  document.getElementById('mw-foedselsdag').value = mw.foedselsdag||'';
+  document.getElementById('mw-noter').value = mw.noter||'';
+  document.getElementById('mw-formular').style.display = 'block';
+  document.getElementById('page-medarbejdere').scrollTop = 0;
+}
+
+function sletMedarbejder(id){
+  const mw = medarbejdere.find(m=>m.id===id);
+  if(!confirm('Slet ' + (mw?mw.navn:'medarbejder') + '?'))return;
+  medarbejdere = medarbejdere.filter(m=>m.id!==id);
+  gemMedarbejderStorage();
+  renderMedarbejdere();
+  showToast('Medarbejder slettet');
+}
+
+function renderMedarbejdere(){
+  const el = document.getElementById('mw-grid');
+  if(!el)return;
+  if(!medarbejdere.length){
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:30px;text-align:center;grid-column:1/-1;">Ingen medarbejdere endnu — klik "+ Ny medarbejder"</div>';
+    return;
+  }
+  el.innerHTML = medarbejdere.map(mw=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .2s;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <div>
+          <div style="font-size:16px;font-weight:600;">${mw.navn}</div>
+          <div style="font-size:12px;color:var(--text-dim);">${mw.rolle} · ${mw.lokation}</div>
+        </div>
+        <span style="font-size:11px;font-weight:600;color:${MW_STATUS_FARVE[mw.status]||'var(--text-muted)'};">● ${mw.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">
+        ${mw.tlf?'📞 '+mw.tlf+'<br>':''}
+        ${mw.email?'✉️ '+mw.email+'<br>':''}
+        ${mw.foedselsdag?'🎂 '+new Date(mw.foedselsdag).toLocaleDateString('da-DK')+'<br>':''}
+      </div>
+      <div style="margin-bottom:10px;">
+        <span style="font-size:11px;background:var(--surface2);padding:2px 8px;border-radius:12px;color:var(--blue2);">${MW_ADGANG_LABEL[mw.adgang]||mw.adgang}</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-secondary btn-xs" onclick="redigerMedarbejder(${mw.id})">✏️ Rediger</button>
+        <button class="btn btn-danger btn-xs" onclick="sletMedarbejder(${mw.id})">Slet</button>
+      </div>
+    </div>`).join('');
+}
+
+function gemMedarbejderStorage(){
+  try { localStorage.setItem('lubnan_medarbejdere', JSON.stringify(medarbejdere)); } catch(e){}
+}
+
+// Indlæs medarbejdere fra localStorage
+try {
+  const gemt = localStorage.getItem('lubnan_medarbejdere');
+  if(gemt) medarbejdere = JSON.parse(gemt);
+} catch(e){}
+
 
 // ORDREFLOW STATUS FARVE
 function setOrdreflowFarve(farve) {
