@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.12 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.13 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.12</title>
+<title>Lubnan Ordreflow 4.13</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -193,7 +193,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.12</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.13</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -214,7 +214,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div style="font-size:13px;color:var(--text-dim);" id="dato"></div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);font-weight:600;margin-top:6px;letter-spacing:.05em;">ORDREFLOW BETA 4.12 <span style="color:var(--text-muted);font-weight:400;">· 17-04-2026</span></div></div>
+  <div style="margin-bottom:16px;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div style="font-size:13px;color:var(--text-dim);" id="dato"></div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);font-weight:600;margin-top:6px;letter-spacing:.05em;">ORDREFLOW BETA 4.13 <span style="color:var(--text-muted);font-weight:400;">· 17-04-2026</span></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -640,12 +640,12 @@ async function getNaesteTilbudNr(){
   const aar=new Date().getFullYear();
   const{data,error}=await db.from('quotes').select('quote_number');
   if(error){console.error('getNaesteTilbudNr fejl:',error);}
-  if(!data||!data.length)return`T-001-${aar}`;
+  if(!data||!data.length)return`T-0001-${aar}`;
   const re=new RegExp(`^T-(\\d+)-${aar}$`);
   const numre=data.map(r=>{const m=(r.quote_number||'').match(re);return m?parseInt(m[1]):0;}).filter(n=>n>0);
-  if(!numre.length)return`T-001-${aar}`;
+  if(!numre.length)return`T-0001-${aar}`;
   const naeste=Math.max(...numre)+1;
-  return`T-${String(naeste).padStart(3,'0')}-${aar}`;
+  return`T-${String(naeste).padStart(4,'0')}-${aar}`;
 }
 
 async function hentKunder(){const{data,error}=await db.from('customers').select('*').order('name',{ascending:true});if(error)return;kunder=(data||[]).map(r=>({id:r.id,navn:r.name,kontakt:r.contact_person||'',email:r.email||'',landekode:r.phone_country_code||'+45',tlf:r.phone||'',adresse:r.address||'',postnr:r.postal_code||'',by:r.city||'',gruppe:r.customer_group||'Privat',noter:r.notes||''}));renderKunder();}
