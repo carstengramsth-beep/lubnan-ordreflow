@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.11 — Build: 2026-04-16 -->
+<!-- Lubnan Ordreflow 4.12 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.11</title>
+<title>Lubnan Ordreflow 4.12</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -34,7 +34,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 .btn-blue{background:var(--blue);color:#fff;}
 .btn-sm{padding:5px 10px;font-size:12px;}
 .btn-xs{padding:3px 8px;font-size:11px;}
-.main{padding:24px;}
+.main{padding:24px;padding-bottom:48px;}
 .alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
 .alert{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:10px;cursor:pointer;}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;}
@@ -173,13 +173,27 @@ textarea{resize:vertical;min-height:80px;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 /* Piltaste-navigation highlight */
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(59,130,246,.2);}
+
+/* TICKER */
+.ticker-wrap{position:fixed;bottom:0;left:0;right:0;height:32px;background:var(--surface);border-top:1px solid var(--border);z-index:500;overflow:hidden;display:flex;align-items:center;}
+.ticker-label{flex-shrink:0;padding:0 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;}
+.ticker-track{flex:1;overflow:hidden;position:relative;}
+.ticker-inner{display:flex;gap:60px;white-space:nowrap;animation:ticker-scroll 40s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-size:12px;color:var(--text-dim);flex-shrink:0;}
+.ticker-sep{color:var(--accent);margin:0 8px;}
+/* TRAFIKLYS */
+.hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
+.hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
+.hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
 </style>
 </head>
 <body>
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.11</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.12</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -200,7 +214,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div style="font-size:13px;color:var(--text-dim);" id="dato"></div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);font-weight:600;margin-top:6px;letter-spacing:.05em;">ORDREFLOW BETA 4.11 <span style="color:var(--text-muted);font-weight:400;">· 16-04-2026</span></div></div>
+  <div style="margin-bottom:16px;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div style="font-size:13px;color:var(--text-dim);" id="dato"></div><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);font-weight:600;margin-top:6px;letter-spacing:.05em;">ORDREFLOW BETA 4.12 <span style="color:var(--text-muted);font-weight:400;">· 17-04-2026</span></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -915,7 +929,21 @@ function udskrivTilbud(id){
     .header-divider{border:none;border-top:2px solid #c2410c;margin:16px 0;}
     .footer{margin-top:40px;padding-top:20px;border-top:1px solid #e5e7eb;font-size:12px;color:#555;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
     @media print{.print-btn{display:none!important;}}
-  </style></head><body>
+  
+/* TICKER */
+.ticker-wrap{position:fixed;bottom:0;left:0;right:0;height:32px;background:var(--surface);border-top:1px solid var(--border);z-index:500;overflow:hidden;display:flex;align-items:center;}
+.ticker-label{flex-shrink:0;padding:0 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;}
+.ticker-track{flex:1;overflow:hidden;position:relative;}
+.ticker-inner{display:flex;gap:60px;white-space:nowrap;animation:ticker-scroll 40s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-size:12px;color:var(--text-dim);flex-shrink:0;}
+.ticker-sep{color:var(--accent);margin:0 8px;}
+/* TRAFIKLYS */
+.hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
+.hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
+.hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
+</style></head><body>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
     <div>
       <div class="logo">LUBNAN</div>
@@ -951,7 +979,17 @@ function udskrivTilbud(id){
   <p style="font-size:13px;color:#555;margin-top:16px;">Dette tilbud er gyldigt til <strong>${gyldig}</strong>.</p>
   <div class="footer"><div><div style="font-size:18px;font-weight:700;color:#c2410c;">LUBNAN</div><div>Fadel Aps &middot; Byvej 40, 2650 Hvidovre &middot; CVR: 40758771</div></div><div style="text-align:right;"><div>Tlf: 30 96 13 69</div><div>nano.fadel@hotmail.com</div></div></div>
   <div style="margin-top:30px;text-align:center;"><button class="print-btn" onclick="window.print()" style="padding:10px 30px;background:#c2410c;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">Udskriv / Gem som PDF</button></div>
-  </body></html>`);
+  
+<!-- TICKER -->
+<div class="ticker-wrap" id="ticker-wrap">
+  <div class="ticker-label">&#128broadcast; LUBNAN</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="ticker-inner">
+      <!-- Indhold gentages for loop-effekt -->
+    </div>
+  </div>
+</div>
+</body></html>`);
   win.document.close();
 }
 
@@ -994,7 +1032,21 @@ function udskrivInternKalkulation(id){
     .grand-row td{background:#1a1a1a;color:#fff;padding:10px 8px;font-weight:700;font-size:14px;}
     .db-row td{background:#dcfce7;color:#166534;padding:8px;font-weight:700;}
     @media print{.print-btn{display:none!important;}}
-  </style></head><body>
+  
+/* TICKER */
+.ticker-wrap{position:fixed;bottom:0;left:0;right:0;height:32px;background:var(--surface);border-top:1px solid var(--border);z-index:500;overflow:hidden;display:flex;align-items:center;}
+.ticker-label{flex-shrink:0;padding:0 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);border-right:1px solid var(--border);height:100%;display:flex;align-items:center;}
+.ticker-track{flex:1;overflow:hidden;position:relative;}
+.ticker-inner{display:flex;gap:60px;white-space:nowrap;animation:ticker-scroll 40s linear infinite;}
+.ticker-inner:hover{animation-play-state:paused;}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-item{font-size:12px;color:var(--text-dim);flex-shrink:0;}
+.ticker-sep{color:var(--accent);margin:0 8px;}
+/* TRAFIKLYS */
+.hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
+.hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
+.hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
+</style></head><body>
   <div class="header">
     <div><div class="header-logo">LUBNAN</div><div style="font-size:11px;color:#aaa;">Fadel Aps &middot; CVR: 40758771</div></div>
     <div style="text-align:center;"><div class="intern-badge">INTERN KALKULATION</div><div style="font-size:12px;color:#aaa;margin-top:6px;">Tilbud nr. ${t.id}</div></div>
@@ -1021,7 +1073,17 @@ function udskrivInternKalkulation(id){
   </table>
   ${t.bem?`<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:12px;margin-top:16px;"><strong>Interne bemaerkninger:</strong> ${t.bem}</div>`:''}
   <div style="margin-top:24px;text-align:center;"><button class="print-btn" onclick="window.print()" style="padding:10px 30px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">Udskriv intern kalkulation</button></div>
-  </body></html>`);
+  
+<!-- TICKER -->
+<div class="ticker-wrap" id="ticker-wrap">
+  <div class="ticker-label">&#128broadcast; LUBNAN</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="ticker-inner">
+      <!-- Indhold gentages for loop-effekt -->
+    </div>
+  </div>
+</div>
+</body></html>`);
   win.document.close();
 }
 
@@ -1103,6 +1165,49 @@ populerAfdelingSelect();
 renderFlyFilter();
 renderPrisliste();
 testForbindelse();
+
+// TICKER + TRAFIKLYS
+const TICKER_BESKEDER = [
+  {tekst: '🟢 BETA 4.12 er live — Nyheder: Versionsnummer rettet · ORDREFLOW BETA på forsiden · Ticker tilføjet · Trafiklys-system', type: 'ny-version'},
+  {tekst: '📋 Tilbud sorteres nu efter dato — næste arrangement øverst', type: 'info'},
+  {tekst: '✏️ Fritekst-linje tilføjet i tilbudsformularen — til ydelser uden for prislisten', type: 'info'},
+  {tekst: '⏱️ Sluttidspunkt kan nu angives på arrangementer', type: 'info'},
+  {tekst: '👋 God arbejdslyst til hele Lubnan-teamet!', type: 'hilsen'},
+];
+
+function buildTicker() {
+  const inner = document.getElementById('ticker-inner');
+  if (!inner) return;
+  // Gentag 2 gange for seamless loop
+  const items = [...TICKER_BESKEDER, ...TICKER_BESKEDER];
+  inner.innerHTML = items.map(b => 
+    `<span class="ticker-item">${b.tekst}</span><span class="ticker-sep">◆</span>`
+  ).join('');
+}
+
+function setTrafiklys(farve) {
+  const el = document.getElementById('hdr-ver');
+  if (!el) return;
+  el.className = 'hdr-ver';
+  if (farve === 'groen') el.classList.add('hdr-ver-green');
+  else if (farve === 'gul') el.classList.add('hdr-ver-yellow');
+  else if (farve === 'roed') el.classList.add('hdr-ver-red');
+}
+
+// Start med grøn — systemet kører
+setTrafiklys('groen');
+buildTicker();
+
 </script>
+
+<!-- TICKER -->
+<div class="ticker-wrap" id="ticker-wrap">
+  <div class="ticker-label">&#128broadcast; LUBNAN</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="ticker-inner">
+      <!-- Indhold gentages for loop-effekt -->
+    </div>
+  </div>
+</div>
 </body>
 </html>
