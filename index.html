@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.16 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.17 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.16</title>
+<title>Lubnan Ordreflow 4.17</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -187,13 +187,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 .hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
 .hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
 .hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
+
+/* PRISOVERVÅGNING */
+.pris-op{color:var(--green)!important;font-weight:700;}
+.pris-ned{color:var(--red)!important;font-weight:700;}
+.pris-uændret{color:var(--text-muted);}
+.grundtal-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px;margin-bottom:16px;}
+.grundtal-titel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;}
+.grundtal-sum{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;}
+.grundtal-dato{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.aendring-liste{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
 </style>
 </head>
 <body>
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.16</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.17</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -214,7 +224,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.16</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.17</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -476,15 +486,43 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div id="page-prisliste" class="hidden">
   <div class="page-hdr">
     <div style="font-family:'Playfair Display',serif;font-size:24px;">Prisliste</div>
-    <div style="display:flex;gap:10px;align-items:center;">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <span style="font-size:12px;color:var(--text-dim);">Avance %</span>
       <input type="number" id="avance-pct" value="30" min="0" max="100" style="width:70px;font-size:14px;font-weight:600;text-align:center;" oninput="opdaterAvance(this.value)">
       <span style="font-size:12px;color:var(--text-dim);">%</span>
-      <button class="btn btn-secondary btn-sm" onclick="gemPrisliste()">💾 Gem priser</button>
+      <button class="btn btn-success btn-sm" onclick="gemGrundtal()">📸 Gem grundtal</button>
+      <button class="btn btn-secondary btn-sm" onclick="visAendringer()">📊 Se ændringer</button>
+      <button class="btn btn-danger btn-xs" onclick="nulstilGrundtal()">↺ Nulstil</button>
     </div>
   </div>
+
+  <!-- PRISOVERVÅGNING PANEL -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;" id="pris-panel">
+    <div class="grundtal-box">
+      <div class="grundtal-titel">Grundtal (gemt)</div>
+      <div class="grundtal-sum" id="grundtal-sum-vis" style="color:var(--text-muted);">Ikke gemt endnu</div>
+      <div class="grundtal-dato" id="grundtal-dato-vis"></div>
+    </div>
+    <div class="grundtal-box">
+      <div class="grundtal-titel">Aktuel prissum</div>
+      <div class="grundtal-sum" id="aktuel-sum-vis" style="color:var(--accent);">—</div>
+      <div class="grundtal-dato">Alle råvarepriser samlet</div>
+    </div>
+    <div class="grundtal-box">
+      <div class="grundtal-titel">Ændring</div>
+      <div class="grundtal-sum" id="aendring-sum-vis" style="color:var(--text-muted);">—</div>
+      <div class="grundtal-dato" id="aendring-pct-vis"></div>
+    </div>
+  </div>
+
+  <!-- ÆNDRINGSLISTE -->
+  <div class="aendring-liste hidden" id="aendring-liste">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent);">📋 Prisændringer siden grundtal</div>
+    <div id="aendring-indhold"></div>
+  </div>
+
   <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--accent2);">
-    💡 Klik på en vare for at redigere råvarepris, tidsforbrug og regulering. Salgsprisen beregnes automatisk.
+    💡 Rediger råvarepris, tidsforbrug og regulering direkte i tabellen. Klik "📸 Gem grundtal" for at gemme et referencepunkt.
   </div>
   <input type="text" style="width:100%;max-width:360px;margin-bottom:14px;" placeholder="Søg..." oninput="sogPrisliste(this.value)">
   <table class="pl-table">
@@ -949,6 +987,16 @@ function udskrivTilbud(id){
 .hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
 .hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
 .hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
+
+/* PRISOVERVÅGNING */
+.pris-op{color:var(--green)!important;font-weight:700;}
+.pris-ned{color:var(--red)!important;font-weight:700;}
+.pris-uændret{color:var(--text-muted);}
+.grundtal-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px;margin-bottom:16px;}
+.grundtal-titel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;}
+.grundtal-sum{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;}
+.grundtal-dato{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.aendring-liste{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
 </style></head><body>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
     <div>
@@ -1052,6 +1100,16 @@ function udskrivInternKalkulation(id){
 .hdr-ver-green{background:rgba(34,197,94,.2)!important;color:var(--green)!important;border:1px solid rgba(34,197,94,.4);}
 .hdr-ver-yellow{background:rgba(234,179,8,.2)!important;color:var(--yellow)!important;border:1px solid rgba(234,179,8,.4);}
 .hdr-ver-red{background:rgba(239,68,68,.2)!important;color:var(--red)!important;border:1px solid rgba(239,68,68,.4);}
+
+/* PRISOVERVÅGNING */
+.pris-op{color:var(--green)!important;font-weight:700;}
+.pris-ned{color:var(--red)!important;font-weight:700;}
+.pris-uændret{color:var(--text-muted);}
+.grundtal-box{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:16px;margin-bottom:16px;}
+.grundtal-titel{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;}
+.grundtal-sum{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:700;}
+.grundtal-dato{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.aendring-liste{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px;}
 </style></head><body>
   <div class="header">
     <div><div class="header-logo">LUBNAN</div><div style="font-size:11px;color:#aaa;">Fadel Aps &middot; CVR: 40758771</div></div>
@@ -1173,6 +1231,7 @@ function opdaterPrisvisning(nr){
 }
 function gemPrisliste(){showToast('✅ Priser opdateret — gælder til næste opdatering af siden');}
 function sogPrisliste(val){renderPrisliste(val);}
+function opdaterAktuelSum(){opdaterPrisPanel();}
 function togglePrisGuide(){const el=document.getElementById('pris-guide');if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 // LEDELSE
@@ -1207,6 +1266,103 @@ function visKonflikterIKalender(){const konflikter=tjekKonflikter();const el=doc
 function gaaOmTilDag(dagStr){const d=new Date(dagStr);kalenderDato=new Date(d.getFullYear(),d.getMonth(),1);renderKalender();visKalenderDag(dagStr);}
 function renderKalender(){visKonflikterIKalender();const mndr=['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];const titel=document.getElementById('kalender-titel');if(titel)titel.textContent=mndr[kalenderDato.getMonth()]+' '+kalenderDato.getFullYear();const grid=document.getElementById('kalender-grid');if(!grid)return;const aar=kalenderDato.getFullYear(),mnd=kalenderDato.getMonth();const foersteDag=new Date(aar,mnd,1).getDay();const startOffset=foersteDag===0?6:foersteDag-1;const dageIMnd=new Date(aar,mnd+1,0).getDate();const dagNavne=['Man','Tir','Ons','Tor','Fre','Lor','Son'];let html=dagNavne.map(d=>`<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text-muted);padding:6px 0;">${d}</div>`).join('');for(let i=0;i<startOffset;i++)html+=`<div></div>`;for(let dag=1;dag<=dageIMnd;dag++){const dagStr=new Date(aar,mnd,dag).toISOString().slice(0,10);const iDag=new Date().toISOString().slice(0,10)===dagStr;const ordrerDag=ordrer.filter(o=>o.tid&&o.tid.slice(0,10)===dagStr&&o.status!=='ARKIVERET');const tilbudDag=tilbud.filter(t=>t.tid&&t.tid.slice(0,10)===dagStr);const harFoodtruck=[...ordrerDag,...tilbudDag].some(a=>a.levform==='Foodtruck');html+=`<div onclick="visKalenderDag('${dagStr}')" style="min-height:70px;background:${iDag?'rgba(249,115,22,.15)':'var(--surface)'};border:${iDag?'1px solid var(--accent)':'1px solid var(--border)'};border-radius:6px;padding:6px;cursor:pointer;" onmouseover="this.style.borderColor='var(--blue)'" onmouseout="this.style.borderColor='${iDag?'var(--accent)':'var(--border)'}'"><div style="font-size:13px;font-weight:${iDag?'700':'400'};color:${iDag?'var(--accent)':'var(--text)'};">${dag}</div>${ordrerDag.length?`<div style="background:rgba(59,130,246,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--blue2);margin-top:3px;">${ordrerDag.length} ordre${ordrerDag.length>1?'r':''}</div>`:''}${tilbudDag.length?`<div style="background:rgba(234,179,8,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--yellow);margin-top:3px;">${tilbudDag.length} tilbud</div>`:''}${harFoodtruck?`<div style="background:rgba(168,85,247,.2);border-radius:3px;padding:2px 4px;font-size:10px;color:var(--purple);margin-top:3px;">Foodtruck</div>`:''}</div>`;} grid.innerHTML=html;}
 function visKalenderDag(dagStr){const detail=document.getElementById('kalender-dag-detail');if(!detail)return;const dato=new Date(dagStr).toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long',year:'numeric'});const ordrerDag=ordrer.filter(o=>o.tid&&o.tid.slice(0,10)===dagStr&&o.status!=='ARKIVERET');const tilbudDag=tilbud.filter(t=>t.tid&&t.tid.slice(0,10)===dagStr);if(!ordrerDag.length&&!tilbudDag.length){detail.innerHTML=`<div style="color:var(--text-muted);font-size:13px;">Ingen arrangementer ${dato}</div>`;return;}let html=`<div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--accent);">${dato}</div>`;if(ordrerDag.length)html+=ordrerDag.map(o=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;"><div><div style="font-size:13px;font-weight:600;">${o.kunde}</div><div style="font-size:11px;color:var(--text-dim);">${o.beskr} · ${o.levform||''}</div></div><div style="text-align:right;"><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent);">${o.pris.toLocaleString('da')} kr.</div><div style="font-size:10px;color:var(--text-muted);">kl. ${new Date(o.tid).toLocaleTimeString('da-DK',{hour:'2-digit',minute:'2-digit'})}</div></div></div>`).join('');if(tilbudDag.length)html+=`<div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);margin:12px 0 8px;">Tilbud</div>`+tilbudDag.map(t=>`<div style="background:var(--surface2);border:1px solid rgba(234,179,8,.3);border-radius:6px;padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;"><div><div style="font-size:13px;font-weight:600;">${t.kunde}</div><div style="font-size:11px;color:var(--text-dim);">${t.beskr}</div></div><div style="text-align:right;"><div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yellow);">${t.pris.toLocaleString('da')} kr.</div></div></div>`).join('');detail.innerHTML=html;}
+
+
+// PRISOVERVÅGNING
+let GRUNDTAL = null;
+
+function beregnAktuelSum(){
+  return VARER.reduce((s,v)=>s+v.raavare,0);
+}
+
+function gemGrundtal(){
+  const sum = beregnAktuelSum();
+  const dato = new Date().toLocaleString('da-DK');
+  GRUNDTAL = {
+    sum,
+    dato,
+    priser: Object.fromEntries(VARER.map(v=>[v.nr, {raavare: v.raavare, navn: v.navn}]))
+  };
+  // Gem i localStorage som backup
+  try { localStorage.setItem('lubnan_grundtal', JSON.stringify(GRUNDTAL)); } catch(e){}
+  opdaterPrisPanel();
+  showToast('📸 Grundtal gemt — ' + sum.toLocaleString('da') + ' kr. total råvarepris');
+}
+
+function nulstilGrundtal(){
+  if(!confirm('Nulstil grundtal og start forfra?')) return;
+  GRUNDTAL = null;
+  try { localStorage.removeItem('lubnan_grundtal'); } catch(e){}
+  document.getElementById('aendring-liste').classList.add('hidden');
+  opdaterPrisPanel();
+  showToast('↺ Grundtal nulstillet');
+}
+
+function opdaterPrisPanel(){
+  const aktuelSum = beregnAktuelSum();
+  const aktuelEl = document.getElementById('aktuel-sum-vis');
+  if(aktuelEl) aktuelEl.textContent = aktuelSum.toLocaleString('da') + ' kr.';
+
+  if(!GRUNDTAL){
+    const gt = document.getElementById('grundtal-sum-vis');
+    const gd = document.getElementById('grundtal-dato-vis');
+    const ae = document.getElementById('aendring-sum-vis');
+    const ap = document.getElementById('aendring-pct-vis');
+    if(gt) { gt.textContent = 'Ikke gemt endnu'; gt.style.color = 'var(--text-muted)'; }
+    if(gd) gd.textContent = '';
+    if(ae) { ae.textContent = '—'; ae.style.color = 'var(--text-muted)'; }
+    if(ap) ap.textContent = '';
+    return;
+  }
+
+  const gtEl = document.getElementById('grundtal-sum-vis');
+  const gdEl = document.getElementById('grundtal-dato-vis');
+  const aeEl = document.getElementById('aendring-sum-vis');
+  const apEl = document.getElementById('aendring-pct-vis');
+
+  if(gtEl) { gtEl.textContent = GRUNDTAL.sum.toLocaleString('da') + ' kr.'; gtEl.style.color = 'var(--text)'; }
+  if(gdEl) gdEl.textContent = 'Gemt: ' + GRUNDTAL.dato;
+
+  const diff = aktuelSum - GRUNDTAL.sum;
+  const pct = Math.round((diff / GRUNDTAL.sum) * 100);
+  if(aeEl){
+    aeEl.textContent = (diff >= 0 ? '+' : '') + diff.toLocaleString('da') + ' kr.';
+    aeEl.style.color = diff > 0 ? 'var(--red)' : diff < 0 ? 'var(--green)' : 'var(--text-muted)';
+  }
+  if(apEl){
+    const farve = diff > 0 ? '🔴 Råvarepriser steget' : diff < 0 ? '🟢 Råvarepriser faldet' : '⚪ Ingen ændring';
+    apEl.textContent = farve + ' (' + (pct >= 0 ? '+' : '') + pct + '%)';
+  }
+}
+
+function visAendringer(){
+  if(!GRUNDTAL){ showToast('Gem et grundtal først!'); return; }
+  const liste = document.getElementById('aendring-liste');
+  const indhold = document.getElementById('aendring-indhold');
+  const aendringer = VARER.filter(v => GRUNDTAL.priser[v.nr] && v.raavare !== GRUNDTAL.priser[v.nr].raavare);
+  
+  if(!aendringer.length){
+    indhold.innerHTML = '<div style="color:var(--green);font-size:13px;">✅ Ingen prisændringer siden grundtal</div>';
+  } else {
+    indhold.innerHTML = aendringer.map(v=>{
+      const gammel = GRUNDTAL.priser[v.nr].raavare;
+      const diff = v.raavare - gammel;
+      const farve = diff > 0 ? 'var(--red)' : 'var(--green)';
+      const tegn = diff > 0 ? '+' : '';
+      return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span>${v.nr} — ${v.navn}</span>
+        <span>${gammel} kr. → <strong style="color:${farve};">${v.raavare} kr. (${tegn}${diff} kr.)</strong></span>
+      </div>`;
+    }).join('');
+  }
+  liste.classList.toggle('hidden');
+}
+
+// Indlæs grundtal fra localStorage hvis det findes
+try {
+  const gemt = localStorage.getItem('lubnan_grundtal');
+  if(gemt) { GRUNDTAL = JSON.parse(gemt); }
+} catch(e){}
 
 populerAfdelingSelect();
 renderFlyFilter();
