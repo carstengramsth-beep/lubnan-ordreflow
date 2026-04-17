@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.14 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.15 — Build: 2026-04-17 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.14</title>
+<title>Lubnan Ordreflow 4.15</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -193,7 +193,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.14</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.15</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -214,7 +214,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge" style="font-size:22px;">BETA 4.14</span> <span style="font-size:16px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-weight:400;">· 17-04-2026</span></div></div><div style="font-size:13px;color:var(--text-dim);" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.15</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -652,7 +652,7 @@ async function hentKunder(){const{data,error}=await db.from('customers').select(
 
 async function testForbindelse(){const statusEl=document.getElementById('db-status');showPage('forside');try{const{error}=await db.from('orders').select('id').limit(1);if(error){statusEl.textContent='Fejl';statusEl.className='db-status db-err';}else{statusEl.textContent='Database OK';statusEl.className='db-status db-ok';await hentOrdrer();await hentKunder();await hentTilbud();}}catch(e){statusEl.textContent='Fejl';statusEl.className='db-status db-err';}}
 
-function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toTimeString().slice(0,8);const dage=['sondag','mandag','tirsdag','onsdag','torsdag','fredag','lordag'];const mndr=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];const dato=document.getElementById('dato');if(dato)dato.textContent=`${dage[n.getDay()]} d. ${n.getDate()}. ${mndr[n.getMonth()]} ${n.getFullYear()}`;}
+function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toTimeString().slice(0,8);const dage=['sondag','mandag','tirsdag','onsdag','torsdag','fredag','lordag'];const mndr=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];const dato=document.getElementById('dato');if(dato)dato.textContent=`${dage[n.getDay()]} d. ${n.getDate()}. ${mndr[n.getMonth()]} ${n.getFullYear()} kl. ${n.toTimeString().slice(0,5)}`;}
 setInterval(updateClock,1000);updateClock();
 
 function showPage(page){document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');const tab=document.querySelector(`[data-page="${page}"]`);if(tab)tab.classList.add('active');if(page==='ordrestatus'){renderFlyFilter();renderBoard();}if(page==='tilbud'){redigerTilbudId=null;renderTilbud();}if(page==='prisliste')renderPrisliste();if(page==='ledelse'){populerAfdelingSelect();renderLedelse();}if(page==='kunder')renderKunder();if(page==='opret-ordre'){renderVareVaelger();populerAfdelingSelect();setDefaultDT();populerVareDropdown();}if(page==='opret-tilbud'){populerAfdelingSelect();populerTilbudDropdown();}if(page==='forside'){renderAlerts();renderCapRows();}if(page==='arkiv')loadArkiv();if(page==='kalender')renderKalender();updateStats();}
@@ -1202,8 +1202,8 @@ buildTicker();
 function setOrdreflowFarve(farve) {
   const el = document.getElementById('ordreflow-status');
   if (!el) return;
-  if (farve === 'hvid { el.style.color = '#fff'; }
-  else if (farve === '')gul') { el.style.color = 'var(--yellow)'; }
+  if (farve === 'hvid') { el.style.color = '#fff'; }
+  else if (farve === 'gul') { el.style.color = 'var(--yellow)'; }
   else if (farve === 'roed') { el.style.color = 'var(--red)'; }
 }
 // Start med hvid — systemet kører
