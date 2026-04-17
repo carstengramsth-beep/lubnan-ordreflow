@@ -200,7 +200,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 </div>
 <nav class="nav">
   <div class="ntab active" data-page="forside" onclick="showPage('forside')">&#127968; Forside</div>
-  <div class="ntab" data-page="flytavle" onclick="showPage('flytavle')">&#128203; Flytavle <span class="nbadge" id="badge-fly">0</span></div>
+  <div class="ntab" data-page="ordrestatus" onclick="showPage('ordrestatus')">&#128203; Ordrestatus <span class="nbadge" id="badge-fly">0</span></div>
   <div class="ntab" data-page="tilbud" onclick="showPage('tilbud')">&#128196; Tilbud <span class="nbadge" id="badge-tilbud">0</span></div>
   <div class="ntab" data-page="opret-ordre" onclick="showPage('opret-ordre')">+ Opret ordre</div>
   <div class="ntab" data-page="opret-tilbud" onclick="nytTilbud()">&#128221; Opret tilbud</div>
@@ -225,7 +225,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
   <div class="cap-section"><div class="cap-title">Kapacitet &mdash; alle afdelinger</div><div id="cap-rows"></div></div>
   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;">Genveje</div>
   <div class="shortcuts">
-    <div class="sc" onclick="showPage('flytavle')"><span class="sc-badge" id="sc-fly">0</span><div class="sc-icon">&#128203;</div><div class="sc-title">Flytavle</div><div class="sc-desc">Realtidsoverblik &mdash; stafetlob</div></div>
+    <div class="sc" onclick="showPage('ordrestatus')"><span class="sc-badge" id="sc-fly">0</span><div class="sc-icon">&#128203;</div><div class="sc-title">Ordrestatus</div><div class="sc-desc">Se status på alle ordrer</div></div>
     <div class="sc" onclick="showPage('opret-ordre')"><div class="sc-icon">&#10133;</div><div class="sc-title">Opret ordre</div><div class="sc-desc">Registrer en ny ordre</div></div>
     <div class="sc" onclick="showPage('kunder')"><div class="sc-icon">&#128101;</div><div class="sc-title">Kunder</div><div class="sc-desc">Kundedatabase og historik</div></div>
     <div class="sc" onclick="showPage('prisliste')"><div class="sc-icon">&#128176;</div><div class="sc-title">Prisliste</div><div class="sc-desc">Alle varer med priser</div></div>
@@ -236,13 +236,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
   <div class="quick">
     <button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">+ Opret ordre</button>
     <button class="btn btn-secondary btn-sm" onclick="nytTilbud()">Opret tilbud</button>
-    <button class="btn btn-secondary btn-sm" onclick="showPage('flytavle')">Abn flytavle</button>
+    <button class="btn btn-secondary btn-sm" onclick="showPage('ordrestatus')">Abn ordrestatus</button>
     <button class="btn btn-secondary btn-sm" onclick="showPage('ledelse')">Ledelse</button>
   </div>
 </div>
 <!-- FLYTAVLE -->
-<div id="page-flytavle" class="hidden">
-  <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Flytavle</div><button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">+ Opret ordre</button></div>
+<div id="page-ordrestatus" class="hidden">
+  <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Ordrestatus</div><button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">+ Opret ordre</button></div>
   <div class="filter-bar" id="fly-filter"></div>
   <div class="board" id="board"></div>
 </div>
@@ -256,7 +256,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 </div>
 <!-- OPRET ORDRE -->
 <div id="page-opret-ordre" class="hidden">
-  <div class="back-btn" onclick="showPage('flytavle')">&#8592; Tilbage</div>
+  <div class="back-btn" onclick="showPage('ordrestatus')">&#8592; Tilbage</div>
   <div class="page-title">Opret ordre</div>
   <div class="form-page">
     <div class="form-section">
@@ -321,7 +321,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
     </div>
     <div class="form-actions">
       <button class="btn btn-primary" onclick="opretOrdre()">&#10003; Opret ordre</button>
-      <button class="btn btn-secondary" onclick="showPage('flytavle')">Annuller</button>
+      <button class="btn btn-secondary" onclick="showPage('ordrestatus')">Annuller</button>
     </div>
   </div>
 </div>
@@ -655,7 +655,7 @@ async function testForbindelse(){const statusEl=document.getElementById('db-stat
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toTimeString().slice(0,8);const dage=['sondag','mandag','tirsdag','onsdag','torsdag','fredag','lordag'];const mndr=['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];const dato=document.getElementById('dato');if(dato)dato.textContent=`${dage[n.getDay()]} d. ${n.getDate()}. ${mndr[n.getMonth()]} ${n.getFullYear()}`;}
 setInterval(updateClock,1000);updateClock();
 
-function showPage(page){document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');const tab=document.querySelector(`[data-page="${page}"]`);if(tab)tab.classList.add('active');if(page==='flytavle'){renderFlyFilter();renderBoard();}if(page==='tilbud'){redigerTilbudId=null;renderTilbud();}if(page==='prisliste')renderPrisliste();if(page==='ledelse'){populerAfdelingSelect();renderLedelse();}if(page==='kunder')renderKunder();if(page==='opret-ordre'){renderVareVaelger();populerAfdelingSelect();setDefaultDT();populerVareDropdown();}if(page==='opret-tilbud'){populerAfdelingSelect();populerTilbudDropdown();}if(page==='forside'){renderAlerts();renderCapRows();}if(page==='arkiv')loadArkiv();if(page==='kalender')renderKalender();updateStats();}
+function showPage(page){document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));const pg=document.getElementById('page-'+page);if(pg)pg.classList.remove('hidden');const tab=document.querySelector(`[data-page="${page}"]`);if(tab)tab.classList.add('active');if(page==='ordrestatus'){renderFlyFilter();renderBoard();}if(page==='tilbud'){redigerTilbudId=null;renderTilbud();}if(page==='prisliste')renderPrisliste();if(page==='ledelse'){populerAfdelingSelect();renderLedelse();}if(page==='kunder')renderKunder();if(page==='opret-ordre'){renderVareVaelger();populerAfdelingSelect();setDefaultDT();populerVareDropdown();}if(page==='opret-tilbud'){populerAfdelingSelect();populerTilbudDropdown();}if(page==='forside'){renderAlerts();renderCapRows();}if(page==='arkiv')loadArkiv();if(page==='kalender')renderKalender();updateStats();}
 function nytTilbud(){redigerTilbudId=null;tilbudKurv=[];renderTilbudKurv();setDefaultGyldig();['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem','t-lev-adresse','t-lev-postnr','t-lev-by'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const jTypeEl=document.getElementById('t-justering-type');if(jTypeEl)jTypeEl.value='ingen';const jPctEl=document.getElementById('t-justering-pct');if(jPctEl)jPctEl.value='';['t-tid','t-sluttid','t-fri-tekst','t-fri-pris','t-fri-tid'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const friAntal=document.getElementById('t-fri-antal');if(friAntal)friAntal.value='1';const afdEl=document.getElementById('t-afd');if(afdEl)afdEl.value='hvidovre';const gemBtn=document.querySelector('[onclick="opretTilbud()"]');if(gemBtn)gemBtn.innerHTML='&#10003; Gem tilbud';showPage('opret-tilbud');}
 function nytTilbud(){redigerTilbudId=null;tilbudKurv=[];renderTilbudKurv();setDefaultGyldig();['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem','t-lev-adresse','t-lev-postnr','t-lev-by'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['t-justering-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='ingen';});['t-justering-pct','t-tid','t-sluttid','t-fri-tekst','t-fri-antal','t-fri-pris','t-fri-tid'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='t-fri-antal'?'1':'';});const afdEl=document.getElementById('t-afd');if(afdEl)afdEl.value='hvidovre';const gemBtn=document.querySelector('[onclick="opretTilbud()"]');if(gemBtn)gemBtn.innerHTML='&#10003; Gem tilbud';showPage('opret-tilbud');}
 
@@ -1108,7 +1108,7 @@ function toggleVareGrid(){const vs=document.getElementById('vare-section');if(!v
 
 document.addEventListener('change',e=>{if(e.target.id==='o-sms'){const g=document.getElementById('sms-tlf-group');if(g)g.style.display=e.target.value==='ja'?'flex':'none';}});
 
-async function opretOrdre(){const kunde=document.getElementById('o-kunde').value.trim();const beskr=document.getElementById('o-beskr').value.trim();const tid=document.getElementById('o-tid').value;if(!kunde||!beskr||!tid){alert('Udfyld: Kundenavn, Beskrivelse og Leveringstidspunkt');return;}const nr='26-'+String(Date.now()).slice(-6);const now=new Date();const nyOrdre={id:nr,kunde,kontakt:document.getElementById('o-kontakt').value,afd:document.getElementById('o-afd').value,beskr,antal:parseInt(document.getElementById('o-antal').value)||0,pris:parseInt(document.getElementById('o-pris').value)||0,tid,levform:document.getElementById('o-levform').value,betal:document.getElementById('o-betal').value,status:'NYE ORDRER',handler:document.getElementById('o-handler').value,prio:document.getElementById('o-prio').value,adresse:document.getElementById('o-adresse').value,postnr:document.getElementById('o-postnr').value,by:document.getElementById('o-by').value,landekode:document.getElementById('o-landekode')?.value||'+45',smsTlf:document.getElementById('o-sms-tlf').value,instrukt:document.getElementById('o-instrukt').value,stafetTrin:1,stafetTider:{'1':now.toTimeString().slice(0,5)}};ordrer.push(nyOrdre);await gemOrdreIDB(nyOrdre);kurv=[];['o-kunde','o-kontakt','o-beskr','o-antal','o-adresse','o-postnr','o-by','o-instrukt','o-sms-tlf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('o-pris').value='';document.getElementById('o-tid').value='';updateStats();showToast('Ordre '+nr+' gemt!');showPage('flytavle');}
+async function opretOrdre(){const kunde=document.getElementById('o-kunde').value.trim();const beskr=document.getElementById('o-beskr').value.trim();const tid=document.getElementById('o-tid').value;if(!kunde||!beskr||!tid){alert('Udfyld: Kundenavn, Beskrivelse og Leveringstidspunkt');return;}const nr='26-'+String(Date.now()).slice(-6);const now=new Date();const nyOrdre={id:nr,kunde,kontakt:document.getElementById('o-kontakt').value,afd:document.getElementById('o-afd').value,beskr,antal:parseInt(document.getElementById('o-antal').value)||0,pris:parseInt(document.getElementById('o-pris').value)||0,tid,levform:document.getElementById('o-levform').value,betal:document.getElementById('o-betal').value,status:'NYE ORDRER',handler:document.getElementById('o-handler').value,prio:document.getElementById('o-prio').value,adresse:document.getElementById('o-adresse').value,postnr:document.getElementById('o-postnr').value,by:document.getElementById('o-by').value,landekode:document.getElementById('o-landekode')?.value||'+45',smsTlf:document.getElementById('o-sms-tlf').value,instrukt:document.getElementById('o-instrukt').value,stafetTrin:1,stafetTider:{'1':now.toTimeString().slice(0,5)}};ordrer.push(nyOrdre);await gemOrdreIDB(nyOrdre);kurv=[];['o-kunde','o-kontakt','o-beskr','o-antal','o-adresse','o-postnr','o-by','o-instrukt','o-sms-tlf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('o-pris').value='';document.getElementById('o-tid').value='';updateStats();showToast('Ordre '+nr+' gemt!');showPage('ordrestatus');}
 
 // KUNDER
 function autocompleteKunde(val){const el=document.getElementById('kunde-suggestions');if(!val||val.length<2){el.innerHTML='';return;}const matches=kunder.filter(k=>k.navn.toLowerCase().includes(val.toLowerCase()));if(!matches.length){el.innerHTML='';return;}el.innerHTML=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;">${matches.map(k=>`<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" onmousedown="valgKunde('${k.id}')"><strong>${k.navn}</strong></div>`).join('')}</div>`;}
