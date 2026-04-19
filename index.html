@@ -475,53 +475,51 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
     </div>
   </div>
   <!-- HØJRE: LIVE TILBUDSOVERSIGT -->
-  <div id="tilbud-live-panel" style="width:340px;flex-shrink:0;position:sticky;top:108px;display:none;align-self:flex-start;">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="background:var(--accent);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;">📋 Tilbud live</div>
-        <div id="live-total-badge" style="background:rgba(0,0,0,.3);color:#fff;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;padding:3px 10px;border-radius:20px;">0 kr.</div>
+  <div id="tilbud-live-panel" style="width:260px;flex-shrink:0;position:fixed;top:108px;right:16px;display:none;z-index:50;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;font-family:'JetBrains Mono',monospace;">
+      <!-- Header med total øverst -->
+      <div style="background:var(--accent);padding:8px 12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-size:12px;color:rgba(255,255,255,.8);font-weight:600;font-family:'DM Sans',sans-serif;">📋 Tilbud live</div>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;">
+          <span style="font-size:11px;color:rgba(255,255,255,.7);font-family:'DM Sans',sans-serif;">TOTAL inkl. moms</span>
+          <div id="live-total-badge" style="color:#fff;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;">0 kr.</div>
+        </div>
       </div>
       <!-- Kundenavn -->
-      <div id="live-kunde-bar" style="padding:8px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim);display:none;">
-        <span style="color:var(--blue2);">👤 </span><span id="live-kunde-navn"></span>
+      <div id="live-kunde-bar" style="padding:5px 10px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:11px;color:var(--blue2);display:none;">
+        👤 <span id="live-kunde-navn"></span>
       </div>
-      <!-- Linjer -->
-      <div id="live-linjer" style="padding:8px;max-height:calc(100vh - 320px);overflow-y:auto;">
-        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Tilføj varer for at se tilbudet her ↑</div>
+      <!-- Varelinjer — kvitteringsstil -->
+      <div id="live-linjer" style="padding:6px 0;max-height:calc(100vh - 280px);overflow-y:auto;">
+        <div style="text-align:center;padding:16px 8px;color:var(--text-muted);font-size:11px;font-family:'DM Sans',sans-serif;">Tilføj varer →</div>
       </div>
-      <!-- Totallinje -->
-      <div id="live-footer" style="display:none;border-top:2px solid var(--border);padding:12px 16px;">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-dim);margin-bottom:4px;">
-          <span>Listepris inkl. moms</span>
-          <span id="live-listepris" style="font-family:'JetBrains Mono',monospace;"></span>
+      <!-- Footer totaler -->
+      <div id="live-footer" style="display:none;border-top:1px solid var(--border);">
+        <!-- Justering -->
+        <div id="live-justering-row" style="display:none;padding:4px 10px;display:flex;justify-content:space-between;font-size:11px;border-bottom:1px solid var(--border);">
+          <span id="live-justering-lbl" style="color:var(--yellow);"></span>
+          <span id="live-justering-val" style="color:var(--yellow);font-weight:700;"></span>
         </div>
-        <div id="live-justering-row" style="display:none;display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-          <span id="live-justering-lbl" style="color:var(--yellow);font-weight:600;"></span>
-          <span id="live-justering-val" style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--yellow);"></span>
+        <!-- Tilbudspris -->
+        <div style="padding:8px 10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:var(--green);font-weight:700;font-family:'DM Sans',sans-serif;">TOTAL</span>
+          <span id="live-final" style="font-size:16px;font-weight:700;color:var(--green);"></span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-          <span style="color:var(--green);">Tilbudspris</span>
-          <span id="live-final" style="font-family:'JetBrains Mono',monospace;color:var(--green);"></span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;">
+        <!-- Moms -->
+        <div style="padding:0 10px 6px;display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);border-bottom:1px solid var(--border);">
           <span>Heraf moms</span>
-          <span id="live-moms" style="font-family:'JetBrains Mono',monospace;"></span>
+          <span id="live-moms"></span>
         </div>
         <!-- DB nøgletal -->
-        <div id="live-db-bar" style="margin-top:10px;background:var(--surface2);border-radius:6px;padding:8px;display:flex;justify-content:space-around;font-size:11px;">
-          <div style="text-align:center;">
-            <div style="color:var(--text-muted);">DB kr.</div>
-            <div id="live-db-kr" style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
-          </div>
-          <div style="text-align:center;">
-            <div style="color:var(--text-muted);">DB %</div>
-            <div id="live-db-pct" style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
-          </div>
-          <div style="text-align:center;">
-            <div style="color:var(--text-muted);">Tid</div>
-            <div id="live-tid" style="color:var(--blue2);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
-          </div>
+        <div style="padding:6px 10px;display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);">
+          <span>DB: <span id="live-db-kr" style="color:var(--green);font-weight:700;"></span></span>
+          <span><span id="live-db-pct" style="color:var(--green);font-weight:700;"></span></span>
+          <span>⏱ <span id="live-tid" style="color:var(--blue2);font-weight:700;"></span></span>
         </div>
+        <!-- Skjult element der stadig skal eksistere -->
+        <span id="live-listepris" style="display:none;"></span>
       </div>
     </div>
   </div>
@@ -1030,16 +1028,16 @@ function opdaterLivePanel(){
   const totalMin=Math.max(0,baseTid+tidJust);
   // Badge total
   badge.textContent=totalFinal.toLocaleString('da')+' kr.';
-  // Linjer
+  // Linjer — kvitteringsstil
   linjerEl.innerHTML=tilbudKurv.map((v,i)=>{
     const sp=v.fri?v.raavare:getSalgspris(v);
     const lp=sp*v.antal;
-    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;margin-bottom:4px;background:var(--surface2);">
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.navn}</div>
-        <div style="font-size:11px;color:var(--text-muted);">${v.nr} · ${sp.toLocaleString('da')} kr./stk. × ${v.antal}</div>
+    return`<div style="padding:5px 10px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:6px;">${v.navn}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);white-space:nowrap;">${lp.toLocaleString('da')} kr.</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);margin-left:8px;white-space:nowrap;">${lp.toLocaleString('da')} kr.</div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:1px;">${v.antal} stk. × ${sp.toLocaleString('da')} kr.</div>
     </div>`;
   }).join('');
   // Footer
