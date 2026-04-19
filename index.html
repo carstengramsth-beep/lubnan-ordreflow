@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.19 — Build: 2026-04-17 -->
+<!-- Lubnan Ordreflow 4.20 — Build: 2026-04-19 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.19</title>
+<title>Lubnan Ordreflow 4.20</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.19</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.20</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -341,11 +341,14 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div id="page-opret-tilbud" class="hidden">
   <div class="back-btn" onclick="showPage('tilbud')">&#8592; Tilbage</div>
   <div class="page-title">Opret tilbud</div>
-  <div class="form-page" style="max-width:780px;">
+  <!-- SPLIT-SCREEN WRAPPER -->
+  <div id="tilbud-split" style="display:flex;gap:20px;align-items:flex-start;max-width:1400px;">
+  <!-- VENSTRE: Formular -->
+  <div class="form-page" style="max-width:780px;flex:1;min-width:0;">
     <div class="form-section">
       <div class="form-section-title">Kundeoplysninger</div>
       <div class="form-grid">
-        <div class="form-group full"><label>Kundenavn <span class="req">*</span></label><input type="text" id="t-kunde" placeholder="Begynd at skrive..." oninput="autocompleteKundeTilbud(this.value)" data-nav><div id="t-kunde-suggestions"></div></div>
+        <div class="form-group full"><label>Kundenavn <span class="req">*</span></label><input type="text" id="t-kunde" placeholder="Begynd at skrive..." oninput="autocompleteKundeTilbud(this.value);opdaterLivePanel()" data-nav><div id="t-kunde-suggestions"></div></div>
         <div class="form-group"><label>Kontaktperson</label><input type="text" id="t-kontakt" placeholder="Navn" data-nav></div>
         <div class="form-group"><label>Email</label><input type="email" id="t-email" placeholder="email@eksempel.dk" data-nav></div>
         <div class="form-group"><label>Telefon</label><input type="tel" id="t-tlf" placeholder="20 30 40 50" data-nav></div>
@@ -471,6 +474,58 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
       <button class="btn btn-secondary" onclick="showPage('tilbud')">Annuller</button>
     </div>
   </div>
+  <!-- HØJRE: LIVE TILBUDSOVERSIGT -->
+  <div id="tilbud-live-panel" style="width:340px;flex-shrink:0;position:sticky;top:70px;display:none;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <div style="background:var(--accent);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'Playfair Display',serif;font-size:16px;color:#fff;font-weight:700;">📋 Tilbud live</div>
+        <div id="live-total-badge" style="background:rgba(0,0,0,.3);color:#fff;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;padding:3px 10px;border-radius:20px;">0 kr.</div>
+      </div>
+      <!-- Kundenavn -->
+      <div id="live-kunde-bar" style="padding:8px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:12px;color:var(--text-dim);display:none;">
+        <span style="color:var(--blue2);">👤 </span><span id="live-kunde-navn"></span>
+      </div>
+      <!-- Linjer -->
+      <div id="live-linjer" style="padding:8px;max-height:calc(100vh - 320px);overflow-y:auto;">
+        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px;">Tilføj varer for at se tilbudet her ↑</div>
+      </div>
+      <!-- Totallinje -->
+      <div id="live-footer" style="display:none;border-top:2px solid var(--border);padding:12px 16px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-dim);margin-bottom:4px;">
+          <span>Listepris inkl. moms</span>
+          <span id="live-listepris" style="font-family:'JetBrains Mono',monospace;"></span>
+        </div>
+        <div id="live-justering-row" style="display:none;display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+          <span id="live-justering-lbl" style="color:var(--yellow);font-weight:600;"></span>
+          <span id="live-justering-val" style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--yellow);"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+          <span style="color:var(--green);">Tilbudspris</span>
+          <span id="live-final" style="font-family:'JetBrains Mono',monospace;color:var(--green);"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:4px;">
+          <span>Heraf moms</span>
+          <span id="live-moms" style="font-family:'JetBrains Mono',monospace;"></span>
+        </div>
+        <!-- DB nøgletal -->
+        <div id="live-db-bar" style="margin-top:10px;background:var(--surface2);border-radius:6px;padding:8px;display:flex;justify-content:space-around;font-size:11px;">
+          <div style="text-align:center;">
+            <div style="color:var(--text-muted);">DB kr.</div>
+            <div id="live-db-kr" style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="color:var(--text-muted);">DB %</div>
+            <div id="live-db-pct" style="color:var(--green);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="color:var(--text-muted);">Tid</div>
+            <div id="live-tid" style="color:var(--blue2);font-weight:700;font-family:'JetBrains Mono',monospace;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div><!-- /tilbud-split -->
 </div>
 <!-- KUNDER -->
 <div id="page-kunder" class="hidden">
@@ -938,14 +993,74 @@ function renderTilbudKalkulation(){
   const momsEl=document.getElementById('t-kurv-moms');
   if(momsEl)momsEl.textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.${justeringKr>0?' · '+jType+': '+justeringKr.toLocaleString('da')+' kr.':''}`;
   
-  return{listepris,totalFinal,justeringKr,jType,jPct};
+  opdaterLivePanel();return{listepris,totalFinal,justeringKr,jType,jPct};
 }
 
 function getStdAntal(kat){if(kat==='Vin'||kat==='Levering'||kat==='Drikkevare')return 1;return parseInt(document.getElementById('t-std-antal')?.value)||1;}
 function addToTilbudKurv(nr){if(!nr)return;const v=VARER.find(x=>x.nr===nr);if(!v)return;const ex=tilbudKurv.find(x=>x.nr===nr&&!x.fri);if(ex)ex.antal+=getStdAntal(v.kat);else tilbudKurv.push({...v,antal:getStdAntal(v.kat),fri:false});renderTilbudKurv();showToast(v.navn+' tilfojet');}
 function tilfoejFriLinje(){const tekst=document.getElementById('t-fri-tekst').value.trim();const antal=parseInt(document.getElementById('t-fri-antal').value)||1;const pris=parseInt(document.getElementById('t-fri-pris').value)||0;const tid=parseInt(document.getElementById('t-fri-tid').value)||0;if(!tekst){alert('Skriv en beskrivelse på fritekst-linjen');return;}tilbudKurv.push({nr:'FRI',navn:tekst,antal,raavare:pris,kat:'Fritekst-linje',tid,fri:true});document.getElementById('t-fri-tekst').value='';document.getElementById('t-fri-antal').value='1';document.getElementById('t-fri-pris').value='';document.getElementById('t-fri-tid').value='';renderTilbudKurv();showToast('Fritekst-linje tilføjet');}
 function tomTilbudKurv(){tilbudKurv=[];renderTilbudKurv();}
-function renderTilbudKurv(){const el=document.getElementById('t-kurv');if(!el)return;if(tilbudKurv.length===0){el.classList.add('hidden');document.getElementById('t-kalkulation').style.display='none';return;}el.classList.remove('hidden');document.getElementById('t-kalkulation').style.display='';document.getElementById('t-kurv-items').innerHTML=tilbudKurv.map((v,i)=>{const stkPris=v.fri?v.raavare:getSalgspris(v);const linjePris=stkPris*v.antal;return`<div class="kurv-item"><div><div class="kurv-item-navn"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);margin-right:6px;">${v.nr}</span>${v.navn}${v.fri?'<span style="font-size:10px;color:var(--purple);margin-left:6px;">FRI</span>':''}</div><div class="kurv-item-stk">${stkPris} kr./stk.</div></div><div class="kurv-item-antal"><button class="kurv-remove" onclick="mindreTilbudAntal(${i})" style="width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">−</button><input type="number" min="1" value="${v.antal}" onchange="setTilbudAntal(${i},this.value)" style="width:48px;text-align:center;font-weight:600;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px;"><button class="kurv-remove" onclick="ogTilbudAntal(${i})" style="width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">+</button></div><div class="kurv-item-pris">${linjePris.toLocaleString('da')} kr.</div><button class="kurv-remove" onclick="fjernTilbudLinje(${i})" style="color:var(--red);">✕</button></div>`;}).join('');renderTilbudKalkulation();}
+function opdaterLivePanel(){
+  const panel=document.getElementById('tilbud-live-panel');
+  const linjerEl=document.getElementById('live-linjer');
+  const footer=document.getElementById('live-footer');
+  const badge=document.getElementById('live-total-badge');
+  const kundeBar=document.getElementById('live-kunde-bar');
+  const kundeNavn=document.getElementById('live-kunde-navn');
+  if(!panel)return;
+  // Vis/skjul panel
+  if(tilbudKurv.length===0){panel.style.display='none';return;}
+  panel.style.display='';
+  // Kundenavn
+  const kNavn=(document.getElementById('t-kunde')?.value||'').trim();
+  if(kNavn){kundeBar.style.display='';kundeNavn.textContent=kNavn;}else{kundeBar.style.display='none';}
+  // Beregn tal
+  const jType=document.getElementById('t-justering-type')?.value||'ingen';
+  const jPct=parseFloat(document.getElementById('t-justering-pct')?.value)||0;
+  const listepris=tilbudKurv.reduce((s,v)=>v.fri?s+v.raavare*v.antal:s+getSalgspris(v)*v.antal,0);
+  let totalFinal=listepris,justeringKr=0;
+  if(jType==='tillæg'&&jPct>0){justeringKr=Math.round(listepris*jPct/100);totalFinal=listepris+justeringKr;}
+  if(jType==='rabat'&&jPct>0){justeringKr=Math.round(listepris*jPct/100);totalFinal=listepris-justeringKr;}
+  const exMoms=Math.round(totalFinal/(1+MOMS)),moms=totalFinal-exMoms;
+  const totalRaavare=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.raavare*v.antal,0);
+  const db=exMoms-Math.round(totalRaavare);
+  const dbPct=exMoms>0?Math.round((db/exMoms)*100):0;
+  const baseTid=tilbudKurv.filter(v=>!v.fri).reduce((s,v)=>s+v.tid*v.antal,0);
+  const tidJust=parseInt(document.getElementById('t-tid-justering')?.value)||0;
+  const totalMin=Math.max(0,baseTid+tidJust);
+  // Badge total
+  badge.textContent=totalFinal.toLocaleString('da')+' kr.';
+  // Linjer
+  linjerEl.innerHTML=tilbudKurv.map((v,i)=>{
+    const sp=v.fri?v.raavare:getSalgspris(v);
+    const lp=sp*v.antal;
+    return`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:6px;margin-bottom:4px;background:var(--surface2);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.navn}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${v.nr} · ${sp.toLocaleString('da')} kr./stk. × ${v.antal}</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);margin-left:8px;white-space:nowrap;">${lp.toLocaleString('da')} kr.</div>
+    </div>`;
+  }).join('');
+  // Footer
+  footer.style.display='';
+  document.getElementById('live-listepris').textContent=listepris.toLocaleString('da')+' kr.';
+  const jRow=document.getElementById('live-justering-row');
+  if(jType!=='ingen'&&jPct>0){
+    jRow.style.display='flex';
+    document.getElementById('live-justering-lbl').textContent=(jType==='rabat'?'Rabat':'Tillæg')+' '+jPct+'%';
+    document.getElementById('live-justering-val').textContent=(jType==='rabat'?'− ':'+ ')+justeringKr.toLocaleString('da')+' kr.';
+    document.getElementById('live-justering-val').style.color=jType==='rabat'?'var(--yellow)':'var(--green)';
+  }else{jRow.style.display='none';}
+  document.getElementById('live-final').textContent=totalFinal.toLocaleString('da')+' kr.';
+  document.getElementById('live-moms').textContent=moms.toLocaleString('da')+' kr.';
+  document.getElementById('live-db-kr').textContent=db.toLocaleString('da')+' kr.';
+  document.getElementById('live-db-pct').textContent=dbPct+'%';
+  const timer=Math.floor(totalMin/60),minRest=totalMin%60;
+  document.getElementById('live-tid').textContent=timer+'t'+(minRest>0?' '+minRest+'m':'');
+}
+
+function renderTilbudKurv(){const el=document.getElementById('t-kurv');if(!el)return;if(tilbudKurv.length===0){el.classList.add('hidden');document.getElementById('t-kalkulation').style.display='none';opdaterLivePanel();return;}el.classList.remove('hidden');document.getElementById('t-kalkulation').style.display='';document.getElementById('t-kurv-items').innerHTML=tilbudKurv.map((v,i)=>{const stkPris=v.fri?v.raavare:getSalgspris(v);const linjePris=stkPris*v.antal;return`<div class="kurv-item"><div><div class="kurv-item-navn"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);margin-right:6px;">${v.nr}</span>${v.navn}${v.fri?'<span style="font-size:10px;color:var(--purple);margin-left:6px;">FRI</span>':''}</div><div class="kurv-item-stk">${stkPris} kr./stk.</div></div><div class="kurv-item-antal"><button class="kurv-remove" onclick="mindreTilbudAntal(${i})" style="width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">−</button><input type="number" min="1" value="${v.antal}" onchange="setTilbudAntal(${i},this.value)" style="width:48px;text-align:center;font-weight:600;background:var(--surface3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:3px;"><button class="kurv-remove" onclick="ogTilbudAntal(${i})" style="width:28px;height:28px;background:var(--surface3);border-radius:4px;border:1px solid var(--border);">+</button></div><div class="kurv-item-pris">${linjePris.toLocaleString('da')} kr.</div><button class="kurv-remove" onclick="fjernTilbudLinje(${i})" style="color:var(--red);">✕</button></div>`;}).join('');renderTilbudKalkulation();opdaterLivePanel();}
 function ogTilbudAntal(i){if(tilbudKurv[i])tilbudKurv[i].antal++;renderTilbudKurv();}
 function mindreTilbudAntal(i){if(tilbudKurv[i]){tilbudKurv[i].antal--;if(tilbudKurv[i].antal<=0)tilbudKurv.splice(i,1);}renderTilbudKurv();}
 function setTilbudAntal(i,val){const n=parseInt(val)||1;if(tilbudKurv[i]){if(n<=0)tilbudKurv.splice(i,1);else tilbudKurv[i].antal=n;}renderTilbudKurv();}
@@ -1502,7 +1617,7 @@ testForbindelse();
 
 // TICKER + TRAFIKLYS
 const TICKER_BESKEDER = [
-  {tekst: '🟢 BETA 4.12 er live — Nyheder: Versionsnummer rettet · ORDREFLOW BETA på forsiden · Ticker tilføjet · Trafiklys-system', type: 'ny-version'},
+  {tekst: '🟢 BETA 4.20 er live — Nyheder: Split-screen tilbudsvisning · Se pris og linjer live mens du opretter tilbud' — Nyheder: Versionsnummer rettet · ORDREFLOW BETA på forsiden · Ticker tilføjet · Trafiklys-system', type: 'ny-version'},
   {tekst: '📋 Tilbud sorteres nu efter dato — næste arrangement øverst', type: 'info'},
   {tekst: '✏️ Fritekst-linje tilføjet i tilbudsformularen — til ydelser uden for prislisten', type: 'info'},
   {tekst: '⏱️ Sluttidspunkt kan nu angives på arrangementer', type: 'info'},
