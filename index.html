@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.20 — Build: 2026-04-19 -->
+<!-- Lubnan Ordreflow 4.21 — Build: 2026-04-20 -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.20</title>
+<title>Lubnan Ordreflow 4.21</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -203,7 +203,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver" id="hdr-ver">BETA 4.20</span>
+    <span class="hdr-ver" id="hdr-ver">BETA 4.21</span>
     <span class="db-status db-err" id="db-status">&#9203; Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -226,7 +226,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 
 <!-- FORSIDE -->
 <div id="page-forside">
-  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.20</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
+  <div style="margin-bottom:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;"><div style="font-family:'Playfair Display',serif;font-size:26px;">God dag &#128075;</div><div id="ordreflow-status" style="font-family:'Playfair Display',serif;font-size:26px;color:#fff;font-weight:600;letter-spacing:1px;">ORDREFLOW <span id="version-badge">BETA 4.21</span></div></div><div style="font-size:13px;color:var(--text-dim);margin-top:6px;" id="dato"></div></div>
   <div class="alerts" id="alerts"></div>
   <div class="stats">
     <div class="stat"><div class="stat-lbl">I produktion</div><div class="stat-val" id="s-prod">0</div><div class="stat-sub">ordrer i kokkenet</div></div>
@@ -354,7 +354,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
         <div class="form-group"><label>Email</label><input type="email" id="t-email" placeholder="email@eksempel.dk" data-nav></div>
         <div class="form-group"><label>Telefon</label><input type="tel" id="t-tlf" placeholder="20 30 40 50" data-nav></div>
         <div class="form-group full"><label>Adresse</label><input type="text" id="t-adresse" placeholder="Vejnavn og husnummer" data-nav></div>
-        <div class="form-group"><label>Postnummer</label><input type="text" id="t-postnr" placeholder="4660" data-nav></div>
+        <div class="form-group"><label>Postnummer</label><input type="text" id="t-postnr" placeholder="4660" oninput="beregnLeveringFraPostnr(this.value)" data-nav></div>
         <div class="form-group"><label>By</label><input type="text" id="t-by" placeholder="Store Heddinge" data-nav></div>
       </div>
     </div>
@@ -367,7 +367,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
         <div class="form-group"><label>Leveringsform</label><select id="t-levform" onchange="opdaterLevAdresse(this.value)" data-nav><option>Spises pa stedet</option><option>Leveres pa adressen</option><option>Levering i varme kasser</option><option>Foodtruck</option><option>Afhentning</option></select></div>
         <div class="form-group"><label>Afdeling</label><select id="t-afd" data-nav></select></div>
         <div class="form-group full"><label>Leveringsadresse</label><input type="text" id="t-lev-adresse" placeholder="Vejnavn og husnummer" data-nav></div>
-        <div class="form-group"><label>Postnummer</label><input type="text" id="t-lev-postnr" placeholder="2650" data-nav></div>
+        <div class="form-group"><label>Postnummer</label><input type="text" id="t-lev-postnr" placeholder="2650" oninput="beregnLeveringFraPostnr(this.value)" data-nav></div>
         <div class="form-group"><label>By</label><input type="text" id="t-lev-by" placeholder="Hvidovre" data-nav></div>
         <div class="form-group" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px;">
           <label style="color:var(--accent);">Standard antal til varelinjer</label>
@@ -380,9 +380,10 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
       <!-- LIVE STRIBE — fuld bredde, én linje pr. vare -->
       <div id="t-live-stribe" style="display:none;margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
         <!-- Total bar øverst -->
-        <div style="background:var(--accent);padding:8px 16px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="background:var(--accent);padding:8px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
           <span style="font-size:12px;color:rgba(255,255,255,.85);font-family:'DM Sans',sans-serif;">📋 Tilbud live</span>
-          <span id="stribe-total" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#fff;">0 kr.</span>
+          <span id="stribe-total" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#fff;flex:1;text-align:right;">0 kr.</span>
+          <button class="btn btn-success btn-sm" onclick="opretTilbud()" style="white-space:nowrap;flex-shrink:0;background:#16a34a;border:2px solid rgba(255,255,255,.3);">✓ Gem tilbud</button>
         </div>
         <!-- Varelinjer — én pr. række, fuld bredde -->
         <div id="stribe-linjer"></div>
@@ -836,6 +837,12 @@ const VARER=[
   {nr:'V-009',navn:'Cabernet Sauvignon',kat:'Vin',raavare:137.6,tid:2},
   {nr:'V-010',navn:'Chateau Ksara',kat:'Vin',raavare:155.2,tid:2},
   {nr:'V-011',navn:'Cuvee du 3eme Millenaire',kat:'Vin',raavare:220,tid:2},
+  // SERVICEYDELSER
+  {nr:'S-001',navn:'Foodtruck 1 (leje)',kat:'Serviceydelse',raavare:1500,tid:180,minPris:2500,timeRate:600,note:'2.500 kr. for 3 timer · 600 kr./time derover'},
+  {nr:'S-002',navn:'Foodtruck 2 (leje)',kat:'Serviceydelse',raavare:1500,tid:180,minPris:2500,timeRate:600,note:'2.500 kr. for 3 timer · 600 kr./time derover'},
+  {nr:'S-003',navn:'Foodtruck 1+2 (pakke)',kat:'Serviceydelse',raavare:3000,tid:180,minPris:5000,timeRate:1200,note:'Begge foodtrucks · 5.000 kr. for 3 timer · 1.200 kr./time derover'},
+  {nr:'S-004',navn:'Ekstra serveringspersonale',kat:'Serviceydelse',raavare:0,tid:60,note:'Pris aftales · pr. person/time'},
+  {nr:'D-009',navn:'Transport Sjælland',kat:'Levering',raavare:360,tid:0,note:'450 kr. inkl. moms · Øvrige Sjælland'},
 ];
 
 const STAFET=[{nr:1,label:'Ordre modtaget',icon:'📥'},{nr:2,label:'I produktion',icon:'🍳'},{nr:3,label:'Klar til pakning',icon:'📦'},{nr:4,label:'Klar til afhentning',icon:'✅'}];
@@ -846,7 +853,7 @@ function mapFraDB(r){return{id:r.order_number||r.id,dbId:r.id,kunde:r.customer_n
 async function gemOrdreIDB(o){const row={order_number:o.id,customer_name:o.kunde,customer_phone:o.kontakt,customer_address:o.adresse,total_price:o.pris,status:o.status,notes:o.instrukt||'',items:{afd:o.afd,beskr:o.beskr,antal:o.antal,tid:o.tid,levform:o.levform,betal:o.betal,handler:o.handler,prio:o.prio,smsTlf:o.smsTlf,landekode:o.landekode,postnr:o.postnr,by:o.by,instrukt:o.instrukt,stafetTrin:o.stafetTrin,stafetTider:o.stafetTider}};if(o.dbId){await db.from('orders').update(row).eq('id',o.dbId);}else{const{data,error}=await db.from('orders').insert(row).select().single();if(!error)o.dbId=data.id;}}
 async function sletOrdreIDB(dbId){await db.from('orders').delete().eq('id',dbId);}
 
-async function hentTilbud(){const{data,error}=await db.from('quotes').select('*').neq('status','Slettet').order('created_at',{ascending:false});if(error){console.error('Hent tilbud fejl:',error);return;}tilbud=(data||[]).map(r=>({id:r.quote_number,dbId:r.id,kunde:r.customer_name,kontakt:r.contact_person||'',email:r.email||'',tlf:r.phone||'',adresse:r.address||'',postnr:r.postal_code||'',by:r.city||'',levAdresse:r.delivery_address||'',levPostnr:r.delivery_postal_code||'',levBy:r.delivery_city||'',afd:r.data?.afd||'hvidovre',beskr:r.data?.beskr||'',linjer:r.data?.linjer||[],pris:r.total_price||0,listepris:r.data?.listepris||0,justeringKr:r.data?.justeringKr||0,tid:r.event_date||'',gyldig:r.valid_until||'',levform:r.data?.levform||'Spises pa stedet',bem:r.data?.bem||'',justeringType:r.data?.justeringType||'ingen',justeringPct:r.data?.justeringPct||0,sluttid:r.data?.sluttid||'',status:r.status||'Abent',oprettet:r.created_at}));renderTilbud();updateStats();}
+async function hentTilbud(){const{data,error}=await db.from('quotes').select('*').neq('status','Slettet').order('created_at',{ascending:false});if(error){console.error('Hent tilbud fejl:',error);return;}tilbud=(data||[]).map(r=>({id:r.quote_number,dbId:r.id,kunde:r.customer_name,kontakt:r.contact_person||'',email:r.email||'',tlf:r.phone||'',adresse:r.address||'',postnr:r.postal_code||'',by:r.city||'',levAdresse:r.delivery_address||'',levPostnr:r.delivery_postal_code||'',levBy:r.delivery_city||'',afd:r.data?.afd||'hvidovre',beskr:r.data?.beskr||'',linjer:r.data?.linjer||[],pris:r.total_price||0,listepris:r.data?.listepris||0,justeringKr:r.data?.justeringKr||0,tid:r.event_date||'',gyldig:r.valid_until||'',levform:r.data?.levform||'Spises pa stedet',bem:r.data?.bem||'',justeringType:r.data?.justeringType||'ingen',justeringPct:r.data?.justeringPct||0,sluttid:r.data?.sluttid||'',status:r.status||'Abent',oprettet:r.created_at,klarTid:r.data?.klarTid||'',klarAf:r.data?.klarAf||'',acceptTid:r.data?.acceptTid||'',acceptAf:r.data?.acceptAf||'',acceptKommentar:r.data?.acceptKommentar||'',acceptTillæg:r.data?.acceptTillæg||0}));renderTilbud();updateStats();}
 
 async function gemTilbudIDB(t){
   const row={quote_number:t.id,customer_name:t.kunde,contact_person:t.kontakt,email:t.email,phone:t.tlf,address:t.adresse,postal_code:t.postnr,city:t.by,delivery_address:t.levAdresse||'',delivery_postal_code:t.levPostnr||'',delivery_city:t.levBy||'',total_price:t.pris,event_date:t.tid||null,valid_until:t.gyldig||null,status:t.status||'Abent',data:{afd:t.afd,beskr:t.beskr,linjer:t.linjer,levform:t.levform,bem:t.bem,sluttid:t.sluttid||'',justeringType:t.justeringType,justeringPct:t.justeringPct,justeringKr:t.justeringKr||0,listepris:t.listepris||0}};
@@ -903,7 +910,7 @@ function renderCard(o){const now=new Date(),t=new Date(o.tid),overdue=t<now&&o.s
 function filterFly(afd,btn){currentFlyFilter=afd;document.querySelectorAll('#fly-filter .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderBoard();}
 
 // TILBUD LISTE - med rabat kolonne
-function renderTilbud(){const tbody=document.getElementById('tilbud-tbody');if(!tbody)return;if(!tilbud.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen tilbud endnu</td></tr>';return;}const sorted=[...tilbud].sort((a,b)=>{if(a.tid&&b.tid)return new Date(a.tid)-new Date(b.tid);if(a.tid&&!b.tid)return -1;if(!a.tid&&b.tid)return 1;return 0;});const nu=new Date();tbody.innerHTML=sorted.map(t=>{const lok=lokationer.find(l=>l.id===t.afd);const justeringTxt=t.justeringType==='ingen'?'<span style="color:var(--text-muted);">Ingen</span>':t.justeringType==='rabat'?`<span style="color:var(--yellow);">-${t.justeringPct}% (${(t.justeringKr||0).toLocaleString('da')} kr.)</span>`:`<span style="color:var(--green);">+${t.justeringPct}% (${(t.justeringKr||0).toLocaleString('da')} kr.)</span>`;const overskredet=t.tid&&new Date(t.tid)<nu;const datoTxt=t.tid?`<span style="font-weight:700;color:${overskredet?'var(--red)':'var(--accent)'};"> ${new Date(t.tid).toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'})}</span>`:'<span style="color:var(--text-muted);">—</span>';return`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${datoTxt}</td><td style="font-family:'JetBrains Mono',monospace;">${(t.listepris||t.pris).toLocaleString('da')} kr.</td><td>${justeringTxt}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;flex-wrap:wrap;"><button class=\"btn btn-primary btn-xs\" onclick=\"aabnTilbud('${t.id}')\">✎ Åbn</button><button class="btn btn-secondary btn-xs" onclick="udskrivInternKalkulation('${t.id}')">Intern</button><button class="btn btn-secondary btn-xs" onclick="kopierTilbud('${t.id}')">Kopier</button><button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">Tilbud</button><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">Ordre</button><button class="btn btn-danger btn-xs" onclick="bekræftSletTilbud('${t.id}')">Slet</button></td></tr>`;}).join('');}
+function renderTilbud(){const tbody=document.getElementById('tilbud-tbody');if(!tbody)return;if(!tilbud.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:30px;">Ingen tilbud endnu</td></tr>';return;}const sorted=[...tilbud].sort((a,b)=>{if(a.tid&&b.tid)return new Date(a.tid)-new Date(b.tid);if(a.tid&&!b.tid)return -1;if(!a.tid&&b.tid)return 1;return 0;});const nu=new Date();tbody.innerHTML=sorted.map(t=>{const lok=lokationer.find(l=>l.id===t.afd);const justeringTxt=t.justeringType==='ingen'?'<span style="color:var(--text-muted);">Ingen</span>':t.justeringType==='rabat'?`<span style="color:var(--yellow);">-${t.justeringPct}% (${(t.justeringKr||0).toLocaleString('da')} kr.)</span>`:`<span style="color:var(--green);">+${t.justeringPct}% (${(t.justeringKr||0).toLocaleString('da')} kr.)</span>`;const overskredet=t.tid&&new Date(t.tid)<nu;const datoTxt=t.tid?`<span style="font-weight:700;color:${overskredet?'var(--red)':'var(--accent)'};"> ${new Date(t.tid).toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'})}</span>`:'<span style="color:var(--text-muted);">—</span>';return`<tr><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${t.id}</td><td>${t.kunde}</td><td style="color:var(--blue2);">${lok?lok.navn:t.afd}</td><td>${t.beskr}</td><td>${datoTxt}</td><td style="font-family:'JetBrains Mono',monospace;">${(t.listepris||t.pris).toLocaleString('da')} kr.</td><td>${justeringTxt}</td><td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${t.pris.toLocaleString('da')} kr.</td><td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td><td style="display:flex;gap:4px;flex-wrap:wrap;"><button class=\"btn btn-primary btn-xs\" onclick=\"aabnTilbud('${t.id}')\">✎ Åbn</button><button class="btn btn-secondary btn-xs" onclick="udskrivInternKalkulation('${t.id}')">Intern</button><button class="btn btn-secondary btn-xs" onclick="kopierTilbud('${t.id}')">Kopier</button><button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">Tilbud</button>${t.status!=='Klar'&&t.status!=='Accepteret'?`<button class="btn btn-xs" style="background:var(--orange,#ea580c);color:#fff;" onclick="markerKlarTilAfsendelse('${t.id}')">📤 Klar</button>`:''} ${t.status==='Klar'?`<button class="btn btn-success btn-xs" onclick="markerAccepteret('${t.id}')">✅ Accept</button>`:''} <button class="btn btn-xs" style="background:var(--cyan);color:#fff;" onclick="visBetalingsinfo('${t.id}')">💳 Bet.</button><button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">Ordre</button><button class="btn btn-danger btn-xs" onclick="bekræftSletTilbud('${t.id}')">Slet</button></td></tr>`;}).join('');}
 
 // SIKKER SLET MED BEKRAEFTELSE
 function bekraeftSletTilbud(id){const t=tilbud.find(x=>x.id===id);if(!t)return;document.getElementById('modal-title').textContent='Slet tilbud?';document.getElementById('modal-body').innerHTML=`<p style="margin-bottom:16px;font-size:14px;">Er du sikker pa at du vil slette tilbud <strong>${t.id}</strong> til <strong>${t.kunde}</strong>?</p><p style="color:var(--red);font-size:13px;">Dette kan ikke fortrydes!</p>`;document.getElementById('modal-actions').innerHTML=`<button class="btn btn-danger btn-sm" onclick="sletTilbud('${id}')">Ja, slet tilbuddet</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;document.getElementById('modal-overlay').classList.remove('hidden');}
@@ -992,6 +999,204 @@ function renderTilbudKalkulation(){
   if(momsEl)momsEl.textContent=`Heraf moms: ${moms.toLocaleString('da')} kr. · Ex. moms: ${exMoms.toLocaleString('da')} kr.${justeringKr>0?' · '+jType+': '+justeringKr.toLocaleString('da')+' kr.':''}`;
   
   opdaterLivePanel();return{listepris,totalFinal,justeringKr,jType,jPct};
+}
+
+// =====================
+// POSTNUMMER → LEVERINGSPRIS
+// =====================
+function getPostnrZone(postnr){
+  const nr = parseInt(postnr)||0;
+  if(nr>=1000&&nr<=2999) return 'kbh';     // Storkøbenhavn — gratis foodtruck, 350 kr. catering
+  if(nr>=3000&&nr<=4999) return 'sjaelland'; // Øvrige Sjælland — 450 kr. begge
+  if(nr>=5000) return 'andre';              // Andre landsdele — forespørgsel
+  return null;
+}
+
+function getLeveringsTekst(postnr, harFoodtruck){
+  const zone = getPostnrZone(postnr);
+  if(!zone) return null;
+  if(zone==='kbh') return harFoodtruck
+    ? {pris:0, tekst:'Transport gratis (Storkøbenhavn)'}
+    : {pris:350, tekst:'Levering 350 kr. (Storkøbenhavn, postnr. 1000–2999)'};
+  if(zone==='sjaelland') return {pris:450, tekst:'Levering/transport 450 kr. (Øvrige Sjælland)'};
+  return {pris:-1, tekst:'Andre landsdele — pris aftales ved forespørgsel'};
+}
+
+function beregnLeveringFraPostnr(postnr){
+  if(!postnr||postnr.length<4) return;
+  const harFoodtruck = tilbudKurv.some(v=>v.kat==='Serviceydelse'&&(v.nr==='S-001'||v.nr==='S-002'||v.nr==='S-003'));
+  const info = getLeveringsTekst(postnr, harFoodtruck);
+  if(!info) return;
+  
+  // Vis besked
+  let feedbackEl = document.getElementById('lev-postnr-feedback');
+  if(!feedbackEl){
+    feedbackEl = document.createElement('div');
+    feedbackEl.id = 'lev-postnr-feedback';
+    feedbackEl.style.cssText = 'font-size:12px;margin-top:6px;padding:6px 10px;border-radius:6px;';
+    const postnrEl = document.getElementById('t-lev-postnr')||document.getElementById('t-postnr');
+    if(postnrEl&&postnrEl.parentNode) postnrEl.parentNode.appendChild(feedbackEl);
+  }
+  
+  if(info.pris===-1){
+    feedbackEl.style.background='rgba(234,179,8,.15)';
+    feedbackEl.style.color='var(--yellow)';
+    feedbackEl.innerHTML='⚠️ '+info.tekst;
+  } else if(info.pris===0){
+    feedbackEl.style.background='rgba(34,197,94,.15)';
+    feedbackEl.style.color='var(--green)';
+    feedbackEl.innerHTML='✅ '+info.tekst;
+  } else {
+    feedbackEl.style.background='rgba(59,130,246,.15)';
+    feedbackEl.style.color='var(--blue2)';
+    feedbackEl.innerHTML='🚚 '+info.tekst+' — tilføj som varelinje?';
+  }
+}
+
+// =====================
+// BETALINGSREGLER (Lubnan FAQ)
+// =====================
+function beregnBetalingsinfo(tilbudsPris, arrangementsDato){
+  if(!arrangementsDato) return null;
+  const nu = new Date();
+  const arr = new Date(arrangementsDato);
+  const dageTil = Math.round((arr-nu)/(1000*60*60*24));
+  const info = {dageTil, overskredet: dageTil<0, sevenDageAdvarsel: dageTil<=7&&dageTil>=0};
+  if(dageTil<=30){
+    info.type='fuld'; info.beloeb=tilbudsPris;
+    info.tekst='Fuld betaling — arrangement inden for 30 dage';
+  } else {
+    const dep = tilbudsPris<10000?Math.round(tilbudsPris/2):5000;
+    info.type='depositum'; info.beloeb=dep; info.rest=tilbudsPris-dep;
+    const restDato=new Date(arr); restDato.setMonth(restDato.getMonth()-1);
+    info.restDato=restDato.toLocaleDateString('da-DK',{day:'numeric',month:'long',year:'numeric'});
+    info.tekst=tilbudsPris<10000?'Depositum: halvdelen af beløbet':'Depositum: 5.000 kr.';
+  }
+  if(dageTil>30) info.afbestilling='Depositum refunderes fuldt ved afbestilling';
+  else if(dageTil>7) info.afbestilling='50% af arrangementspris returneres · Depositum beholdes af Lubnan';
+  else info.afbestilling='⚠️ Ingen tilbagebetaling — inden for 7 dage';
+  return info;
+}
+
+function visBetalingsinfo(tilbudId){
+  const t=tilbud.find(x=>x.id===tilbudId); if(!t)return;
+  const info=beregnBetalingsinfo(t.pris,t.tid);
+  if(!info){showToast('Sæt arrangementsdato for at se betalingsinfo');return;}
+  let html='';
+  if(info.sevenDageAdvarsel) html+=`<div style="background:rgba(239,68,68,.15);border:2px solid var(--red);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--red);font-weight:600;">⚠️ Inden for 7 dage — antal kuverter KAN IKKE justeres!</div>`;
+  html+=`<div style="background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:10px;">
+    <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Betalingsbetingelser</div>
+    <div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:6px;">${info.tekst}</div>
+    <div style="font-size:26px;font-weight:700;color:var(--green);font-family:'JetBrains Mono',monospace;">${info.beloeb.toLocaleString('da')} kr.</div>
+    ${info.type==='depositum'?`<div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Rest: ${info.rest.toLocaleString('da')} kr. betales senest ${info.restDato}</div>`:''}
+    <div style="font-size:11px;color:var(--text-muted);margin-top:10px;border-top:1px solid var(--border);padding-top:8px;">📋 Afbestilling: ${info.afbestilling}</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">📅 ${Math.abs(info.dageTil)} dage til arrangementet${info.overskredet?' (overskredet)':''}</div>
+  </div>`;
+  document.getElementById('modal-title').textContent='💳 Betalingsinfo — '+t.id;
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-actions').innerHTML=`<button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button>`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+// =====================
+// STEMPEL 1 — Klar til afsendelse
+// =====================
+function markerKlarTilAfsendelse(id){
+  const t=tilbud.find(x=>x.id===id); if(!t)return;
+  document.getElementById('modal-title').textContent='📤 Klar til afsendelse';
+  document.getElementById('modal-body').innerHTML=`
+    <p style="font-size:14px;margin-bottom:14px;">Marker tilbud <strong>${t.id}</strong> til <strong>${t.kunde}</strong> som færdigberegnet.</p>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text-muted);">Beregnet af:</label>
+      <select id="klar-af-select" style="margin-top:6px;width:100%;">
+        <option value="CG">CG — Carsten Gram</option>
+        <option value="Nano">Nano</option>
+        <option value="Sanne">Sanne</option>
+      </select>
+    </div>
+    <div style="background:rgba(249,115,22,.1);border:1px solid var(--accent);border-radius:8px;padding:10px;font-size:12px;color:var(--accent);">
+      ⏱ Tidsstempel sættes automatisk til: <strong>${new Date().toLocaleString('da-DK')}</strong>
+    </div>`;
+  document.getElementById('modal-actions').innerHTML=`
+    <button class="btn btn-primary btn-sm" onclick="bekræftKlarTilAfsendelse('${id}')">📤 Marker som klar</button>
+    <button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+async function bekræftKlarTilAfsendelse(id){
+  const t=tilbud.find(x=>x.id===id); if(!t)return;
+  const af=document.getElementById('klar-af-select')?.value||'CG';
+  t.klarTid=new Date().toISOString();
+  t.klarAf=af;
+  t.status='Klar';
+  await gemTilbudIDB(t);
+  closeModal();
+  renderTilbud();
+  showToast('✅ Tilbud '+id+' markeret som klar — '+af+' · '+new Date().toLocaleString('da-DK'));
+}
+
+// =====================
+// STEMPEL 2 — Kundens accept + kommentar + tillæg
+// =====================
+function markerAccepteret(id){
+  const t=tilbud.find(x=>x.id===id); if(!t)return;
+  document.getElementById('modal-title').textContent='✅ Registrer kundens accept';
+  document.getElementById('modal-body').innerHTML=`
+    <p style="font-size:14px;margin-bottom:14px;">Tilbud <strong>${t.id}</strong> til <strong>${t.kunde}</strong> — registrer accept.</p>
+    <div style="display:grid;gap:12px;">
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;">
+        <label style="font-size:12px;color:var(--text-muted);">Accepteret af (hvem hos Lubnan registrerer):</label>
+        <select id="accept-af-select" style="margin-top:6px;width:100%;">
+          <option value="Sanne">Sanne</option>
+          <option value="Nano">Nano</option>
+          <option value="CG">CG — Carsten Gram</option>
+        </select>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;">
+        <label style="font-size:12px;color:var(--text-muted);">Aftale-kommentar (hvad blev aftalt på telefonen):</label>
+        <textarea id="accept-kommentar" placeholder="Fx: Kunde ønsker 12 fl. hvidvin i kommission · Tillæg aftalt..." style="margin-top:6px;width:100%;min-height:80px;font-size:13px;"></textarea>
+      </div>
+      <div style="background:var(--surface2);border-radius:8px;padding:12px;">
+        <label style="font-size:12px;color:var(--text-muted);">Evt. tillæg/fradrag aftalt på telefonen (kr. inkl. moms):</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
+          <select id="accept-tillæg-type" style="width:120px;">
+            <option value="ingen">Ingen</option>
+            <option value="tillæg">+ Tillæg</option>
+            <option value="fradrag">− Fradrag</option>
+          </select>
+          <input type="number" id="accept-tillæg-beloeb" placeholder="0" min="0" style="width:120px;font-size:16px;font-weight:600;">
+          <span style="font-size:13px;color:var(--text-dim);">kr.</span>
+        </div>
+      </div>
+      <div style="background:rgba(34,197,94,.1);border:1px solid var(--green);border-radius:8px;padding:10px;font-size:12px;color:var(--green);">
+        ⏱ Tidsstempel: <strong>${new Date().toLocaleString('da-DK')}</strong>
+      </div>
+    </div>`;
+  document.getElementById('modal-actions').innerHTML=`
+    <button class="btn btn-success btn-sm" onclick="bekræftAccepteret('${id}')">✅ Gem accept</button>
+    <button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+async function bekræftAccepteret(id){
+  const t=tilbud.find(x=>x.id===id); if(!t)return;
+  const af=document.getElementById('accept-af-select')?.value||'Sanne';
+  const kommentar=document.getElementById('accept-kommentar')?.value.trim()||'';
+  const tillægType=document.getElementById('accept-tillæg-type')?.value||'ingen';
+  const tillægBeloeb=parseFloat(document.getElementById('accept-tillæg-beloeb')?.value)||0;
+  let tillæg=0;
+  if(tillægType==='tillæg') tillæg=tillægBeloeb;
+  if(tillægType==='fradrag') tillæg=-tillægBeloeb;
+  t.acceptTid=new Date().toISOString();
+  t.acceptAf=af;
+  t.acceptKommentar=kommentar;
+  t.acceptTillæg=tillæg;
+  t.status='Accepteret';
+  if(tillæg!==0) t.pris=t.pris+tillæg;
+  await gemTilbudIDB(t);
+  closeModal();
+  renderTilbud();
+  showToast('✅ Accept registreret — '+af+' · '+new Date().toLocaleString('da-DK'));
 }
 
 function opdaterAlleAntal(nytAntal){
@@ -1354,7 +1559,51 @@ function udskrivTilbud(id){
     </tfoot>
   </table>
   <p style="font-size:13px;color:#555;margin-top:16px;">Dette tilbud er gyldigt til <strong>${gyldig}</strong>.</p>
-  <div class="footer"><div><div style="font-size:18px;font-weight:700;color:#c2410c;">LUBNAN</div><div>Fadel Aps &middot; Byvej 40, 2650 Hvidovre &middot; CVR: 40758771</div></div><div style="text-align:right;"><div>Tlf: 30 96 13 69</div><div>nano.fadel@hotmail.com</div></div></div>
+  
+  \${t.acceptKommentar?`<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;"><div style="font-size:11px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">✅ Aftale ved accept</div><div style="font-size:13px;color:#1a1a1a;">\${t.acceptKommentar}</div>\${t.acceptTillæg?`<div style="font-size:13px;font-weight:700;color:\${t.acceptTillæg>0?'#16a34a':'#c2410c'};margin-top:6px;">\${t.acceptTillæg>0?'Tillæg':'Fradrag'}: \${Math.abs(t.acceptTillæg).toLocaleString('da')} kr.</div>`:''}  </div>`:''}
+
+  <!-- BETINGELSER -->
+  <div style="margin-top:32px;padding:20px;background:#f9f7f4;border-radius:8px;border:1px solid #e5e7eb;">
+    <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Betingelser og vilkår</div>
+    
+    \${beregnBetalingsinfo(t.pris, t.tid)?(() => {
+      const bi = beregnBetalingsinfo(t.pris, t.tid);
+      return \`<div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Betaling</div>
+        <div style="font-size:13px;color:#333;margin-bottom:4px;">\${bi.tekst}</div>
+        <div style="font-size:15px;font-weight:700;color:#1a1a1a;">Betalingsbeløb: \${bi.beloeb.toLocaleString('da')} kr.</div>
+        \${bi.type==='depositum'?\`<div style="font-size:12px;color:#555;margin-top:3px;">Restbeløb \${bi.rest.toLocaleString('da')} kr. betales senest \${bi.restDato}</div>\`:''}
+      </div>\`;
+    })():''}
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Justering af antal</div>
+      <div style="font-size:13px;color:#333;">Justering af antal kuverter skal ske senest <strong>7 dage før</strong> arrangementet, hvorefter prisen justeres.</div>
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Afbestilling</div>
+      <div style="font-size:13px;color:#333;line-height:1.7;">
+        <div>• Mere end 1 måned før: Depositum refunderes fuldt</div>
+        <div>• Mindre end 1 måned før: 50% af arrangementspris returneres — depositum beholdes</div>
+        <div>• Mindre end 7 dage før: Ingen tilbagebetaling</div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Levering</div>
+      <div style="font-size:13px;color:#333;">
+        Catering: 350 kr. i Storkøbenhavn (postnr. 1000–2999) · 450 kr. på øvrige Sjælland<br>
+        Foodtruck: Gratis i Storkøbenhavn · 450 kr. på øvrige Sjælland<br>
+        Andre landsdele og øer: Pris aftales ved forespørgsel
+      </div>
+    </div>
+  </div>
+
+  \${t.klarTid?`<div style="margin-top:16px;font-size:11px;color:#888;border-top:1px solid #e5e7eb;padding-top:10px;">📤 Beregnet og klargjort: \${new Date(t.klarTid).toLocaleString('da-DK')} af \${t.klarAf}</div>`:''}
+  \${t.acceptTid?`<div style="font-size:11px;color:#16a34a;margin-top:4px;">✅ Accepteret: \${new Date(t.acceptTid).toLocaleString('da-DK')} registreret af \${t.acceptAf}</div>`:''}
+
+  <div class="footer"><div><div style="font-size:18px;font-weight:700;color:#c2410c;">LUBNAN</div><div>Fadel Aps &middot; Byvej 40, 2650 Hvidovre &middot; CVR: 40758771</div></div><div style="text-align:right;"><div>Tlf: 30 96 13 69</div><div>nano.fadel@hotmail.com</div><div>lubnan.dk</div></div></div>
   <div style="margin-top:30px;text-align:center;"><button class="print-btn" onclick="window.print()" style="padding:10px 30px;background:#c2410c;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">Udskriv / Gem som PDF</button></div>
   
 <!-- TICKER -->
@@ -1694,7 +1943,7 @@ testForbindelse();
 
 // TICKER + TRAFIKLYS
 const TICKER_BESKEDER = [
-  {tekst: '🟢 BETA 4.20 er live — Nyheder: Split-screen tilbudsvisning · Se pris og linjer live mens du opretter tilbud', type: 'ny-version'},
+  {tekst: '🟢 BETA 4.21 er live — Nyheder: Stempler · Accept-procedure · Betalingsregler · Foodtruck S-001/S-002/S-003 · Auto-leveringspris fra postnummer', type: 'ny-version'},
   {tekst: '📋 Tilbud sorteres nu efter dato — næste arrangement øverst', type: 'info'},
   {tekst: '✏️ Fritekst-linje tilføjet i tilbudsformularen — til ydelser uden for prislisten', type: 'info'},
   {tekst: '⏱️ Sluttidspunkt kan nu angives på arrangementer', type: 'info'},
