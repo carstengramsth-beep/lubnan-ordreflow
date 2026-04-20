@@ -1056,6 +1056,75 @@ function beregnLeveringFraPostnr(postnr){
 // =====================
 // BETALINGSREGLER (Lubnan FAQ)
 // =====================
+function byggBetingelserHTML(t){
+  let html = '';
+  
+  // Aftale-kommentar ved accept
+  if(t.acceptKommentar){
+    html += '<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;">';
+    html += '<div style="font-size:11px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Aftale ved accept</div>';
+    html += '<div style="font-size:13px;color:#1a1a1a;">'+t.acceptKommentar+'</div>';
+    if(t.acceptTillæg && t.acceptTillæg!==0){
+      const farve = t.acceptTillæg>0?'#16a34a':'#c2410c';
+      const label = t.acceptTillæg>0?'Tillæg':'Fradrag';
+      html += '<div style="font-size:13px;font-weight:700;color:'+farve+';margin-top:6px;">'+label+': '+Math.abs(t.acceptTillæg).toLocaleString('da')+' kr.</div>';
+    }
+    html += '</div>';
+  }
+
+  // Betingelser boks
+  html += '<div style="margin-top:32px;padding:20px;background:#f9f7f4;border-radius:8px;border:1px solid #e5e7eb;">';
+  html += '<div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Betingelser og vilkår</div>';
+
+  // Betalingsinfo
+  const bi = beregnBetalingsinfo(t.pris, t.tid);
+  if(bi){
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Betaling</div>';
+    html += '<div style="font-size:13px;color:#333;margin-bottom:4px;">'+bi.tekst+'</div>';
+    html += '<div style="font-size:15px;font-weight:700;color:#1a1a1a;">Betalingsbeløb: '+bi.beloeb.toLocaleString('da')+' kr.</div>';
+    if(bi.type==='depositum'){
+      html += '<div style="font-size:12px;color:#555;margin-top:3px;">Restbeløb '+bi.rest.toLocaleString('da')+' kr. betales senest '+bi.restDato+'</div>';
+    }
+    html += '</div>';
+  }
+
+  // Justering
+  html += '<div style="margin-bottom:14px;">';
+  html += '<div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Justering af antal</div>';
+  html += '<div style="font-size:13px;color:#333;">Justering af antal kuverter skal ske senest <strong>7 dage før</strong> arrangementet, hvorefter prisen justeres.</div>';
+  html += '</div>';
+
+  // Afbestilling
+  html += '<div style="margin-bottom:14px;">';
+  html += '<div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Afbestilling</div>';
+  html += '<div style="font-size:13px;color:#333;line-height:1.7;">';
+  html += '<div>• Mere end 1 måned før: Depositum refunderes fuldt</div>';
+  html += '<div>• Mindre end 1 måned før: 50% af arrangementspris returneres — depositum beholdes</div>';
+  html += '<div>• Mindre end 7 dage før: Ingen tilbagebetaling</div>';
+  html += '</div></div>';
+
+  // Levering
+  html += '<div>';
+  html += '<div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Levering</div>';
+  html += '<div style="font-size:13px;color:#333;line-height:1.7;">';
+  html += 'Catering: 350 kr. i Storkøbenhavn (postnr. 1000–2999) · 450 kr. på øvrige Sjælland<br>';
+  html += 'Foodtruck: Gratis i Storkøbenhavn · 450 kr. på øvrige Sjælland<br>';
+  html += 'Andre landsdele og øer: Pris aftales ved forespørgsel';
+  html += '</div></div>';
+  html += '</div>';
+
+  // Stempler
+  if(t.klarTid){
+    html += '<div style="margin-top:16px;font-size:11px;color:#888;border-top:1px solid #e5e7eb;padding-top:10px;">Beregnet og klargjort: '+new Date(t.klarTid).toLocaleString('da-DK')+' af '+t.klarAf+'</div>';
+  }
+  if(t.acceptTid){
+    html += '<div style="font-size:11px;color:#16a34a;margin-top:4px;">Accepteret: '+new Date(t.acceptTid).toLocaleString('da-DK')+' registreret af '+t.acceptAf+'</div>';
+  }
+
+  return html;
+}
+
 function beregnBetalingsinfo(tilbudsPris, arrangementsDato){
   if(!arrangementsDato) return null;
   const nu = new Date();
@@ -1559,50 +1628,7 @@ function udskrivTilbud(id){
     </tfoot>
   </table>
   <p style="font-size:13px;color:#555;margin-top:16px;">Dette tilbud er gyldigt til <strong>${gyldig}</strong>.</p>
-  
-  \${t.acceptKommentar?`<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 16px;margin:16px 0;border-radius:0 6px 6px 0;"><div style="font-size:11px;color:#16a34a;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">✅ Aftale ved accept</div><div style="font-size:13px;color:#1a1a1a;">\${t.acceptKommentar}</div>\${t.acceptTillæg?`<div style="font-size:13px;font-weight:700;color:\${t.acceptTillæg>0?'#16a34a':'#c2410c'};margin-top:6px;">\${t.acceptTillæg>0?'Tillæg':'Fradrag'}: \${Math.abs(t.acceptTillæg).toLocaleString('da')} kr.</div>`:''}  </div>`:''}
-
-  <!-- BETINGELSER -->
-  <div style="margin-top:32px;padding:20px;background:#f9f7f4;border-radius:8px;border:1px solid #e5e7eb;">
-    <div style="font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:14px;border-bottom:1px solid #e5e7eb;padding-bottom:8px;">Betingelser og vilkår</div>
-    
-    \${beregnBetalingsinfo(t.pris, t.tid)?(() => {
-      const bi = beregnBetalingsinfo(t.pris, t.tid);
-      return \`<div style="margin-bottom:14px;">
-        <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Betaling</div>
-        <div style="font-size:13px;color:#333;margin-bottom:4px;">\${bi.tekst}</div>
-        <div style="font-size:15px;font-weight:700;color:#1a1a1a;">Betalingsbeløb: \${bi.beloeb.toLocaleString('da')} kr.</div>
-        \${bi.type==='depositum'?\`<div style="font-size:12px;color:#555;margin-top:3px;">Restbeløb \${bi.rest.toLocaleString('da')} kr. betales senest \${bi.restDato}</div>\`:''}
-      </div>\`;
-    })():''}
-
-    <div style="margin-bottom:14px;">
-      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Justering af antal</div>
-      <div style="font-size:13px;color:#333;">Justering af antal kuverter skal ske senest <strong>7 dage før</strong> arrangementet, hvorefter prisen justeres.</div>
-    </div>
-
-    <div style="margin-bottom:14px;">
-      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Afbestilling</div>
-      <div style="font-size:13px;color:#333;line-height:1.7;">
-        <div>• Mere end 1 måned før: Depositum refunderes fuldt</div>
-        <div>• Mindre end 1 måned før: 50% af arrangementspris returneres — depositum beholdes</div>
-        <div>• Mindre end 7 dage før: Ingen tilbagebetaling</div>
-      </div>
-    </div>
-
-    <div>
-      <div style="font-size:12px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Levering</div>
-      <div style="font-size:13px;color:#333;">
-        Catering: 350 kr. i Storkøbenhavn (postnr. 1000–2999) · 450 kr. på øvrige Sjælland<br>
-        Foodtruck: Gratis i Storkøbenhavn · 450 kr. på øvrige Sjælland<br>
-        Andre landsdele og øer: Pris aftales ved forespørgsel
-      </div>
-    </div>
-  </div>
-
-  \${t.klarTid?`<div style="margin-top:16px;font-size:11px;color:#888;border-top:1px solid #e5e7eb;padding-top:10px;">📤 Beregnet og klargjort: \${new Date(t.klarTid).toLocaleString('da-DK')} af \${t.klarAf}</div>`:''}
-  \${t.acceptTid?`<div style="font-size:11px;color:#16a34a;margin-top:4px;">✅ Accepteret: \${new Date(t.acceptTid).toLocaleString('da-DK')} registreret af \${t.acceptAf}</div>`:''}
-
+  ${byggBetingelserHTML(t)}
   <div class="footer"><div><div style="font-size:18px;font-weight:700;color:#c2410c;">LUBNAN</div><div>Fadel Aps &middot; Byvej 40, 2650 Hvidovre &middot; CVR: 40758771</div></div><div style="text-align:right;"><div>Tlf: 30 96 13 69</div><div>nano.fadel@hotmail.com</div><div>lubnan.dk</div></div></div>
   <div style="margin-top:30px;text-align:center;"><button class="print-btn" onclick="window.print()" style="padding:10px 30px;background:#c2410c;color:#fff;border:none;border-radius:6px;font-size:15px;cursor:pointer;">Udskriv / Gem som PDF</button></div>
   
