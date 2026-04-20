@@ -261,6 +261,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
 <!-- TILBUD LISTE -->
 <div id="page-tilbud" class="hidden">
   <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Tilbud</div><button class="btn btn-primary btn-sm" onclick="nytTilbud()">+ Opret tilbud</button></div>
+  <div id="tilbud-gemt-box" style="display:none;background:rgba(34,197,94,.15);border:2px solid var(--green);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:14px;font-weight:600;color:var(--green);"></div>
   <table class="tbl">
     <thead><tr><th>Nr.</th><th>Kunde</th><th>Afdeling</th><th>Beskrivelse</th><th>Dato</th><th>Listepris</th><th>Justering</th><th>Tilbudspris</th><th>Status</th><th>Handling</th></tr></thead>
     <tbody id="tilbud-tbody"></tbody>
@@ -376,6 +377,12 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
     </div>
     <div class="form-section">
       <div class="form-section-title">Varelinjer</div>
+      <div class="kurv hidden" id="t-kurv" style="margin-bottom:16px;">
+        <div class="kurv-title"><span>&#128722; Tilbudslinjer</span><button class="btn btn-xs btn-secondary" onclick="tomTilbudKurv()">T&#248;m</button></div>
+        <div id="t-kurv-items"></div>
+        <div class="kurv-total"><span style="font-size:13px;color:var(--text-dim);">Total incl. moms</span><span class="kurv-total-val" id="t-kurv-total">0 kr.</span></div>
+        <div class="kurv-moms" id="t-kurv-moms"></div>
+      </div>
       <div class="form-group" style="margin-bottom:12px;">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
           <input type="text" id="t-vare-nr-input" placeholder="Varenr. fx F-003" style="width:180px;font-family:'JetBrains Mono',monospace;" oninput="sogVareNrTilbud(this.value)" onkeydown="if(event.key==='Enter')tilfoejVareNrTilbud()" data-nav>
@@ -395,12 +402,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
           <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Salgspris = hvad kunden betaler pr. stk. inkl. moms · Min/stk. = til beregning af DB pr. time</div>
         </div>
       </div>
-      <div class="kurv hidden" id="t-kurv">
-        <div class="kurv-title"><span>&#128722; Tilbudslinjer</span><button class="btn btn-xs btn-secondary" onclick="tomTilbudKurv()">T&#248;m</button></div>
-        <div id="t-kurv-items"></div>
-        <div class="kurv-total"><span style="font-size:13px;color:var(--text-dim);">Total incl. moms</span><span class="kurv-total-val" id="t-kurv-total">0 kr.</span></div>
-        <div class="kurv-moms" id="t-kurv-moms"></div>
-      </div>
+
     </div>
     <!-- INTERN KALKULATION MED LIVE RABAT -->
     <div class="form-section" id="t-kalkulation" style="display:none;">
@@ -637,7 +639,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);bo
         <option value="version">&#9881; System</option>
       </select>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;">
+    <!-- START OG SLUTTIDSPUNKT -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;background:var(--surface2);border-radius:8px;padding:12px;">
+      <div>
+        <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">&#128197; Vis fra (dato og tid)</label>
+        <input type="datetime-local" id="bc-start" style="margin-top:4px;width:100%;">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">Tom = vises med det samme</div>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;">&#128197; Vis til (dato og tid)</label>
+        <input type="datetime-local" id="bc-slut" style="margin-top:4px;width:100%;">
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">Tom = vises indtil manuel arkivering</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <select id="bc-fra" style="width:180px;">
         <option value="Ledelsen">Fra: Ledelsen</option>
         <option value="Nano">Fra: Nano</option>
@@ -1164,7 +1179,15 @@ async function opretTilbud(){
     tilbud.unshift(nytTilbud);
     tilbudKurv=[];
     ['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    updateStats();renderTilbud();showToast('Tilbud '+nr+' gemt i database!');showPage('tilbud');
+    updateStats();renderTilbud();
+    // Tydelig bekræftelse
+    showToast('✅ Tilbud '+nr+' er gemt i databasen!');
+    // Vis bekræftelsesboks øverst på tilbud-siden
+    setTimeout(()=>{
+      const box = document.getElementById('tilbud-gemt-box');
+      if(box){box.textContent='✅ Tilbud '+nr+' er gemt korrekt i databasen — '+new Date().toLocaleString('da-DK');box.style.display='block';setTimeout(()=>box.style.display='none',8000);}
+    },200);
+    showPage('tilbud');
   }
 }
 
@@ -1626,7 +1649,15 @@ function buildTicker() {
   const inner = document.getElementById('ticker-inner');
   if (!inner) return;
   // Kombiner system-beskeder og broadcast-beskeder
-  const bcItems = broadcastBeskeder.map(b=>({tekst: BC_IKONER[b.type]+' '+b.tekst+' — '+b.fra}));
+  const nu = new Date();
+  const bcItems = broadcastBeskeder
+    .filter(b=>{
+      if(!b.aktiv) return false;
+      if(b.start_tid && new Date(b.start_tid) > nu) return false; // endnu ikke aktiv
+      if(b.slut_tid && new Date(b.slut_tid) < nu) return false;   // udløbet
+      return true;
+    })
+    .map(b=>({tekst: BC_IKONER[b.type]+' '+b.tekst+' — '+b.fra}));
   const alleItems = bcItems.length > 0 ? [...bcItems, ...TICKER_BESKEDER] : TICKER_BESKEDER;
   const items = [...alleItems, ...alleItems];
   inner.innerHTML = items.map(b => 
@@ -1663,29 +1694,56 @@ const BC_IKONER = {
   version: '⚙️'
 };
 
-function sendBroadcast(){
+async function sendBroadcast(){
   const tekst = document.getElementById('bc-tekst').value.trim();
   const type = document.getElementById('bc-type').value;
   const fra = document.getElementById('bc-fra').value;
+  const startVal = document.getElementById('bc-start').value;
+  const slutVal = document.getElementById('bc-slut').value;
   if(!tekst){alert('Skriv en besked først!');return;}
   
+  const nu = new Date().toISOString();
+  const row = {
+    tekst, type, fra,
+    start_tid: startVal ? new Date(startVal).toISOString() : nu,
+    slut_tid: slutVal ? new Date(slutVal).toISOString() : null,
+    aktiv: true,
+    dato: new Date().toLocaleString('da-DK')
+  };
+
   if(redigerBcId){
     const bc = broadcastBeskeder.find(b=>b.id===redigerBcId);
-    if(bc){bc.tekst=tekst;bc.type=type;bc.fra=fra;bc.redigeret=new Date().toLocaleString('da-DK');}
+    if(bc){
+      Object.assign(bc, {tekst, type, fra, start_tid: row.start_tid, slut_tid: row.slut_tid, redigeret: new Date().toLocaleString('da-DK')});
+      // Gem i Supabase hvis den har dbId
+      if(bc.dbId){
+        await db.from('broadcasts').update({tekst,type,fra,start_tid:row.start_tid,slut_tid:row.slut_tid,aktiv:true}).eq('id',bc.dbId);
+      }
+    }
     redigerBcId = null;
   } else {
-    const ny = {
-      id: Date.now(),
-      tekst,
-      type,
-      fra,
-      dato: new Date().toLocaleString('da-DK'),
-      aktiv: true
-    };
-    broadcastBeskeder.unshift(ny);
+    // Gem i Supabase
+    try {
+      const {data, error} = await db.from('broadcasts').insert(row).select().single();
+      if(error){
+        // Fallback til localStorage hvis broadcasts-tabel ikke eksisterer endnu
+        const ny = {id: Date.now(), ...row};
+        broadcastBeskeder.unshift(ny);
+        gemBroadcastStorage();
+      } else {
+        const ny = {id: data.id, dbId: data.id, ...row};
+        broadcastBeskeder.unshift(ny);
+      }
+    } catch(e){
+      const ny = {id: Date.now(), ...row};
+      broadcastBeskeder.unshift(ny);
+      gemBroadcastStorage();
+    }
   }
   
   document.getElementById('bc-tekst').value = '';
+  document.getElementById('bc-start').value = '';
+  document.getElementById('bc-slut').value = '';
   document.getElementById('bc-preview').style.display = 'none';
   const gemBtn = document.querySelector('[onclick="sendBroadcast()"]');
   if(gemBtn) gemBtn.innerHTML = '🚀 Send til ticker';
@@ -1715,6 +1773,15 @@ function redigerBroadcast(id){
   document.getElementById('bc-tekst').value = bc.tekst;
   document.getElementById('bc-type').value = bc.type;
   document.getElementById('bc-fra').value = bc.fra;
+  // Udfyld start/slut tidspunkt
+  if(bc.start_tid){
+    const d = new Date(bc.start_tid);
+    document.getElementById('bc-start').value = d.toISOString().slice(0,16);
+  }
+  if(bc.slut_tid){
+    const d = new Date(bc.slut_tid);
+    document.getElementById('bc-slut').value = d.toISOString().slice(0,16);
+  }
   const gemBtn = document.querySelector('[onclick="sendBroadcast()"]');
   if(gemBtn) gemBtn.innerHTML = '✓ Gem ændringer';
   showPage('broadcast');
@@ -1748,6 +1815,22 @@ function toggleBcArkiv(){
   if(el) el.style.display = el.style.display==='none'?'block':'none';
 }
 
+function bcTidTekst(bc){
+  const el = document.getElementById('bc-tid-'+bc.id);
+  if(!el) return;
+  let html = '';
+  if(bc.start_tid){
+    html += '<span style="color:var(--blue2);">▶ Fra: ' + new Date(bc.start_tid).toLocaleString('da-DK',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</span>';
+  }
+  if(bc.slut_tid){
+    const udlobet = new Date(bc.slut_tid) < new Date();
+    html += ' <span style="color:' + (udlobet ? 'var(--red)' : 'var(--green)') + ';">· Til: ' + new Date(bc.slut_tid).toLocaleString('da-DK',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</span>';
+  } else {
+    html += ' <span style="color:var(--text-muted);">· Ingen udløbsdato</span>';
+  }
+  el.innerHTML = html;
+}
+
 function renderBroadcast(){
   // Aktive beskeder
   const aktiveEl = document.getElementById('bc-aktive');
@@ -1760,6 +1843,7 @@ function renderBroadcast(){
           <div style="flex:1;">
             <div style="font-size:15px;margin-bottom:4px;">${BC_IKONER[bc.type]} ${bc.tekst}</div>
             <div style="font-size:11px;color:var(--text-muted);">Fra: ${bc.fra} · ${bc.dato}${bc.redigeret?' · Redigeret: '+bc.redigeret:''}</div>
+            <div style="font-size:11px;margin-top:3px;" id="bc-tid-${bc.id}"></div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0;">
             <button class="btn btn-secondary btn-xs" onclick="redigerBroadcast(${bc.id})">✏️ Rediger</button>
@@ -1767,6 +1851,8 @@ function renderBroadcast(){
             <button class="btn btn-danger btn-xs" onclick="sletBroadcast(${bc.id})">Slet</button>
           </div>
         </div>`).join('');
+      // Udfyld tidspunkter efter DOM er klar
+      setTimeout(()=>broadcastBeskeder.forEach(bc=>bcTidTekst(bc)),50);
     }
   }
   
