@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.25 — Bygget: 2026-04-21 — Database-gemning rettet -->
+<!-- Lubnan Ordreflow 4.26 — Bygget: 2026-04-21 — Database-gemning rettet -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.25</title>
+<title>Lubnan Ordreflow 4.26</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -166,6 +166,23 @@ textarea{resize:vertical;min-height:80px;}
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.hbk-kort{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;cursor:pointer;transition:all .2s;}
+.hbk-kort:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(249,115,22,.12);}
+.hbk-ikon{font-size:28px;margin-bottom:10px;}
+.hbk-titel{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;margin-bottom:6px;color:var(--text);}
+.hbk-desc{font-size:12px;color:var(--text-dim);line-height:1.5;margin-bottom:10px;}
+.hbk-laes{font-size:12px;color:var(--accent);font-weight:600;}
+.hbk-sektion{margin-bottom:20px;}
+.hbk-boks{border-radius:8px;padding:14px;margin-bottom:10px;}
+.hbk-boks-groen{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);}
+.hbk-boks-roed{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);}
+.hbk-boks-gul{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);}
+.hbk-boks-blaa{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);}
+.hbk-trin{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+.hbk-trin-nr{background:var(--accent);color:#fff;font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.hbk-trin-tekst{font-size:13px;line-height:1.7;flex:1;}
+.hbk-ref{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--blue2);cursor:pointer;margin:2px;}
+.hbk-ref:hover{border-color:var(--blue);}
 .navn-edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;display:flex;align-items:center;justify-content:center;}
 .navn-edit-box{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:20px;width:300px;}
 </style>
@@ -175,7 +192,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">BETA 4.25</span>
+    <span class="hdr-ver">BETA 4.26</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -439,401 +456,124 @@ textarea{resize:vertical;min-height:80px;}
 
 <!-- HÅNDBOGEN -->
 <div id="page-biblen" class="hidden">
-  <div style="max-width:820px;">
+  <div style="max-width:860px;">
 
     <!-- HEADER -->
     <div style="background:linear-gradient(135deg,var(--surface2),var(--surface3));border:1px solid var(--border2);border-radius:12px;padding:24px;margin-bottom:20px;">
       <div style="font-family:'Playfair Display',serif;font-size:30px;margin-bottom:6px;">📖 Lubnan Håndbogen</div>
-      <div style="font-size:14px;color:var(--text-dim);margin-bottom:12px;">Din komplette guide til Lubnan Ordreflow — læs den når du er ny, og slå op når du er i tvivl</div>
-      <div style="font-size:12px;color:var(--text-muted);">Fadel Aps · Byvej 40 · 2650 Hvidovre · Tlf: 30 96 13 69</div>
+      <div style="font-size:14px;color:var(--text-dim);margin-bottom:4px;">Din komplette guide til Lubnan Ordreflow</div>
+      <div style="font-size:12px;color:var(--text-muted);">Klik på et kapitel for at læse det · Fadel Aps · Byvej 40 · 2650 Hvidovre</div>
     </div>
 
-    <!-- INDHOLDSFORTEGNELSE -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;">Indhold</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;">
-        <div style="color:var(--blue2);">📅 1. Dagsstart</div>
-        <div style="color:var(--blue2);">📋 2. Ordreoversigt</div>
-        <div style="color:var(--blue2);">👥 3. Opret kunde</div>
-        <div style="color:var(--blue2);">📝 4. Opret tilbud</div>
-        <div style="color:var(--blue2);">✅ 5. Tilbud til ordre</div>
-        <div style="color:var(--blue2);">➕ 6. Opret ordre direkte</div>
-        <div style="color:var(--blue2);">🍳 7. Håndter ordre</div>
-        <div style="color:var(--blue2);">🚚 8. Foodtruck regler</div>
-        <div style="color:var(--blue2);">💰 9. Betalingsregler</div>
-        <div style="color:var(--blue2);">❌ 10. Afbestilling</div>
-        <div style="color:var(--blue2);">🌙 11. Dagsafslut</div>
-      </div>
-    </div>
+    <!-- KAPITEL KORT OVERSIGT -->
+    <div id="haandbog-oversigt">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:12px;">Vælg et kapitel</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
 
-    <!-- KAPITEL 1 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">📅</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">1. Dagsstart</div>
-          <div style="font-size:12px;color:var(--text-dim);">Sådan starter du arbejdsdagen rigtigt</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Hver arbejdsdag starter med at tjekke Ordreflow. Det tager kun 2-3 minutter og sikrer at du ved hvad der sker i dag — og hvad der kommer.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1 — Åbn systemet</strong><br>
-        Åbn Microsoft Edge browseren. Gå til adressen: <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 8px;border-radius:4px;">lubnan-ordreflow.netlify.app</span><br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Tip: Sæt siden som favorit så du hurtigt kan finde den igen.</span></p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2 — Tjek databaseforbindelsen</strong><br>
-        Øverst til venstre skal der stå <span style="color:var(--green);font-weight:600;">✅ Database OK</span> med grøn baggrund.<br>
-        <span style="color:var(--red);font-size:12px;">⚠️ Hvis der står rød "Database fejl" — ring til Carsten med det samme på 20 73 25 25. Ingen data kan gemmes når databasen er nede!</span></p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3 — Tjek dagens ordrer</strong><br>
-        Klik på <strong>Ordreoversigt</strong> i menuen. Her ser du alle aktive ordrer fordelt på status. Gennemgå om der er ordrer der skal håndteres i dag — se efter røde og orange farver der signalerer at det haster.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4 — Tjek kalenderen</strong><br>
-        Klik på <strong>Kalender</strong>. Se hvad der sker i dag og de næste 7 dage. Er der arrangementer der kræver at maden skal forberedes tidligt?</p>
-
-        <p><strong style="color:var(--accent);">Trin 5 — Tjek åbne tilbud</strong><br>
-        Klik på <strong>Tilbud</strong>. Er der tilbud der venter på svar fra kunder? Hvis et tilbud snart udløber — overvej om I skal ringe til kunden og følge op.</p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 2 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">📋</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">2. Ordreoversigt — stafetløbet</div>
-          <div style="font-size:12px;color:var(--text-dim);">Forstå hvordan en ordre bevæger sig fra start til slut</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Ordreoversigten er hjertet i Lubnan Ordreflow. Her kan alle se hvad der sker lige nu — og hvem der er ansvarlig for hvad. Tænk på det som en digital whiteboard på væggen i køkkenet.</p>
-
-        <p style="margin-bottom:10px;"><strong style="color:var(--accent);">Stafetløbet — 4 trin:</strong></p>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
-          <div style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:22px;">📥</div>
-            <div style="font-size:12px;font-weight:600;margin-top:6px;color:var(--yellow);">Trin 1</div>
-            <div style="font-size:11px;margin-top:2px;">Ordre modtaget</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Ordre er registreret</div>
-          </div>
-          <div style="background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:22px;">🍳</div>
-            <div style="font-size:12px;font-weight:600;margin-top:6px;color:var(--accent);">Trin 2</div>
-            <div style="font-size:11px;margin-top:2px;">I produktion</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Maden laves nu</div>
-          </div>
-          <div style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:22px;">📦</div>
-            <div style="font-size:12px;font-weight:600;margin-top:6px;color:var(--blue2);">Trin 3</div>
-            <div style="font-size:11px;margin-top:2px;">Klar til pakning</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Maden er færdig</div>
-          </div>
-          <div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:12px;text-align:center;">
-            <div style="font-size:22px;">✅</div>
-            <div style="font-size:12px;font-weight:600;margin-top:6px;color:var(--green);">Trin 4</div>
-            <div style="font-size:11px;margin-top:2px;">Klar til afhentning</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Kunden kan hente</div>
-          </div>
+        <div class="hbk-kort" onclick="aabKapitel(1)">
+          <div class="hbk-ikon">📅</div>
+          <div class="hbk-titel">1. Dagsstart</div>
+          <div class="hbk-desc">Sådan starter du arbejdsdagen rigtigt — tjekliste til morgenen</div>
+          <div class="hbk-laes">Læs kapitel →</div>
         </div>
 
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Sådan rykker du en ordre til næste trin:</strong><br>
-        Klik på ordrekortet → et vindue åbner sig → klik på den orange knap der viser næste trin.<br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Systemet registrerer automatisk klokkeslættet når du rykker en ordre frem — så alle kan se hvornår det skete.</span></p>
+        <div class="hbk-kort" onclick="aabKapitel(2)">
+          <div class="hbk-ikon">📋</div>
+          <div class="hbk-titel">2. Ordreoversigt</div>
+          <div class="hbk-desc">Forstå stafetløbet — farvekoder og hvordan du rykker ordrer frem</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
 
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Farvekoderne på ordrekortene:</strong><br>
-        <span style="color:#22c55e;">● Grøn</span> = God tid — mere end 1 time til levering<br>
-        <span style="color:#eab308;">● Gul</span> = Snart — under 1 time til levering<br>
-        <span style="color:#f97316;">● Orange</span> = Haster — under 30 minutter<br>
-        <span style="color:#ef4444;">● Rød</span> = Overskredet eller under 15 minutter</p>
+        <div class="hbk-kort" onclick="aabKapitel(3)">
+          <div class="hbk-ikon">👥</div>
+          <div class="hbk-titel">3. Opret kunde</div>
+          <div class="hbk-desc">Gem kundeoplysninger én gang og brug dem igen og igen</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
 
-        <p><strong style="color:var(--accent);">Filtrering efter afdeling:</strong><br>
-        Øverst i Ordreoversigt kan du klikke på en afdeling — fx "Hvidovre" eller "Reffen" — for kun at se ordrer fra den afdeling. Praktisk når du arbejder på én lokation.</p>
+        <div class="hbk-kort" onclick="aabKapitel(4)">
+          <div class="hbk-ikon">📝</div>
+          <div class="hbk-titel">4. Opret tilbud</div>
+          <div class="hbk-desc">Lav et prisoverslag til kunden — trin for trin guide</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(5)">
+          <div class="hbk-ikon">✅</div>
+          <div class="hbk-titel">5. Tilbud til ordre</div>
+          <div class="hbk-desc">Når kunden siger ja — sådan konverterer du tilbuddet</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(6)">
+          <div class="hbk-ikon">➕</div>
+          <div class="hbk-titel">6. Opret ordre direkte</div>
+          <div class="hbk-desc">Når kunden bestiller uden tilbud — hurtig ordre oprettelse</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(7)">
+          <div class="hbk-ikon">🍳</div>
+          <div class="hbk-titel">7. Håndter en ordre</div>
+          <div class="hbk-desc">Fra køkken til levering — følg ordren hele vejen</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(8)">
+          <div class="hbk-ikon">🚚</div>
+          <div class="hbk-titel">8. Foodtruck regler</div>
+          <div class="hbk-desc">Priser, transport og vigtige regler for foodtruck booking</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(9)">
+          <div class="hbk-ikon">💰</div>
+          <div class="hbk-titel">9. Betalingsregler</div>
+          <div class="hbk-desc">Depositum, restbetaling og frister — meget vigtigt!</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(10)">
+          <div class="hbk-ikon">❌</div>
+          <div class="hbk-titel">10. Afbestillingsregler</div>
+          <div class="hbk-desc">Hvad sker der når en kunde afbestiller — og hvornår</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(11)">
+          <div class="hbk-ikon">🌙</div>
+          <div class="hbk-titel">11. Dagsafslut</div>
+          <div class="hbk-desc">Sådan lukker du dagen ned korrekt — 5 minutters tjekliste</div>
+          <div class="hbk-laes">Læs kapitel →</div>
+        </div>
+
+        <div class="hbk-kort" onclick="aabKapitel(12)" style="border-color:var(--blue);background:rgba(59,130,246,.05);">
+          <div class="hbk-ikon">📱</div>
+          <div class="hbk-titel">12. Kunde-tracking</div>
+          <div class="hbk-desc">Sådan følger kunden sin ordre via QR-kode — ingen app nødvendig!</div>
+          <div class="hbk-laes" style="color:var(--blue2);">Læs kapitel →</div>
+        </div>
+
       </div>
     </div>
 
-    <!-- KAPITEL 3 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">👥</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">3. Opret en kunde</div>
-          <div style="font-size:12px;color:var(--text-dim);">Gem kundeoplysninger én gang — brug dem igen og igen</div>
-        </div>
+    <!-- KAPITEL INDHOLD (skjult som standard) -->
+    <div id="haandbog-kapitel" style="display:none;">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;">
+        <button class="btn btn-secondary btn-sm" onclick="lukKapitel()">← Tilbage til oversigt</button>
+        <div style="font-size:12px;color:var(--text-muted);" id="hbk-breadcrumb">Håndbogen</div>
       </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Når du opretter en kunde i systemet, behøver du aldrig skrive deres oplysninger igen. Næste gang du laver en ordre eller et tilbud til dem, finder systemet automatisk deres adresse, email og telefonnummer.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1</strong> — Klik på <strong>Kunder</strong> i menuen øverst.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2</strong> — Klik på den orange knap <strong>➕ Ny kunde</strong> øverst til højre.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3</strong> — Udfyld felterne. Jo mere information jo bedre:<br>
-        <span style="color:var(--text-dim);font-size:12px;">• Navn på virksomhed eller person (obligatorisk)<br>
-        • Kontaktpersonens navn<br>
-        • Email — bruges til at sende tilbud<br>
-        • Telefonnummer — bruges ved spørgsmål og SMS<br>
-        • Adresse — bruges automatisk ved levering</span></p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4</strong> — Vælg kundegruppe:<br>
-        <span style="color:var(--blue2);">Privat</span> = Almindelig person · <span style="color:var(--accent);">Erhverv</span> = Virksomhed · <span style="color:var(--purple);">Storkunde</span> = Fast stor kunde</p>
-        <p><strong style="color:var(--accent);">Trin 5</strong> — Klik <strong>✓ Gem kunde</strong>.<br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Tip: Søg altid efter kunden først inden du opretter en ny — måske findes de allerede i systemet!</span></p>
+      <div id="hbk-indhold"></div>
+      <div style="display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="btn btn-secondary btn-sm" id="hbk-forrige" onclick="navigerKapitel(-1)">← Forrige kapitel</button>
+        <button class="btn btn-primary btn-sm" id="hbk-naeste" onclick="navigerKapitel(1)">Næste kapitel →</button>
+        <button class="btn btn-secondary btn-sm" onclick="lukKapitel()" style="margin-left:auto;">↑ Alle kapitler</button>
       </div>
-    </div>
-
-    <!-- KAPITEL 4 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">📝</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">4. Opret et tilbud</div>
-          <div style="font-size:12px;color:var(--text-dim);">Når en kunde vil have et prisoverslag før de beslutter sig</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Et tilbud er et prisoverslag til kunden — det er ikke en ordre endnu. Kunden får tilbuddet, tænker over det, og siger så ja eller nej. Tilbuddet gemmes i systemet så du altid kan finde det igen.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1</strong> — Klik på <strong>Opret tilbud</strong> i menuen øverst.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2</strong> — Skriv kundens navn i feltet øverst. Hvis kunden findes i systemet dukker de op i en liste — klik på dem for at udfylde alle felter automatisk.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3</strong> — Skriv arrangementsbeskrivelsen. Fx: <em style="color:var(--text-dim);">"Fødselsdagsfest for 40 personer — buffet med mezze og hovedretter"</em></p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4</strong> — Vælg dato og tidspunkt for arrangementet.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 5</strong> — Tilføj varelinjer. Du kan:<br>
-        <span style="color:var(--text-dim);font-size:12px;">• Skrive varenummeret direkte — fx <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;">F-001</span> for Hummus<br>
-        • Vælge fra dropdown-listen<br>
-        • Tilføje en fri linje til fx ekstra personale eller transport</span></p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 6</strong> — Justér antal på varerne med + og − knapperne. Sæt standard antal øverst så alle nye varelinjer starter med det rigtige antal.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 7</strong> — Tilføj evt. rabat eller tillæg under <strong>Prisjustering</strong>. Systemet beregner den nye pris automatisk og viser forskellen tydeligt.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 8</strong> — Klik <strong>✓ Gem tilbud</strong>. Tilbuddet gemmes nu sikkert i databasen.<br>
-        <span style="color:var(--red);font-size:12px;">⚠️ Vigtigt: Gem altid tilbuddet inden du lukker siden — ellers mister du arbejdet!</span></p>
-        <p><strong style="color:var(--accent);">Trin 9</strong> — Klik på <strong>🖨 Tilbud</strong> knappen for at åbne en printvenlig version som du kan sende til kunden som PDF eller printe ud.</p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 5 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">✅</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">5. Konverter tilbud til ordre</div>
-          <div style="font-size:12px;color:var(--text-dim);">Når kunden siger ja — så sker dette</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Når kunden accepterer tilbuddet, skal det konverteres til en ordre. Det gøres med ét enkelt klik — systemet overfører automatisk alle oplysninger fra tilbuddet til ordren.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1</strong> — Klik på <strong>Tilbud</strong> i menuen — find det tilbud kunden har sagt ja til.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2</strong> — Klik på den grønne <strong>→ Ordre</strong> knap på tilbudslinjen.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3</strong> — Ordren oprettes automatisk og dukker op i Ordreoversigt under "Nye ordrer".<br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Tilbuddet forbliver i tilbudslisten — det forsvinder ikke.</span></p>
-        <p><strong style="color:var(--accent);">Trin 4 — Husk betaling!</strong><br>
-        Registrér om kunden har betalt depositum. Se kapitel 9 for betalingsregler.<br>
-        <span style="color:var(--red);font-size:12px;">⚠️ Husk: Sende aldrig en ordre i produktion uden at betalingen er afklaret med Nano eller Carsten!</span></p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 6 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">➕</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">6. Opret en ordre direkte</div>
-          <div style="font-size:12px;color:var(--text-dim);">Når kunden bestiller uden at have fået et tilbud først</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Nogle gange ringer en kunde og bestiller direkte — uden at have fået et tilbud. Det sker fx ved faste kunder der ved hvad de vil have, eller ved mindre takeaway-ordrer. Så opretter du ordren direkte.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1</strong> — Klik på <strong>+ Opret ordre</strong> i menuen øverst.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2</strong> — Skriv kundens navn. Systemet finder automatisk kunden hvis den findes — klik på navnet for at udfylde adresse og kontaktoplysninger automatisk.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3</strong> — Vælg afdeling — fx Hvidovre, Reffen, Foodtruck 1 eller Foodtruck 2.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4</strong> — Tilføj varer via varenummer eller dropdown-liste.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 5</strong> — Udfyld beskrivelse og leveringstidspunkt — disse felter er obligatoriske.<br>
-        <span style="color:var(--text-dim);font-size:12px;">Eksempel på beskrivelse: "Frokostbuffet til 25 personer — Novo Nordisk kantinen"</span></p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--red);">Trin 6 — ALLERGIER er meget vigtige!</strong><br>
-        Skriv alle allergier og særlige hensyn i det røde felt. Vær meget specifik:<br>
-        <span style="color:var(--text-dim);font-size:12px;">Eksempel: "3 personer med NØDDE ALLERGI — livstruende. 1 person glutenfri. Al mad skal være halal."</span><br>
-        <span style="color:var(--red);font-size:12px;">⚠️ Dette er ikke noget vi kan glemme — det kan koste liv!</span></p>
-        <p><strong style="color:var(--accent);">Trin 7</strong> — Klik <strong>✓ Gem ordre</strong> — ordren er nu i systemet og vises i Ordreoversigt.</p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 7 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">🍳</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">7. Håndter en ordre — fra køkken til levering</div>
-          <div style="font-size:12px;color:var(--text-dim);">Følg ordren hele vejen igennem stafetløbet</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Når en ordre er oprettet, er det køkkenets ansvar at rykke den fremad i stafetløbet. Det er vigtigt at alle trin registreres — så kan Nano og Carsten følge med fra kontoret, og kunden kan se status.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1</strong> — Gå til <strong>Ordreoversigt</strong>. Find ordren under "Nye ordrer" — den har et gult/orange ordrekort.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2</strong> — Klik på ordrekortet for at åbne alle detaljerne. Tjek allergiinformation øverst — det røde felt!</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3</strong> — Klik på <strong>▶ I produktion</strong> når I begynder at lave maden. Systemet registrerer klokkeslættet automatisk.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4</strong> — Klik <strong>▶ Klar til pakning</strong> når maden er færdiglavet og klar til at blive pakket ned.</p>
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 5</strong> — Klik <strong>▶ Klar til afhentning</strong> når alt er pakket og ordren er klar til at forlade køkkenet.</p>
-        <p><strong style="color:var(--accent);">Trin 6 — Afslut ordren</strong><br>
-        Klik på ordren → vælg status <strong>ARKIVERET</strong> når ordren er afhentet eller leveret til kunden.<br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Arkiverede ordrer forsvinder fra Ordreoversigt men kan altid findes igen under Arkiv i menuen.</span></p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 8 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">🚚</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">8. Foodtruck — særlige regler</div>
-          <div style="font-size:12px;color:var(--text-dim);">Vigtige informationer du skal kende inden du booker foodtruck</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Lubnan har to foodtrucks. De kan bookes til events, firmaer, havnepladser og private arrangementer. Der er særlige regler for foodtruck som du skal kende.</p>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-          <div style="background:var(--surface2);border-radius:6px;padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Størrelse</div>
-            <div style="font-weight:600;">2 × 4 meter</div>
-            <div style="font-size:12px;color:var(--text-dim);">Tjek at der er plads på stedet</div>
-          </div>
-          <div style="background:var(--surface2);border-radius:6px;padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Strøm</div>
-            <div style="font-weight:600;">Generator eller 16A stik</div>
-            <div style="font-size:12px;color:var(--text-dim);">Vi medbringer generator</div>
-          </div>
-          <div style="background:var(--surface2);border-radius:6px;padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Pris — første 3 timer</div>
-            <div style="font-weight:600;">2.500 kr.</div>
-            <div style="font-size:12px;color:var(--text-dim);">1 time forberedelse + 2 timers servering</div>
-          </div>
-          <div style="background:var(--surface2);border-radius:6px;padding:12px;">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Ekstra tid</div>
-            <div style="font-weight:600;">600 kr. per time</div>
-            <div style="font-size:12px;color:var(--text-dim);">Ud over de første 3 timer</div>
-          </div>
-        </div>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Transport:</strong><br>
-        Gratis i postnumre 1000–2999 (Storkøbenhavn)<br>
-        450 kr. for øvrige Sjælland<br>
-        Andre landsdele: spørg Nano eller Carsten</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Parkering:</strong> Foodtruck kan holde i indkørsel eller have — men tjek altid at der er adgang for en bil med trailer.</p>
-
-        <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.4);border-radius:6px;padding:12px;">
-          <p style="color:var(--red);font-weight:600;margin-bottom:4px;">⚠️ Vigtigt — dobbelttjek altid!</p>
-          <p style="font-size:12px;">Tjek <strong>Kalender</strong> inden du booker foodtruck — systemet viser en rød advarsel hvis foodtruck allerede er booket den dag. To bookinger på samme dag er et stort problem!</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- KAPITEL 9 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">💰</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">9. Betalingsregler</div>
-          <div style="font-size:12px;color:var(--text-dim);">Depositum, restbetaling og frister — dette er vigtigt!</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Betalingsreglerne sikrer at Lubnan ikke laver mad for kunder der ikke betaler. Følg altid disse regler — hvis du er i tvivl, spørg Nano eller Carsten inden du bekræfter en ordre.</p>
-
-        <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:14px;margin-bottom:10px;">
-          <p style="font-weight:600;color:var(--green);margin-bottom:6px;">📅 Arrangement inden for 30 dage:</p>
-          <p style="margin-bottom:4px;"><strong>Fuld betaling med det samme</strong> ved bestilling.</p>
-          <p style="font-size:12px;color:var(--text-dim);">Eksempel: Kunden bestiller d. 1. april til et arrangement d. 20. april → fuld betaling d. 1. april.</p>
-        </div>
-
-        <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:14px;margin-bottom:10px;">
-          <p style="font-weight:600;color:var(--blue2);margin-bottom:6px;">📅 Arrangement mere end 30 dage frem:</p>
-          <p style="margin-bottom:4px;"><strong>Depositum:</strong> 5.000 kr. — eller halvdelen af prisen hvis ordren er under 10.000 kr.</p>
-          <p style="margin-bottom:4px;"><strong>Restbeløb:</strong> Betales senest 1 måned før arrangementet.</p>
-          <p style="font-size:12px;color:var(--text-dim);">Eksempel: Kunden bestiller d. 1. april til et arrangement d. 1. juli → depositum d. 1. april, rest senest d. 1. juni.</p>
-        </div>
-
-        <div style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:14px;">
-          <p style="font-weight:600;color:var(--yellow);margin-bottom:6px;">📌 Husk — antal kuverter:</p>
-          <p>Kunden kan justere antal kuverter helt op til <strong>7 dage før</strong> arrangementet. Herefter er prisen fast og kan ikke ændres ned — kun op.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- KAPITEL 10 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">❌</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">10. Afbestillingsregler</div>
-          <div style="font-size:12px;color:var(--text-dim);">Hvad sker der når en kunde afbestiller?</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Hvis en kunde afbestiller, afhænger det af hvornår afbestillingen sker. Disse regler er vigtige at kende — og de skal forklares til kunden allerede når de bestiller, så der ikke opstår misforståelser.</p>
-
-        <div style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:14px;margin-bottom:10px;">
-          <p style="font-weight:600;color:var(--green);margin-bottom:4px;">✅ Afbestilling mere end 1 måned før:</p>
-          <p style="margin-bottom:4px;">Depositum refunderes fuldt ud til kunden.</p>
-          <p style="font-size:12px;color:var(--text-dim);">Eksempel: Arrangement d. 1. august — kunden afbestiller d. 1. juni → depositum tilbage.</p>
-        </div>
-
-        <div style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:14px;margin-bottom:10px;">
-          <p style="font-weight:600;color:var(--yellow);margin-bottom:4px;">⚠️ Afbestilling mindre end 1 måned før:</p>
-          <p style="margin-bottom:4px;">50% af den samlede arrangementspris refunderes. Depositum beholdes af Lubnan.</p>
-          <p style="font-size:12px;color:var(--text-dim);">Eksempel: Arrangement til 20.000 kr. — kunden afbestiller 3 uger før → kunden får 10.000 kr. tilbage.</p>
-        </div>
-
-        <div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:14px;margin-bottom:12px;">
-          <p style="font-weight:600;color:var(--red);margin-bottom:4px;">🚫 Afbestilling mindre end 7 dage før:</p>
-          <p style="margin-bottom:4px;">Ingen tilbagebetaling overhovedet.</p>
-          <p style="font-size:12px;color:var(--text-dim);">På dette tidspunkt er råvarer købt ind og personale planlagt — Lubnan kan ikke undgå omkostningerne.</p>
-        </div>
-
-        <p><strong style="color:var(--accent);">Ved afbestilling — kontakt altid Nano eller Carsten</strong> — de håndterer refusioner og eventuelle aftaler med kunden.</p>
-      </div>
-    </div>
-
-    <!-- KAPITEL 11 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);">
-        <span style="font-size:28px;">🌙</span>
-        <div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;">11. Dagsafslut</div>
-          <div style="font-size:12px;color:var(--text-dim);">Sådan lukker du arbejdsdagen ned korrekt</div>
-        </div>
-      </div>
-      <div style="font-size:13px;line-height:1.9;color:var(--text);">
-        <p style="margin-bottom:12px;color:var(--text-dim);font-style:italic;">Inden du går hjem, brug 5 minutter på at lukke dagen ned ordentligt i systemet. Det sikrer at dine kolleger ved hvad der sker, og at ingen ordrer falder mellem stolene.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 1 — Tjek alle ordrer</strong><br>
-        Gå til <strong>Ordreoversigt</strong>. Er alle dagens ordrer rykket til det rigtige trin? Ingen ordrer burde stå i "Nye ordrer" hvis de allerede er i produktion.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 2 — Arkivér afsluttede ordrer</strong><br>
-        Ordrer der er afhentet eller leveret i dag — klik på dem og skift status til <strong>ARKIVERET</strong>. Det rydder op i Ordreoversigt og giver et klart billede til dine kolleger.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 3 — Tjek morgendagen</strong><br>
-        Klik på <strong>Kalender</strong>. Er der arrangementer i morgen der kræver tidlig forberedelse? Informér eventuelt dine kolleger.</p>
-
-        <p style="margin-bottom:8px;"><strong style="color:var(--accent);">Trin 4 — Åbne tilbud</strong><br>
-        Klik på <strong>Tilbud</strong>. Er der tilbud der snart udløber? Notér det til Nano eller Carsten så de kan følge op med kunden.</p>
-
-        <p><strong style="color:var(--accent);">Trin 5 — Luk browseren</strong><br>
-        Alt er gemt automatisk i databasen — du behøver ikke gøre andet. Luk bare browseren og gå hjem! 😊<br>
-        <span style="color:var(--text-dim);font-size:12px;">💡 Du behøver aldrig "gemme" manuelt — systemet gemmer automatisk hver gang du trykker på en knap.</span></p>
-      </div>
-    </div>
-
-    <!-- FOOTER -->
-    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:20px;text-align:center;margin-bottom:16px;">
-      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--accent);margin-bottom:8px;">Lubnan Håndbogen — version 4.25</div>
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:6px;">Fadel Aps · Byvej 40 · 2650 Hvidovre · CVR: 40758771 · Tlf: 30 96 13 69</div>
-      <div style="font-size:12px;color:var(--text-muted);">Håndbogen opdateres løbende — er noget forkert eller mangler noget, sig det til Carsten 😊</div>
     </div>
 
   </div>
 </div>
 
-</main>
 </main>
 
 <!-- MODAL -->
@@ -2062,6 +1802,300 @@ function visKalenderDag(dagStr) {
 }
 
 // =============================================
+// HÅNDBOGEN — KAPITEL NAVIGATION
+// =============================================
+let aktivtKapitel = 0;
+
+const KAPITLER = [
+  null, // index 0 ikke brugt
+  // KAPITEL 1
+  {
+    titel: '📅 Dagsstart',
+    undertitel: 'Sådan starter du arbejdsdagen rigtigt',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Hver arbejdsdag starter med at tjekke Ordreflow. Det tager kun 2-3 minutter og sikrer at du ved hvad der sker i dag — og hvad der kommer. Tænk på det som din daglige briefing.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Åbn systemet</strong><br>Åbn Microsoft Edge browseren og gå til adressen: <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 8px;border-radius:4px;">lubnan-ordreflow.netlify.app</span><br><span style="color:var(--text-dim);font-size:12px;">💡 Tip: Højreklik på adressen og vælg "Tilføj til favoritter" så du kan finde den hurtigt næste gang.</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Tjek databaseforbindelsen</strong><br>Øverst til venstre skal der stå <span style="color:var(--green);font-weight:600;">✅ Database OK</span> med grøn baggrund.<div class="hbk-boks hbk-boks-roed" style="margin-top:8px;"><span style="color:var(--red);font-weight:600;">⚠️ Hvis der står rød "Database fejl"</span><br>Ring til Carsten med det samme på <strong>20 73 25 25</strong>. Ingen data kan gemmes når databasen er nede!</div></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Tjek dagens ordrer</strong><br>Klik på <strong>Ordreoversigt</strong> i menuen. Her ser du alle aktive ordrer. Se efter røde og orange farver — de signalerer at noget haster.<br><span class="hbk-ref" onclick="aabKapitel(2)">→ Se kapitel 2: Ordreoversigt</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Tjek kalenderen</strong><br>Klik på <strong>Kalender</strong> i menuen. Se hvad der sker i dag og de næste 7 dage. Er der arrangementer der kræver tidlig forberedelse?</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Tjek åbne tilbud</strong><br>Klik på <strong>Tilbud</strong> i menuen. Er der tilbud der venter på svar fra kunder? Hvis et tilbud snart udløber — overvej om I skal ringe til kunden.<br><span class="hbk-ref" onclick="aabKapitel(4)">→ Se kapitel 4: Opret tilbud</span></div></div>
+      <div class="hbk-boks hbk-boks-groen"><strong style="color:var(--green);">✅ Dagsstart tjekliste:</strong><br>□ Database OK (grøn)<br>□ Ordreoversigt tjekket<br>□ Kalender tjekket<br>□ Åbne tilbud tjekket</div>
+    `
+  },
+  // KAPITEL 2
+  {
+    titel: '📋 Ordreoversigt — stafetløbet',
+    undertitel: 'Forstå hvordan en ordre bevæger sig fra start til slut',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Ordreoversigten er hjertet i Lubnan Ordreflow. Her kan alle se hvad der sker lige nu. Tænk på det som en digital tavle på væggen i køkkenet — synlig for alle, opdateret i realtid.
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Stafetløbet — 4 trin:</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;">
+        <div style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:26px;">📥</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--yellow);">Trin 1</div><div style="font-size:12px;margin-top:4px;">Ordre modtaget</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Ordre er registreret i systemet</div></div>
+        <div style="background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:26px;">🍳</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--accent);">Trin 2</div><div style="font-size:12px;margin-top:4px;">I produktion</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Maden laves nu i køkkenet</div></div>
+        <div style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:26px;">📦</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--blue2);">Trin 3</div><div style="font-size:12px;margin-top:4px;">Klar til pakning</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Maden er færdig og pakkes</div></div>
+        <div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:14px;text-align:center;"><div style="font-size:26px;">✅</div><div style="font-size:12px;font-weight:700;margin-top:6px;color:var(--green);">Trin 4</div><div style="font-size:12px;margin-top:4px;">Klar til afhentning</div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Kunden kan komme og hente</div></div>
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">→</div><div class="hbk-trin-tekst"><strong>Sådan rykker du en ordre til næste trin:</strong><br>Klik på ordrekortet → et vindue åbner sig → klik på den orange knap der viser næste trin.<br><span style="color:var(--text-dim);font-size:12px;">💡 Systemet registrerer automatisk klokkeslættet — så alle kan se hvornår hvert trin blev gennemført.</span></div></div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;margin-top:16px;">Farvekoder på ordrekortene:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:6px;padding:10px;"><span style="color:#22c55e;font-size:20px;">●</span><div><div style="font-weight:600;font-size:13px;">Grøn</div><div style="font-size:12px;color:var(--text-dim);">God tid — mere end 1 time</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:6px;padding:10px;"><span style="color:#eab308;font-size:20px;">●</span><div><div style="font-weight:600;font-size:13px;">Gul</div><div style="font-size:12px;color:var(--text-dim);">Snart — under 1 time</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:6px;padding:10px;"><span style="color:#f97316;font-size:20px;">●</span><div><div style="font-weight:600;font-size:13px;">Orange</div><div style="font-size:12px;color:var(--text-dim);">Haster — under 30 minutter</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:6px;padding:10px;"><span style="color:#ef4444;font-size:20px;">●</span><div><div style="font-weight:600;font-size:13px;">Rød</div><div style="font-size:12px;color:var(--text-dim);">Overskredet eller under 15 min</div></div></div>
+      </div>
+    `
+  },
+  // KAPITEL 3
+  {
+    titel: '👥 Opret en kunde',
+    undertitel: 'Gem kundeoplysninger én gang — brug dem igen og igen',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Når du opretter en kunde i systemet, behøver du aldrig skrive deres oplysninger igen. Næste gang du laver en ordre eller et tilbud, finder systemet automatisk navn, adresse, email og telefon.
+      </div>
+      <div class="hbk-boks hbk-boks-gul" style="margin-bottom:16px;"><strong style="color:var(--yellow);">💡 Søg altid først!</strong><br>Inden du opretter en ny kunde — søg efter dem i Kunder-oversigten. Skriv de første bogstaver af navnet. Måske findes de allerede!</div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Gå til Kunder</strong><br>Klik på <strong>Kunder</strong> i menuen øverst.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Opret ny kunde</strong><br>Klik på den orange knap <strong>➕ Ny kunde</strong> øverst til højre.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Udfyld oplysninger</strong><br>Jo mere information jo bedre:<br><span style="color:var(--text-dim);font-size:12px;">• Navn på virksomhed eller person (obligatorisk)<br>• Kontaktpersonens navn<br>• Email — bruges til at sende tilbud<br>• Telefonnummer<br>• Fuldstændig adresse — bruges automatisk ved levering</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Vælg kundegruppe</strong><br><span style="color:var(--blue2);">Privat</span> = Almindelig person · <span style="color:var(--accent);">Erhverv</span> = Virksomhed · <span style="color:var(--purple);">Storkunde</span> = Fast stor kunde</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Gem kunden</strong><br>Klik <strong>✓ Gem kunde</strong>. Kunden er nu gemt og kan bruges i alle fremtidige ordrer og tilbud.</div></div>
+    `
+  },
+  // KAPITEL 4
+  {
+    titel: '📝 Opret et tilbud',
+    undertitel: 'Lav et prisoverslag til kunden — trin for trin',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Et tilbud er et prisoverslag — ikke en ordre. Kunden får tilbuddet, overvejer det, og siger ja eller nej. Tilbuddet gemmes sikkert i systemet og kan altid findes igen. Når kunden siger ja, konverteres tilbuddet til en ordre med ét klik.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Åbn tilbudsformularen</strong><br>Klik på <strong>Opret tilbud</strong> i menuen øverst.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Find kunden</strong><br>Skriv kundens navn. Hvis kunden findes i systemet dukker de op i en liste — klik på dem for at udfylde alle felter automatisk.<br><span class="hbk-ref" onclick="aabKapitel(3)">→ Se kapitel 3: Opret kunde</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Beskriv arrangementet</strong><br>Skriv en klar beskrivelse. Eksempel:<br><span style="color:var(--text-dim);font-style:italic;font-size:12px;">"Fødselsdagsfest for 40 personer — buffet med mezze og to hovedretter"</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Vælg dato og tidspunkt</strong><br>Udfyld dato og starttidspunkt for arrangementet. Tilføj gerne forventet sluttidspunkt.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Tilføj varelinjer</strong><br>Skriv varenummeret direkte — fx <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:1px 5px;border-radius:3px;">F-001</span> for Hummus — eller vælg fra dropdown-listen.<br><span style="color:var(--text-dim);font-size:12px;">Sæt standard antal øverst så alle nye varelinjer starter med det rigtige antal (fx 40 for 40 personer).</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">6</div><div class="hbk-trin-tekst"><strong>Justér priser</strong><br>Brug + og − knapperne til at justere antal. Tilføj evt. rabat eller tillæg under Prisjustering — systemet beregner den nye pris automatisk.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">7</div><div class="hbk-trin-tekst"><strong>Gem tilbuddet</strong><br>Klik <strong>✓ Gem tilbud</strong>. Tilbuddet gemmes nu sikkert i databasen.<div class="hbk-boks hbk-boks-roed" style="margin-top:8px;"><span style="color:var(--red);font-weight:600;">⚠️ Vigtigt!</span> Gem altid tilbuddet inden du lukker siden — ellers mister du arbejdet!</div></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">8</div><div class="hbk-trin-tekst"><strong>Send tilbuddet til kunden</strong><br>Klik på <strong>🖨 Tilbud</strong> knappen i tilbudsoversigten. En printvenlig version åbner sig som du kan gemme som PDF og sende til kunden via email.</div></div>
+      <div class="hbk-boks hbk-boks-groen"><strong style="color:var(--green);">Betalingsregler ved tilbud:</strong><br>Husk at fortælle kunden om betalings- og afbestillingsreglerne.<br><span class="hbk-ref" onclick="aabKapitel(9)">→ Se kapitel 9: Betalingsregler</span> <span class="hbk-ref" onclick="aabKapitel(10)">→ Se kapitel 10: Afbestilling</span></div>
+    `
+  },
+  // KAPITEL 5
+  {
+    titel: '✅ Konverter tilbud til ordre',
+    undertitel: 'Når kunden siger ja — ét klik og det er klaret',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Når kunden accepterer tilbuddet, konverteres det til en ordre med ét enkelt klik. Systemet overfører automatisk alle oplysninger — du behøver ikke skrive noget igen.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Find tilbuddet</strong><br>Klik på <strong>Tilbud</strong> i menuen. Find det tilbud kunden har sagt ja til.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Konvertér til ordre</strong><br>Klik på den grønne <strong>→ Ordre</strong> knap på tilbudslinjen. Ordren oprettes automatisk og vises i Ordreoversigt under "Nye ordrer".<br><span style="color:var(--text-dim);font-size:12px;">💡 Tilbuddet forbliver i tilbudslisten — det forsvinder ikke automatisk.</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Bekræft betaling</strong><br>Afklar betalingen med Nano eller Carsten inden ordren sendes til produktion.<div class="hbk-boks hbk-boks-roed" style="margin-top:8px;"><span style="color:var(--red);font-weight:600;">⚠️ Vigtigt!</span> Send aldrig en ordre i produktion uden at betaling er afklaret!</div><span class="hbk-ref" onclick="aabKapitel(9)">→ Se kapitel 9: Betalingsregler</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Følg ordren</strong><br>Ordren er nu klar til at blive håndteret i stafetløbet.<br><span class="hbk-ref" onclick="aabKapitel(7)">→ Se kapitel 7: Håndter en ordre</span></div></div>
+    `
+  },
+  // KAPITEL 6
+  {
+    titel: '➕ Opret ordre direkte',
+    undertitel: 'Når kunden bestiller uden tilbud',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Nogle kunder ringer og bestiller direkte — uden tilbud. Det sker fx ved faste kunder der ved hvad de vil have, eller ved mindre takeaway-ordrer. Så opretter du ordren direkte.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Åbn ordreformularen</strong><br>Klik på <strong>+ Opret ordre</strong> i menuen øverst.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Find kunden</strong><br>Skriv kundens navn — systemet finder automatisk kunden hvis den findes. Klik på navnet for at udfylde adresse og kontaktoplysninger automatisk.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Vælg afdeling</strong><br>Vælg den afdeling der skal håndtere ordren — fx Hvidovre, Reffen, Foodtruck 1 eller Foodtruck 2.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Tilføj varer</strong><br>Tilføj varer via varenummer eller dropdown-liste.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Udfyld beskrivelse og tid</strong><br>Beskriv ordren tydeligt og angiv leveringstidspunkt. Disse felter er obligatoriske.<br><span style="color:var(--text-dim);font-size:12px;">Eksempel: "Frokostbuffet til 25 personer — Novo Nordisk kantinen kl. 12:00"</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">6</div><div class="hbk-trin-tekst"><strong style="color:var(--red);">ALLERGIER — meget vigtigt!</strong><br>Skriv ALLE allergier og særlige hensyn i det røde felt. Vær meget specifik:<div class="hbk-boks hbk-boks-roed" style="margin-top:8px;"><span style="color:var(--red);font-weight:600;">Eksempel på korrekt udfyldning:</span><br>"3 personer med NØDDE ALLERGI — livstruende. 1 person glutenfri. Al mad skal være halal."<br><br>Dette er ikke noget vi kan glemme — det kan koste liv!</div></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">7</div><div class="hbk-trin-tekst"><strong>Gem ordren</strong><br>Klik <strong>✓ Gem ordre</strong> — ordren er nu i systemet og vises i Ordreoversigt.</div></div>
+    `
+  },
+  // KAPITEL 7
+  {
+    titel: '🍳 Håndter en ordre',
+    undertitel: 'Fra køkken til levering — følg ordren hele vejen',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Når en ordre er oprettet, er det køkkenets ansvar at rykke den fremad i stafetløbet. Det er vigtigt at alle trin registreres — så kan ledelsen følge med, og kunden kan se status via sin QR-kode.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Find ordren</strong><br>Gå til <strong>Ordreoversigt</strong>. Find ordren under "Nye ordrer" — den vises som et ordrekort med farve baseret på tid til levering.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Tjek allergiinformation</strong><br>Klik på ordrekortet for at åbne detaljerne. Tjek det røde allergi-felt øverst — dette er kritisk vigtig information!<div class="hbk-boks hbk-boks-roed" style="margin-top:8px;"><span style="color:var(--red);font-weight:600;">⚠️ Læs ALTID allergifeltet</span> inden produktion starter — uden undtagelse!</div></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Start produktion</strong><br>Klik på <strong>▶ I produktion</strong> når I begynder at lave maden. Systemet registrerer klokkeslættet automatisk.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Mad færdig</strong><br>Klik <strong>▶ Klar til pakning</strong> når maden er færdiglavet og klar til at blive pakket ned.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Klar til afhentning</strong><br>Klik <strong>▶ Klar til afhentning</strong> når alt er pakket. Kunden kan nu komme og hente.<br><span style="color:var(--text-dim);font-size:12px;">💡 Kunden modtager automatisk en notifikation når ordren er klar — hvis de har scannet deres QR-kode.</span><br><span class="hbk-ref" onclick="aabKapitel(12)">→ Se kapitel 12: Kunde-tracking</span></div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">6</div><div class="hbk-trin-tekst"><strong>Afslut ordren</strong><br>Klik på ordren → vælg status <strong>ARKIVERET</strong> når ordren er afhentet eller leveret.<br><span style="color:var(--text-dim);font-size:12px;">💡 Arkiverede ordrer forsvinder fra Ordreoversigt men kan altid findes igen under Arkiv i menuen.</span></div></div>
+    `
+  },
+  // KAPITEL 8
+  {
+    titel: '🚚 Foodtruck regler',
+    undertitel: 'Priser, transport og vigtige regler for foodtruck booking',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Lubnan har to foodtrucks. De kan bookes til events, firmaer, havnepladser og private arrangementer. Der er særlige regler du skal kende — læs dem grundigt inden du booker.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Størrelse</div><div style="font-weight:700;font-size:16px;">2 × 4 meter</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Tjek at der er adgang og plads på stedet</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Strøm</div><div style="font-weight:700;font-size:16px;">Generator eller 16A</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Vi medbringer generator — eller 16A stik på stedet</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Pris — første 3 timer</div><div style="font-weight:700;font-size:20px;color:var(--accent);">2.500 kr.</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px;">1 time forberedelse + 2 timers servering</div></div>
+        <div style="background:var(--surface2);border-radius:8px;padding:14px;"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Ekstra tid derover</div><div style="font-weight:700;font-size:20px;color:var(--accent);">600 kr./time</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Per påbegyndt time ud over de første 3</div></div>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;">Transport:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <div class="hbk-boks hbk-boks-groen"><strong style="color:var(--green);">Gratis</strong><br>Postnumre 1000–2999<br><span style="font-size:12px;color:var(--text-dim);">Storkøbenhavn</span></div>
+        <div class="hbk-boks hbk-boks-gul"><strong style="color:var(--yellow);">450 kr.</strong><br>Øvrige Sjælland<br><span style="font-size:12px;color:var(--text-dim);">Spørg Nano ved andre landsdele</span></div>
+      </div>
+      <div class="hbk-boks hbk-boks-roed"><strong style="color:var(--red);">⚠️ Dobbelttjek ALTID inden booking!</strong><br>Gå til <strong>Kalender</strong> og tjek at foodtruck ikke allerede er booket den dag. To bookinger på samme dag er et stort problem — systemet viser en rød advarsel hvis det sker!<br><br>Foodtruck 1 og Foodtruck 2 er separate — de kan godt bookes samme dag til <em>forskellige</em> steder.</div>
+    `
+  },
+  // KAPITEL 9
+  {
+    titel: '💰 Betalingsregler',
+    undertitel: 'Depositum, restbetaling og frister — meget vigtigt!',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Betalingsreglerne sikrer at Lubnan ikke laver mad for kunder der ikke betaler. Følg altid disse regler — hvis du er i tvivl, spørg Nano eller Carsten <strong>inden</strong> du bekræfter noget over for kunden.
+      </div>
+      <div class="hbk-boks hbk-boks-groen" style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:8px;">📅 Arrangement inden for 30 dage:</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Fuld betaling med det samme ved bestilling</div>
+        <div style="font-size:12px;color:var(--text-dim);">Eksempel: Kunden bestiller d. 1. april til et arrangement d. 20. april → fuld betaling d. 1. april.</div>
+      </div>
+      <div class="hbk-boks hbk-boks-blaa" style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;color:var(--blue2);margin-bottom:8px;">📅 Arrangement mere end 30 dage frem:</div>
+        <div style="margin-bottom:6px;"><strong>Depositum:</strong> 5.000 kr.<br><span style="font-size:12px;color:var(--text-dim);">Eller halvdelen af prisen hvis ordren er under 10.000 kr.</span></div>
+        <div style="margin-bottom:6px;"><strong>Restbeløb:</strong> Betales senest 1 måned før arrangementet</div>
+        <div style="font-size:12px;color:var(--text-dim);">Eksempel: Kunden bestiller d. 1. april til d. 1. juli → depositum d. 1. april · rest senest d. 1. juni.</div>
+      </div>
+      <div class="hbk-boks hbk-boks-gul">
+        <div style="font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:6px;">📌 Antal kuverter:</div>
+        <div>Kunden kan justere antal kuverter helt op til <strong>7 dage før</strong> arrangementet.<br>Herefter er prisen fast og kan ikke justeres ned — kun op.</div>
+      </div>
+    `
+  },
+  // KAPITEL 10
+  {
+    titel: '❌ Afbestillingsregler',
+    undertitel: 'Hvad sker der når en kunde afbestiller?',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Disse regler skal du kende — og de skal forklares til kunden allerede når de bestiller, så der ikke opstår misforståelser bagefter. Ved afbestilling: kontakt altid Nano eller Carsten — de håndterer tilbagebetalinger.
+      </div>
+      <div class="hbk-boks hbk-boks-groen" style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:6px;">✅ Mere end 1 måned før arrangementet:</div>
+        <div style="font-size:14px;font-weight:600;">Depositum refunderes fuldt ud</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Eksempel: Arrangement d. 1. august — afbestilling d. 1. juni → depositum tilbage til kunden.</div>
+      </div>
+      <div class="hbk-boks hbk-boks-gul" style="margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:700;color:var(--yellow);margin-bottom:6px;">⚠️ Mindre end 1 måned før:</div>
+        <div style="font-size:14px;font-weight:600;">50% af arrangementsprisen refunderes</div>
+        <div style="margin-top:4px;">Depositum beholdes af Lubnan</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">Eksempel: Arrangement til 20.000 kr. afbestilles 3 uger før → kunden får 10.000 kr. tilbage.</div>
+      </div>
+      <div class="hbk-boks hbk-boks-roed" style="margin-bottom:16px;">
+        <div style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:6px;">🚫 Mindre end 7 dage før:</div>
+        <div style="font-size:14px;font-weight:600;">Ingen tilbagebetaling overhovedet</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">På dette tidspunkt er råvarer købt ind og personale planlagt. Lubnan kan ikke undgå omkostningerne.</div>
+      </div>
+      <div class="hbk-boks hbk-boks-blaa"><strong style="color:var(--blue2);">Ved afbestilling:</strong><br>Kontakt altid Nano eller Carsten — de håndterer kommunikation med kunden og eventuelle refusioner. Lav aldrig selv aftaler om penge med kunden!</div>
+    `
+  },
+  // KAPITEL 11
+  {
+    titel: '🌙 Dagsafslut',
+    undertitel: 'Sådan lukker du arbejdsdagen ned korrekt',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Inden du går hjem, brug 5 minutter på at lukke dagen ned ordentligt. Det sikrer at dine kolleger ved hvad der sker, og at ingen ordrer falder mellem stolene natten over.
+      </div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Tjek alle ordrer</strong><br>Gå til <strong>Ordreoversigt</strong>. Er alle dagens ordrer rykket til det rigtige trin? Ingen ordrer burde stå i "Nye ordrer" hvis de allerede er i produktion.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Arkivér afsluttede ordrer</strong><br>Ordrer der er afhentet eller leveret i dag — klik på dem og skift status til <strong>ARKIVERET</strong>. Det rydder op og giver et klart billede til dine kolleger.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Tjek morgendagen</strong><br>Klik på <strong>Kalender</strong>. Er der arrangementer i morgen der kræver tidlig forberedelse? Informér eventuelt dine kolleger via Broadcast.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Åbne tilbud</strong><br>Klik på <strong>Tilbud</strong>. Er der tilbud der snart udløber? Notér det til Nano eller Carsten.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">5</div><div class="hbk-trin-tekst"><strong>Luk browseren — og gå hjem! 😊</strong><br>Alt er gemt automatisk i databasen. Du behøver ikke gøre andet.<br><span style="color:var(--text-dim);font-size:12px;">💡 Systemet gemmer automatisk hver gang du trykker på en knap. Du behøver aldrig "gemme" manuelt.</span></div></div>
+      <div class="hbk-boks hbk-boks-groen"><strong style="color:var(--green);">✅ Dagsafslut tjekliste:</strong><br>□ Alle ordrer er på korrekt trin<br>□ Afsluttede ordrer er arkiveret<br>□ Kalender tjekket for i morgen<br>□ Åbne tilbud noteret til Nano/Carsten</div>
+    `
+  },
+  // KAPITEL 12
+  {
+    titel: '📱 Kunde-tracking via QR-kode',
+    undertitel: 'Kunden følger sin ordre live — ingen app nødvendig!',
+    indhold: `
+      <div style="font-size:13px;color:var(--text-dim);font-style:italic;margin-bottom:20px;line-height:1.7;">
+        Når en ordre er bekræftet, kan kunden få en QR-kode der linker direkte til en live statusside for deres ordre. Kunden scanner koden med sin mobiltelefon og kan følge med i realtid — helt uden at installere en app.
+      </div>
+      <div class="hbk-boks hbk-boks-blaa" style="margin-bottom:16px;">
+        <strong style="color:var(--blue2);">Hvad ser kunden?</strong><br>
+        <div style="margin-top:8px;font-size:13px;line-height:1.8;">
+          ✅ Ordrens aktuelle status (Modtaget → I produktion → Klar!)<br>
+          ⏱️ Estimeret klar-tid<br>
+          📍 Lubnans adresse og kontaktoplysninger<br>
+          💬 Eventuelle beskeder fra Lubnan<br>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Sådan bruger du det:</div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">1</div><div class="hbk-trin-tekst"><strong>Ordrebekræftelsen</strong><br>Når en ordre er oprettet og bekræftet, indeholder ordrebekræftelsen automatisk en QR-kode specielt til denne ordre.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">2</div><div class="hbk-trin-tekst"><strong>Send til kunden</strong><br>Print ordrebekræftelsen ud og giv den til kunden — eller send den som PDF via email. QR-koden er unik for netop denne ordre.</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">3</div><div class="hbk-trin-tekst"><strong>Kunden scanner</strong><br>Kunden åbner kameraet på sin mobiltelefon og peger det mod QR-koden. En webside åbner automatisk i mobilens browser — ingen app nødvendig!</div></div>
+      <div class="hbk-trin"><div class="hbk-trin-nr">4</div><div class="hbk-trin-tekst"><strong>Live opdatering</strong><br>Siden opdaterer sig automatisk når I rykker ordren frem i stafetløbet. Kunden ser øjeblikkeligt når maden er klar.<br><span class="hbk-ref" onclick="aabKapitel(7)">→ Se kapitel 7: Håndter en ordre</span></div></div>
+      <div class="hbk-boks hbk-boks-groen">
+        <strong style="color:var(--green);">💡 Fordelen for Lubnan:</strong><br>
+        Færre telefonopkald fra kunder der spørger "hvornår er maden klar?" — de kan se det selv på deres telefon i realtid!
+      </div>
+      <div class="hbk-boks hbk-boks-gul" style="margin-top:10px;">
+        <strong style="color:var(--yellow);">🔧 Under udvikling:</strong><br>
+        Kunde-tracking med QR-kode er planlagt til næste version af Ordreflow. Spørg Carsten om status.
+      </div>
+    `
+  }
+];
+
+let aktivtKapitelNr = 0;
+
+function aabKapitel(nr) {
+  aktivtKapitelNr = nr;
+  const kap = KAPITLER[nr];
+  if(!kap) return;
+
+  document.getElementById('haandbog-oversigt').style.display = 'none';
+  document.getElementById('haandbog-kapitel').style.display = 'block';
+  document.getElementById('hbk-breadcrumb').textContent = 'Håndbogen → ' + kap.titel;
+
+  document.getElementById('hbk-indhold').innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;">
+      <div style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:4px;">${kap.titel}</div>
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);">${kap.undertitel}</div>
+      ${kap.indhold}
+    </div>
+  `;
+
+  // Vis/skjul navigationsknapper
+  const forrige = document.getElementById('hbk-forrige');
+  const naeste = document.getElementById('hbk-naeste');
+  if(forrige) forrige.style.display = nr <= 1 ? 'none' : '';
+  if(naeste) naeste.style.display = nr >= KAPITLER.length - 1 ? 'none' : '';
+
+  // Scroll til toppen af kapitel
+  document.getElementById('haandbog-kapitel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function lukKapitel() {
+  document.getElementById('haandbog-oversigt').style.display = '';
+  document.getElementById('haandbog-kapitel').style.display = 'none';
+  aktivtKapitelNr = 0;
+}
+
+function navigerKapitel(retning) {
+  const ny = aktivtKapitelNr + retning;
+  if(ny >= 1 && ny < KAPITLER.length) aabKapitel(ny);
+}
+
+// =============================================
 // START
 // =============================================
 populerAfdelingSelect();
@@ -2071,4 +2105,3 @@ testForbindelse();
 </script>
 </body>
 </html>
-
