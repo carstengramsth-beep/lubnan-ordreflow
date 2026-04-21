@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.22 — Bygget: 2026-04-21 — Database-gemning rettet -->
+<!-- Lubnan Ordreflow 4.23 — Bygget: 2026-04-21 — Database-gemning rettet -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.22</title>
+<title>Lubnan Ordreflow 4.23</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -175,7 +175,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">BETA 4.22</span>
+    <span class="hdr-ver">BETA 4.23</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -183,7 +183,7 @@ textarea{resize:vertical;min-height:80px;}
 
 <nav class="nav">
   <div class="ntab active" data-page="forside" onclick="showPage('forside')">🏠 Forside</div>
-  <div class="ntab" data-page="flytavle" onclick="showPage('flytavle')">📋 Flytavle <span class="nbadge" id="badge-fly">0</span></div>
+  <div class="ntab" data-page="flytavle" onclick="showPage('flytavle')">📋 Ordreoversigt <span class="nbadge" id="badge-fly">0</span></div>
   <div class="ntab" data-page="tilbud" onclick="showPage('tilbud')">📄 Tilbud <span class="nbadge" id="badge-tilbud">0</span></div>
   <div class="ntab" data-page="opret-ordre" onclick="showPage('opret-ordre')">+ Opret ordre</div>
   <div class="ntab" data-page="opret-tilbud" onclick="showPage('opret-tilbud')">📝 Opret tilbud</div>
@@ -199,7 +199,7 @@ textarea{resize:vertical;min-height:80px;}
 <!-- FORSIDE -->
 <div id="page-forside">
   <div style="margin-bottom:16px;">
-    <div style="font-family:'Playfair Display',serif;font-size:26px;">God dag 👋</div>
+    <div style="font-family:'Playfair Display',serif;font-size:26px;">God dag 👋 <span style="font-size:15px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-weight:400;">— Lubnan Ordreflow</span></div>
     <div style="font-size:13px;color:var(--text-dim);" id="dato"></div>
   </div>
   <div class="alerts" id="alerts"></div>
@@ -212,7 +212,7 @@ textarea{resize:vertical;min-height:80px;}
   <div class="cap-section"><div class="cap-title">Kapacitet — alle afdelinger</div><div id="cap-rows"></div></div>
   <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:10px;">Genveje</div>
   <div class="shortcuts">
-    <div class="sc" onclick="showPage('flytavle')"><span class="sc-badge" id="sc-fly">0</span><div class="sc-icon">📋</div><div class="sc-title">Flytavle</div><div class="sc-desc">Realtidsoverblik — stafetløb</div></div>
+    <div class="sc" onclick="showPage('flytavle')"><span class="sc-badge" id="sc-fly">0</span><div class="sc-icon">📋</div><div class="sc-title">Ordreoversigt</div><div class="sc-desc">Realtidsoverblik — stafetløb</div></div>
     <div class="sc" onclick="showPage('opret-ordre')"><div class="sc-icon">➕</div><div class="sc-title">Opret ordre</div><div class="sc-desc">Registrér en ny ordre</div></div>
     <div class="sc" onclick="showPage('tilbud')"><span class="sc-badge" id="sc-tilbud">0</span><div class="sc-icon">📄</div><div class="sc-title">Tilbud</div><div class="sc-desc">Åbne tilbud</div></div>
     <div class="sc" onclick="showPage('kunder')"><div class="sc-icon">👥</div><div class="sc-title">Kunder</div><div class="sc-desc">Kundedatabase og historik</div></div>
@@ -223,14 +223,14 @@ textarea{resize:vertical;min-height:80px;}
   <div class="quick">
     <button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">➕ Opret ordre</button>
     <button class="btn btn-secondary btn-sm" onclick="showPage('opret-tilbud')">📝 Opret tilbud</button>
-    <button class="btn btn-secondary btn-sm" onclick="showPage('flytavle')">📋 Åbn flytavle</button>
+    <button class="btn btn-secondary btn-sm" onclick="showPage('flytavle')">📋 Ordreoversigt</button>
     <button class="btn btn-secondary btn-sm" onclick="showPage('kalender')">📅 Kalender</button>
   </div>
 </div>
 
 <!-- FLYTAVLE -->
 <div id="page-flytavle" class="hidden">
-  <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Flytavle</div><button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">➕ Opret ordre</button></div>
+  <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Ordreoversigt</div><button class="btn btn-primary btn-sm" onclick="showPage('opret-ordre')">➕ Opret ordre</button></div>
   <div class="filter-bar" id="fly-filter"></div>
   <div class="board" id="board"></div>
 </div>
@@ -322,7 +322,8 @@ textarea{resize:vertical;min-height:80px;}
       <div class="form-section-title">Arrangementdetaljer</div>
       <div class="form-grid">
         <div class="form-group full"><label>Arrangementstype <span class="req">*</span></label><input type="text" id="t-beskr" placeholder="Fx: Fødselsdagsarrangement for 30 personer"></div>
-        <div class="form-group"><label>Dato og tidspunkt <span class="req">*</span></label><input type="datetime-local" id="t-tid"></div>
+        <div class="form-group"><label>Startdato og tidspunkt <span class="req">*</span></label><input type="datetime-local" id="t-tid"></div>
+        <div class="form-group"><label>Forventet sluttidspunkt</label><input type="datetime-local" id="t-slut-tid"></div>
         <div class="form-group"><label>Tilbud gælder til</label><div style="display:flex;gap:8px;"><input type="date" id="t-gyldig" style="flex:1;"><select onchange="setGyldigPeriode(this.value)" style="width:120px;font-size:12px;"><option value="">Hurtigvalg...</option><option value="1">1 måned</option><option value="2">2 måneder</option><option value="3">3 måneder</option></select></div></div>
         <div class="form-group"><label>Leveringsform</label><select id="t-levform" onchange="opdaterLevAdresse(this.value)"><option>Spises på stedet</option><option>Leveres på adressen</option><option>Levering i varme kasser</option><option>Foodtruck</option><option>Afhentning</option></select></div>
         <div class="form-group"><label>Afdeling</label><select id="t-afd"></select></div>
@@ -631,6 +632,7 @@ async function hentTilbud() {
     afd:r.data?.afd||'hvidovre',
     beskr:r.data?.beskr||'',
     linjer:r.data?.linjer||[],
+    slutTid:r.data?.slutTid||'',
     pris:r.total_price||0,
     listepris:r.data?.listepris||0,
     justeringKr:r.data?.justeringKr||0,
@@ -669,6 +671,7 @@ async function gemTilbudIDB(t) {
       afd: t.afd||'hvidovre',
       beskr: t.beskr||'',
       linjer: t.linjer||[],
+      slutTid: t.slutTid||'',
       levform: t.levform||'Spises på stedet',
       bem: t.bem||'',
       justeringType: t.justeringType||'ingen',
@@ -801,7 +804,44 @@ function showToast(msg, fejl=false) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast show' + (fejl?' toast-err':'');
-  setTimeout(()=>t.classList.remove('show'),3000);
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+function aabTilbud(id) {
+  const t = tilbud.find(x=>x.id===id);if(!t)return;
+  showPage('opret-tilbud');
+  setTimeout(()=>{
+    document.getElementById('t-kunde').value = t.kunde||'';
+    document.getElementById('t-kontakt').value = t.kontakt||'';
+    document.getElementById('t-email').value = t.email||'';
+    document.getElementById('t-tlf').value = t.tlf||'';
+    document.getElementById('t-adresse').value = t.adresse||'';
+    document.getElementById('t-postnr').value = t.postnr||'';
+    document.getElementById('t-by').value = t.by||'';
+    document.getElementById('t-beskr').value = t.beskr||'';
+    document.getElementById('t-tid').value = t.tid||'';
+    const slutEl = document.getElementById('t-slut-tid');
+    if(slutEl) slutEl.value = t.slutTid||'';
+    document.getElementById('t-gyldig').value = t.gyldig||'';
+    document.getElementById('t-lev-adresse').value = t.levAdresse||'';
+    document.getElementById('t-lev-postnr').value = t.levPostnr||'';
+    document.getElementById('t-lev-by').value = t.levBy||'';
+    document.getElementById('t-bem').value = t.bem||'';
+    const afdEl = document.getElementById('t-afd');
+    if(afdEl) afdEl.value = t.afd||'hvidovre';
+    const levEl = document.getElementById('t-levform');
+    if(levEl) levEl.value = t.levform||'Spises på stedet';
+    tilbudKurv = JSON.parse(JSON.stringify(t.linjer||[]));
+    renderTilbudKurv();
+    const jTypeEl = document.getElementById('t-justering-type');
+    if(jTypeEl) jTypeEl.value = t.justeringType||'ingen';
+    const jPctEl = document.getElementById('t-justering-pct');
+    if(jPctEl) jPctEl.value = t.justeringPct||0;
+    const btn = document.getElementById('gem-tilbud-btn');
+    if(btn){btn.setAttribute('data-rediger-id', t.id);btn.setAttribute('data-rediger-dbid', t.dbId||'');btn.textContent='✓ Opdater tilbud';}
+    renderTilbudKalkulation();
+    showToast('✏️ Tilbud '+id+' åbnet til redigering');
+  }, 150);
 }
 
 function setDefaultDT() {
@@ -971,6 +1011,7 @@ function renderTilbud() {
       <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700;">${t.pris.toLocaleString('da')} kr.</td>
       <td><span class="tag ${t.status==='Sendt'?'tag-faktura':'tag-betalt'}">${t.status}</span></td>
       <td style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-xs" onclick="aabTilbud('${t.id}')">✏️ Åbn</button>
         <button class="btn btn-secondary btn-xs" onclick="udskrivInternKalkulation('${t.id}')">📊 Intern</button>
         <button class="btn btn-blue btn-xs" onclick="udskrivTilbud('${t.id}')">🖨 Tilbud</button>
         <button class="btn btn-success btn-xs" onclick="konverterTilbud('${t.id}')">→ Ordre</button>
@@ -1102,13 +1143,16 @@ async function opretTilbud() {
   if(tilbudKurv.length===0){alert('Tilføj venligst mindst én varelinje');return;}
 
   const btn = document.getElementById('gem-tilbud-btn');
+  const redigerId = btn ? btn.getAttribute('data-rediger-id') : null;
+  const redigerDbId = btn ? btn.getAttribute('data-rediger-dbid') : null;
   if(btn){btn.disabled=true;btn.textContent='⏳ Gemmer...';}
 
   const kalk = renderTilbudKalkulation();
-  const nr = await getNaesteTilbudNr();
+  const nr = redigerId || await getNaesteTilbudNr();
 
   const nytTilbud = {
     id:nr,
+    dbId: redigerDbId || null,
     kunde,
     kontakt:document.getElementById('t-kontakt').value||'',
     email:document.getElementById('t-email').value||'',
@@ -1123,6 +1167,7 @@ async function opretTilbud() {
     listepris:kalk.listepris,
     justeringKr:kalk.justeringKr,
     tid:document.getElementById('t-tid').value||'',
+    slutTid:document.getElementById('t-slut-tid')?.value||'',
     gyldig:document.getElementById('t-gyldig').value||'',
     levform:document.getElementById('t-levform').value||'Spises på stedet',
     levAdresse:document.getElementById('t-lev-adresse').value||'',
@@ -1137,23 +1182,30 @@ async function opretTilbud() {
 
   const ok = await gemTilbudIDB(nytTilbud);
 
-  if(btn){btn.disabled=false;btn.textContent='✓ Gem tilbud';}
+  if(btn){btn.disabled=false;btn.textContent='✓ Gem tilbud';btn.removeAttribute('data-rediger-id');btn.removeAttribute('data-rediger-dbid');}
 
   if(!ok){
-    showToast('❌ Tilbud kunne IKKE gemmes — tjek konsol!',true);
+    showToast('❌ Tilbud kunne IKKE gemmes!',true);
     return;
   }
 
-  tilbud.unshift(nytTilbud);
-  tilbudKurv=[];
+  // Opdater eller tilføj i lokal liste
+  if(redigerId) {
+    const idx = tilbud.findIndex(x=>x.id===redigerId);
+    if(idx>=0) tilbud[idx] = nytTilbud;
+  } else {
+    tilbud.unshift(nytTilbud);
+  }
 
-  // Ryd formular
+  tilbudKurv=[];
   ['t-kunde','t-kontakt','t-email','t-tlf','t-adresse','t-postnr','t-by','t-beskr','t-bem','t-lev-adresse','t-lev-postnr','t-lev-by'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
+  const slutEl=document.getElementById('t-slut-tid');if(slutEl)slutEl.value='';
 
   updateStats();
-  showToast('✅ Tilbud '+nr+' gemt i database!');
+  const besked = redigerId ? '✅ Tilbud '+nr+' opdateret!' : '✅ Tilbud '+nr+' gemt i database!';
+  showToast(besked);
   showPage('tilbud');
 }
 
