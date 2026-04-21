@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Lubnan Ordreflow 4.26 — Bygget: 2026-04-21 — Database-gemning rettet -->
+<!-- Lubnan Ordreflow 4.27 — Bygget: 2026-04-21 — Database-gemning rettet -->
 <html lang="da">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lubnan Ordreflow 4.26</title>
+<title>Lubnan Ordreflow 4.27</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -192,7 +192,7 @@ textarea{resize:vertical;min-height:80px;}
 <div class="hdr">
   <div class="hdr-brand" onclick="showPage('forside')">
     <span class="hdr-logo">LUBNAN</span>
-    <span class="hdr-ver">BETA 4.26</span>
+    <span class="hdr-ver">BETA 4.27</span>
     <span class="db-status db-err" id="db-status">⏳ Forbinder...</span>
   </div>
   <span class="clock" id="clock"></span>
@@ -734,7 +734,7 @@ async function gemOrdreIDB(o) {
   };
   if(o.dbId) {
     const {error} = await db.from('orders').update(row).eq('id',o.dbId);
-    if(error)console.error('Opdater ordre fejl:',error);
+    if(error){console.error('Opdater ordre fejl:',error);return false;}
   } else {
     const {data,error} = await db.from('orders').insert(row).select().single();
     if(error){console.error('Indsæt ordre fejl:',error);return false;}
@@ -1607,7 +1607,29 @@ function sogArkiv(val) {
 async function konverterTilbud(id) {
   const t=tilbud.find(x=>x.id===id);if(!t)return;
   const nr = await getNaesteOrdreNr();
-  const nyOrdre={id:nr,kunde:t.kunde,kontakt:t.kontakt||'',afd:t.afd,beskr:t.beskr,antal:0,pris:t.pris,tid:t.tid,levform:t.levform||'Spises på stedet',betal:'Faktureres',status:'NYE ORDRER',handler:'',prio:'normal',adresse:t.levAdresse||t.adresse||'',postnr:t.levPostnr||t.postnr||'',by:t.levBy||t.by||'',instrukt:'',stafetTrin:1,stafetTider:{'1':new Date().toTimeString().slice(0,5)}};
+  // Sikr at tid altid har en værdi
+  const tid = t.tid || new Date().toISOString().slice(0,16);
+  const nyOrdre={
+    id:nr,
+    kunde:t.kunde,
+    kontakt:t.kontakt||'',
+    afd:t.afd||'hvidovre',
+    beskr:t.beskr||'Konverteret fra tilbud '+t.id,
+    antal:0,
+    pris:t.pris||0,
+    tid:tid,
+    levform:t.levform||'Spises på stedet',
+    betal:'Faktureres',
+    status:'NYE ORDRER',
+    handler:'',
+    prio:'normal',
+    adresse:t.levAdresse||t.adresse||'',
+    postnr:t.levPostnr||t.postnr||'',
+    by:t.levBy||t.by||'',
+    instrukt:'',
+    stafetTrin:1,
+    stafetTider:{'1':new Date().toTimeString().slice(0,5)}
+  };
   const ok = await gemOrdreIDB(nyOrdre);
   if(!ok){showToast('❌ Konvertering fejlede!',true);return;}
   ordrer.push(nyOrdre);updateStats();renderTilbud();renderBoard();
@@ -2105,3 +2127,4 @@ testForbindelse();
 </script>
 </body>
 </html>
+
