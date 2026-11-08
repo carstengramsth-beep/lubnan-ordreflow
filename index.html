@@ -403,7 +403,7 @@ textarea{resize:vertical;min-height:80px;}
 <!-- KUNDER -->
 <div id="page-kunder" class="hidden">
   <div class="page-hdr"><div style="font-family:'Playfair Display',serif;font-size:24px;">Kunder</div><button class="btn btn-primary btn-sm" onclick="openNyKunde()">➕ Ny kunde</button></div>
-  <input type="text" class="kunde-search" placeholder="🔍 Søg på kundenavn..." oninput="sogKunder(this.value)">
+  <input type="text" class="kunde-search" placeholder="🔍 Søg på navn, kontaktperson, telefon, email eller by..." oninput="sogKunder(this.value)">
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
     <button class="filter-btn active" onclick="filterKunder('alle',this)">Alle</button>
     <button class="filter-btn" onclick="filterKunder('Privat',this)">Privat</button>
@@ -619,7 +619,7 @@ let lokationer = [
 ];
 let redigerLokId = null;
 let ordrer = [], tilbud = [], kunder = [], kurv = [], tilbudKurv = [];
-let currentFlyFilter = 'alle', currentVareKat = 'Alle', currentKundeFilter = 'alle', openModalId = null;
+let currentFlyFilter = 'alle', currentVareKat = 'Alle', currentKundeFilter = 'alle', currentKundeSog = '', openModalId = null, modalLaast = false;
 
 const VARER = [
   {nr:'F-001',navn:'Hummus',kat:'Forret/Mezze',raavare:18,tid:5},
@@ -1470,48 +1470,85 @@ function valgKundeTilbud(id) {
   document.getElementById('t-kunde-suggestions').innerHTML='';
 }
 
-function renderKunder(filter='',gruppe='alle') {
+function renderKunder(filter=currentKundeSog,gruppe=currentKundeFilter) {
   const el=document.getElementById('kunde-grid');if(!el)return;
   let liste=kunder;
-  if(filter) liste=liste.filter(k=>k.navn.toLowerCase().includes(filter.toLowerCase()));
+  if(filter){
+    const q=filter.toLowerCase().trim();
+    liste=liste.filter(k=>[k.navn,k.kontakt,k.email,k.tlf,k.adresse,k.postnr,k.by,k.noter].some(v=>(v||'').toLowerCase().includes(q)));
+  }
   if(gruppe!=='alle') liste=liste.filter(k=>k.gruppe===gruppe);
-  if(!liste.length){el.innerHTML='<div style="color:var(--text-muted);text-align:center;padding:40px;">Ingen kunder endnu</div>';return;}
+  if(!liste.length){el.innerHTML=`<div style="color:var(--text-muted);text-align:center;padding:40px;">${filter||gruppe!=='alle'?'Ingen kunder passer til søgningen':'Ingen kunder endnu'}</div>`;return;}
   el.innerHTML=liste.map(k=>`<div class="kunde-card" onclick="openKundeModal('${k.id}')"><div class="kunde-navn">${k.navn}</div><div class="kunde-info">${k.kontakt||''} ${k.tlf?'· '+k.tlf:''}</div><div class="kunde-info">${k.email||''}</div><div class="kunde-tags"><span class="kunde-tag kt-${(k.gruppe||'').toLowerCase()}">${k.gruppe||''}</span></div></div>`).join('');
 }
 
-function sogKunder(val){renderKunder(val,currentKundeFilter);}
-function filterKunder(gruppe,btn){currentKundeFilter=gruppe;document.querySelectorAll('#page-kunder .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderKunder('',gruppe);}
+function sogKunder(val){currentKundeSog=val;renderKunder();}
+function filterKunder(gruppe,btn){currentKundeFilter=gruppe;document.querySelectorAll('#page-kunder .filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderKunder();}
+
+function kundeFormHtml(k={}) {
+  const v=x=>String(x||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+  const grp=k.gruppe||'Privat';
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="form-group full"><label>Kundenavn *</label><input id="nk-navn" type="text" placeholder="Navn eller virksomhed" value="${v(k.navn)}"></div>
+    <div class="form-group full"><label>Kontaktperson</label><input id="nk-kontakt" type="text" value="${v(k.kontakt)}"></div>
+    <div class="form-group"><label>Email</label><input id="nk-email" type="email" value="${v(k.email)}"></div>
+    <div class="form-group"><label>Telefon</label><input id="nk-tlf" type="tel" value="${v(k.tlf)}"></div>
+    <div class="form-group full"><label>Adresse</label><input id="nk-adresse" type="text" value="${v(k.adresse)}"></div>
+    <div class="form-group"><label>Postnummer</label><input id="nk-postnr" type="text" maxlength="4" value="${v(k.postnr)}"></div>
+    <div class="form-group"><label>By</label><input id="nk-by" type="text" value="${v(k.by)}"></div>
+    <div class="form-group"><label>Kundegruppe</label><select id="nk-gruppe">${['Privat','Erhverv','Storkunde'].map(g=>`<option ${g===grp?'selected':''}>${g}</option>`).join('')}</select></div>
+    <div class="form-group full"><label>Noter</label><textarea id="nk-noter" style="min-height:60px;">${v(k.noter)}</textarea></div>
+  </div>`;
+}
+
+function laesKundeForm() {
+  const g=id=>document.getElementById(id).value.trim();
+  return {navn:g('nk-navn'),kontakt:g('nk-kontakt'),email:g('nk-email'),landekode:'+45',tlf:g('nk-tlf'),adresse:g('nk-adresse'),postnr:g('nk-postnr'),by:g('nk-by'),gruppe:document.getElementById('nk-gruppe').value,noter:g('nk-noter')};
+}
+
+function kundeTilDb(k) {
+  return {name:k.navn,contact_person:k.kontakt,email:k.email,phone_country_code:k.landekode||'+45',phone:k.tlf,address:k.adresse,postal_code:k.postnr,city:k.by,customer_group:k.gruppe,notes:k.noter};
+}
 
 function openNyKunde() {
   document.getElementById('modal-title').textContent='Ny kunde';
-  document.getElementById('modal-body').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div class="form-group full"><label>Kundenavn *</label><input id="nk-navn" type="text" placeholder="Navn eller virksomhed"></div>
-    <div class="form-group full"><label>Kontaktperson</label><input id="nk-kontakt" type="text"></div>
-    <div class="form-group"><label>Email</label><input id="nk-email" type="email"></div>
-    <div class="form-group"><label>Telefon</label><input id="nk-tlf" type="tel"></div>
-    <div class="form-group full"><label>Adresse</label><input id="nk-adresse" type="text"></div>
-    <div class="form-group"><label>Postnummer</label><input id="nk-postnr" type="text" maxlength="4"></div>
-    <div class="form-group"><label>By</label><input id="nk-by" type="text"></div>
-    <div class="form-group"><label>Kundegruppe</label><select id="nk-gruppe"><option>Privat</option><option>Erhverv</option><option>Storkunde</option></select></div>
-    <div class="form-group full"><label>Noter</label><textarea id="nk-noter" style="min-height:60px;"></textarea></div>
-  </div>`;
+  document.getElementById('modal-body').innerHTML=kundeFormHtml();
   document.getElementById('modal-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="gemNyKunde()">✓ Gem kunde</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;
+  modalLaast=true;
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
 async function gemNyKunde() {
-  const navn=document.getElementById('nk-navn').value.trim();if(!navn){alert('Udfyld kundenavn');return;}
-  const nyKunde={navn,kontakt:document.getElementById('nk-kontakt').value,email:document.getElementById('nk-email').value,landekode:'+45',tlf:document.getElementById('nk-tlf').value,adresse:document.getElementById('nk-adresse').value,postnr:document.getElementById('nk-postnr').value,by:document.getElementById('nk-by').value,gruppe:document.getElementById('nk-gruppe').value,noter:document.getElementById('nk-noter').value};
-  const {data,error}=await db.from('customers').insert({name:nyKunde.navn,contact_person:nyKunde.kontakt,email:nyKunde.email,phone_country_code:'+45',phone:nyKunde.tlf,address:nyKunde.adresse,postal_code:nyKunde.postnr,city:nyKunde.by,customer_group:nyKunde.gruppe,notes:nyKunde.noter}).select().single();
+  const nyKunde=laesKundeForm();if(!nyKunde.navn){alert('Udfyld kundenavn');return;}
+  const {data,error}=await db.from('customers').insert(kundeTilDb(nyKunde)).select().single();
   if(error){alert('Fejl: '+error.message);return;}
-  nyKunde.id=data.id;kunder.push(nyKunde);closeModal();renderKunder();showToast('✅ Kunde gemt!');
+  nyKunde.id=data.id;kunder.push(nyKunde);kunder.sort((a,b)=>a.navn.localeCompare(b.navn,'da'));closeModal();renderKunder();showToast('✅ Kunde gemt!');
+}
+
+function openRedigerKunde(id) {
+  const k=kunder.find(x=>x.id===id);if(!k)return;
+  document.getElementById('modal-title').textContent='Ret kunde';
+  document.getElementById('modal-body').innerHTML=kundeFormHtml(k);
+  document.getElementById('modal-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="gemRetKunde('${id}')">✓ Gem ændringer</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Annuller</button>`;
+  modalLaast=true;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+async function gemRetKunde(id) {
+  const ny=laesKundeForm();if(!ny.navn){alert('Udfyld kundenavn');return;}
+  const {error}=await db.from('customers').update(kundeTilDb(ny)).eq('id',id);
+  if(error){alert('Fejl: '+error.message+'\n\nDine ændringer er IKKE gemt. Vinduet er stadig åbent.');return;}
+  const i=kunder.findIndex(x=>x.id===id);
+  if(i>=0) kunder[i]={...kunder[i],...ny};
+  kunder.sort((a,b)=>a.navn.localeCompare(b.navn,'da'));
+  closeModal();renderKunder();showToast('✅ Kunde rettet!');
 }
 
 function openKundeModal(id) {
   const k=kunder.find(x=>x.id===id);if(!k)return;
   document.getElementById('modal-title').textContent=k.navn;
-  document.getElementById('modal-body').innerHTML=`<div class="modal-detail"><span class="modal-lbl">Kontaktperson</span><span class="modal-val">${k.kontakt||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Email</span><span class="modal-val">${k.email||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Telefon</span><span class="modal-val">${k.tlf||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${k.adresse||'—'}${k.postnr?' '+k.postnr:''} ${k.by||''}</span></div><div class="modal-detail"><span class="modal-lbl">Gruppe</span><span class="modal-val">${k.gruppe||'—'}</span></div>`;
-  document.getElementById('modal-actions').innerHTML=`<button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button><button class="btn btn-danger btn-sm" onclick="sletKunde('${id}')">🗑 Slet</button>`;
+  document.getElementById('modal-body').innerHTML=`<div class="modal-detail"><span class="modal-lbl">Kontaktperson</span><span class="modal-val">${k.kontakt||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Email</span><span class="modal-val">${k.email||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Telefon</span><span class="modal-val">${k.tlf||'—'}</span></div><div class="modal-detail"><span class="modal-lbl">Adresse</span><span class="modal-val">${k.adresse||'—'}${k.postnr?' '+k.postnr:''} ${k.by||''}</span></div><div class="modal-detail"><span class="modal-lbl">Gruppe</span><span class="modal-val">${k.gruppe||'—'}</span></div>${k.noter?`<div class="modal-detail"><span class="modal-lbl">Noter</span><span class="modal-val">${k.noter}</span></div>`:''}`;
+  document.getElementById('modal-actions').innerHTML=`<button class="btn btn-primary btn-sm" onclick="openRedigerKunde('${id}')">✏️ Ret</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Luk</button><button class="btn btn-danger btn-sm" onclick="sletKunde('${id}')">🗑 Slet</button>`;
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
@@ -1585,7 +1622,8 @@ async function sletOrdre(id) {
 }
 
 function closeModal(e) {
-  if(!e||e.target.id==='modal-overlay'){document.getElementById('modal-overlay').classList.add('hidden');openModalId=null;}
+  if(e&&modalLaast) return;
+  if(!e||e.target.id==='modal-overlay'){document.getElementById('modal-overlay').classList.add('hidden');openModalId=null;modalLaast=false;}
 }
 
 // =============================================
